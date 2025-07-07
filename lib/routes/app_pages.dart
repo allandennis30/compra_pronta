@@ -18,6 +18,8 @@ import '../core/bindings/cliente_binding.dart';
 import '../core/bindings/vendedor_binding.dart';
 import '../modules/cliente/pages/profile_page.dart';
 import '../modules/vendedor/bindings/vendor_settings_binding.dart';
+import '../modules/vendedor/bindings/vendor_product_list_binding.dart';
+import '../modules/vendedor/bindings/vendor_product_form_binding.dart';
 
 class AuthBinding extends Bindings {
   @override
@@ -90,12 +92,12 @@ class AppPages {
     GetPage(
       name: Routes.vendorProdutos,
       page: () => VendorProductListPage(),
-      binding: VendedorBinding(),
+      binding: VendorProductListBinding(),
     ),
     GetPage(
       name: Routes.vendorForm,
       page: () => VendorProductFormPage(),
-      binding: VendedorBinding(),
+      binding: VendorProductFormBinding(),
     ),
     GetPage(
       name: Routes.vendorPedidos,

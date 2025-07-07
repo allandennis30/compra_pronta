@@ -1,3 +1,10 @@
+// TODO: Este arquivo faz parte de uma refatoração em andamento
+// onde todos os nomes "vendor" devem ser alterados para "vendedor"
+// Os seguintes passos precisam ser completados:
+// 1. Renomear os arquivos de controllers/repositories de vendor_* para vendedor_*
+// 2. Atualizar as importações em todos os arquivos
+// 3. Atualizar as referências de classe nos bindings
+
 import 'package:get/get.dart';
 import '../../modules/vendedor/controllers/vendor_product_list_controller.dart';
 import '../../modules/vendedor/controllers/vendor_product_form_controller.dart';
@@ -14,14 +21,25 @@ class VendedorBinding extends Bindings {
   void dependencies() {
     // Repositories usando factory
     Get.lazyPut<AuthRepository>(() => RepositoryFactory.createAuthRepository());
-    Get.lazyPut<VendorMetricsRepository>(() => RepositoryFactory.createVendorMetricsRepository());
-    
+    // TODO: Renomear para VendedorMetricsRepository após renomear os arquivos
+    Get.lazyPut<VendorMetricsRepository>(
+        () => RepositoryFactory.createVendorMetricsRepository());
+
     // Controllers
-    Get.lazyPut<VendorProductListController>(() => VendorProductListController());
-    Get.lazyPut<VendorProductFormController>(() => VendorProductFormController());
+    // TODO: Renomear para VendedorProductListController após renomear os arquivos
+    Get.lazyPut<VendorProductListController>(
+        () => VendorProductListController(repository: Get.find()));
+    // TODO: Renomear para VendedorProductFormController após renomear os arquivos
+    Get.lazyPut<VendorProductFormController>(
+        () => VendorProductFormController(repository: Get.find()));
+    // TODO: Renomear para VendedorOrderListController após renomear os arquivos
     Get.lazyPut<VendorOrderListController>(() => VendorOrderListController());
-    Get.lazyPut<VendorOrderDetailController>(() => VendorOrderDetailController());
+    // TODO: Renomear para VendedorOrderDetailController após renomear os arquivos
+    Get.lazyPut<VendorOrderDetailController>(
+        () => VendorOrderDetailController());
+    // TODO: Renomear para VendedorScanController após renomear os arquivos
     Get.lazyPut<VendorScanController>(() => VendorScanController());
+    // TODO: Renomear para VendedorMetricsController após renomear os arquivos
     Get.lazyPut<VendorMetricsController>(() => VendorMetricsController());
   }
-} 
+}
