@@ -17,6 +17,7 @@ import '../modules/auth/controllers/auth_controller.dart';
 import '../core/bindings/cliente_binding.dart';
 import '../core/bindings/vendedor_binding.dart';
 import '../modules/cliente/pages/profile_page.dart';
+import '../modules/cliente/bindings/product_detail_binding.dart';
 import '../modules/vendedor/bindings/vendor_settings_binding.dart';
 import '../modules/vendedor/bindings/vendor_product_list_binding.dart';
 import '../modules/vendedor/bindings/vendor_product_form_binding.dart';
@@ -66,7 +67,7 @@ class AppPages {
     GetPage(
       name: Routes.clienteDetalhe,
       page: () => ProductDetailPage(),
-      binding: ClienteBinding(),
+      binding: ProductDetailBinding(),
     ),
     GetPage(
       name: Routes.clienteCarrinho,
