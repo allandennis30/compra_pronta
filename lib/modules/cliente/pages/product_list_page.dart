@@ -104,13 +104,13 @@ class ProductListPage extends StatelessWidget {
         itemCount: controller.products.length,
         itemBuilder: (context, index) {
           final product = controller.products[index];
-          return _buildProductCard(product);
+          return _buildProductCard(product, context);
         },
       );
     });
   }
 
-  Widget _buildProductCard(ProductModel product) {
+  Widget _buildProductCard(ProductModel product, BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: InkWell(
@@ -172,7 +172,7 @@ class ProductListPage extends StatelessWidget {
                         const Spacer(),
                         Row(
                           children: [
-                            Icon(Icons.star, size: 16, color: Colors.amber),
+                            const Icon(Icons.star, size: 16, color: Colors.amber),
                             Text(
                               ' ${product.rating.toStringAsFixed(1)}',
                               style: const TextStyle(fontSize: 12),
@@ -195,7 +195,7 @@ class ProductListPage extends StatelessWidget {
                               ? Colors.red
                               : null,
                         ),
-                        onPressed: () => controller.toggleFavorite(product.id),
+                        onPressed: () => controller.toggleFavorite(product.id, context: context),
                       )),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -204,7 +204,7 @@ class ProductListPage extends StatelessWidget {
                     ),
                     onPressed: () {
                       final cartController = Get.find<CartController>();
-                      cartController.addItem(product);
+                      cartController.addItem(product, context: context);
                     },
                     child: const Text('+'),
                   ),

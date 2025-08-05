@@ -24,33 +24,33 @@ class ProductImageWidget extends StatelessWidget {
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) return child;
           return Container(
-             color: Theme.of(context).colorScheme.surfaceContainerHighest,
-             child: const Center(
-               child: CircularProgressIndicator(),
-             ),
-           );
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: const Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
         },
         errorBuilder: (context, error, stackTrace) {
           return Container(
-             color: Theme.of(context).colorScheme.surfaceContainerHighest,
-             child: Column(
-               mainAxisAlignment: MainAxisAlignment.center,
-               children: [
-                 Icon(
-                   Icons.image_not_supported_outlined,
-                   size: 64,
-                   color: Theme.of(context).colorScheme.onSurfaceVariant,
-                 ),
-                 const SizedBox(height: 16),
-                 Text(
-                   'Imagem não disponível',
-                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                     color: Theme.of(context).colorScheme.onSurfaceVariant,
-                   ),
-                 ),
-               ],
-             ),
-           );
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.image_not_supported_outlined,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Imagem não disponível',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ),
+          );
         },
       ),
     );

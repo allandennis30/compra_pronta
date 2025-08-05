@@ -9,14 +9,15 @@ class ProductDetailBinding extends Bindings {
   void dependencies() {
     // Ensure CartRepository is available
     if (!Get.isRegistered<CartRepository>()) {
-      Get.lazyPut<CartRepository>(() => RepositoryFactory.createCartRepository());
+      Get.lazyPut<CartRepository>(
+          () => RepositoryFactory.createCartRepository());
     }
-    
+
     // Ensure CartController is available
     if (!Get.isRegistered<CartController>()) {
       Get.lazyPut<CartController>(() => CartController());
     }
-    
+
     Get.lazyPut<ProductDetailController>(
       () => ProductDetailController(),
     );

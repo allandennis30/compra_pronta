@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/product_model.dart';
 import '../repositories/product_repository.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/utils/snackbar_utils.dart';
 
 class ProductListController extends GetxController {
   final ProductRepository _productRepository = Get.find<ProductRepository>();
@@ -33,13 +34,8 @@ class ProductListController extends GetxController {
       _products.value = products;
       _applyFilters();
     } catch (e) {
-      Get.snackbar(
-        'Erro',
-        'Erro ao carregar produtos: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Colors.white,
-      );
+      // Log do erro, mas não mostrar snackbar aqui pois não temos contexto
+      AppLogger.error('Erro ao carregar produtos', e);
     } finally {
       _isLoading.value = false;
     }
@@ -84,18 +80,16 @@ class ProductListController extends GetxController {
     _applyFilters();
   }
 
-  Future<void> toggleFavorite(String productId) async {
+  Future<void> toggleFavorite(String productId, {BuildContext? context}) async {
     try {
       await _productRepository.toggleFavorite(productId);
       _loadFavorites();
     } catch (e) {
-      Get.snackbar(
-        'Erro',
-        'Erro ao atualizar favoritos: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Colors.white,
-      );
+      if (context != null) {
+        SnackBarUtils.showError(context, 'Erro ao atualizar favoritos: $e');
+      } else {
+        AppLogger.error('Erro ao atualizar favoritos', e);
+      }
     }
   }
 
@@ -106,4 +100,4 @@ class ProductListController extends GetxController {
   List<String> get categories {
     return ['', 'Frutas e Verduras', 'Laticínios', 'Bebidas', 'Higiene', 'Limpeza'];
   }
-} 
+}

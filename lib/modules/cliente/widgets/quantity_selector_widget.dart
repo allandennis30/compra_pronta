@@ -72,8 +72,8 @@ class QuantitySelectorWidget extends StatelessWidget {
                 Text(
                   'Máx: $maxQuantity unidades',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                 ),
               ],
             ),
@@ -96,8 +96,8 @@ class QuantitySelectorWidget extends StatelessWidget {
                       quantity.toString(),
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ),
                   _buildQuantityButton(
@@ -123,7 +123,7 @@ class QuantitySelectorWidget extends StatelessWidget {
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: onPressed != null 
+        color: onPressed != null
             ? Theme.of(context).colorScheme.primary
             : Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
@@ -132,7 +132,7 @@ class QuantitySelectorWidget extends StatelessWidget {
         icon: Icon(
           icon,
           size: 18,
-          color: onPressed != null 
+          color: onPressed != null
               ? Theme.of(context).colorScheme.onPrimary
               : Theme.of(context).colorScheme.onSurfaceVariant,
         ),
@@ -171,16 +171,18 @@ class QuantitySelectorWidget extends StatelessWidget {
                   Text(
                     'Total a pagar',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
+                        ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'R\$ ${totalPrice.toStringAsFixed(2)}',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
+                        ),
                   ),
                 ],
               ),

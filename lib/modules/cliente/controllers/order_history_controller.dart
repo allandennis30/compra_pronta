@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/models/order_model.dart';
 import '../repositories/order_repository.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/utils/snackbar_utils.dart';
 
 class OrderHistoryController extends GetxController {
   final OrderRepository _orderRepository = Get.find<OrderRepository>();
@@ -25,37 +26,21 @@ class OrderHistoryController extends GetxController {
       final orders = await _orderRepository.getUserOrders();
       _orders.value = orders;
     } catch (e) {
-      Get.snackbar(
-        'Erro',
-        'Erro ao carregar histórico de pedidos: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Colors.white,
-      );
+      // Log do erro, mas não mostrar snackbar aqui pois não temos contexto
+      AppLogger.error('Erro ao carregar histórico de pedidos', e);
     } finally {
       _isLoading.value = false;
     }
   }
 
-  Future<void> repeatOrder(String orderId) async {
+  Future<void> repeatOrder(String orderId, BuildContext context) async {
     try {
-      final order = _orders.firstWhere((order) => order.id == orderId);
+      // Verificar se o pedido existe
+      _orders.firstWhere((order) => order.id == orderId);
       // TODO: Implementar lógica para repetir pedido
-      Get.snackbar(
-        'Sucesso',
-        'Pedido adicionado ao carrinho!',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.primary,
-        colorText: Colors.white,
-      );
+      SnackBarUtils.showSuccess(context, 'Pedido adicionado ao carrinho!');
     } catch (e) {
-      Get.snackbar(
-        'Erro',
-        'Erro ao repetir pedido: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Colors.white,
-      );
+      SnackBarUtils.showError(context, 'Erro ao repetir pedido: $e');
     }
   }
 

@@ -4,13 +4,16 @@ import '../repositories/vendor_metrics_repository.dart';
 import '../../../core/utils/logger.dart';
 
 class VendorMetricsController extends GetxController {
-  final VendorMetricsRepository _metricsRepository = Get.find<VendorMetricsRepository>();
+  final VendorMetricsRepository _metricsRepository =
+      Get.find<VendorMetricsRepository>();
   final RxDouble _totalSales = 0.0.obs;
   final RxInt _totalOrders = 0.obs;
   final RxInt _pendingOrders = 0.obs;
   final RxInt _totalProducts = 0.obs;
-  final RxList<Map<String, dynamic>> _recentOrders = <Map<String, dynamic>>[].obs;
-  final RxList<Map<String, dynamic>> _topProducts = <Map<String, dynamic>>[].obs;
+  final RxList<Map<String, dynamic>> _recentOrders =
+      <Map<String, dynamic>>[].obs;
+  final RxList<Map<String, dynamic>> _topProducts =
+      <Map<String, dynamic>>[].obs;
   final RxBool _isLoading = false.obs;
 
   double get totalSales => _totalSales.value;
@@ -29,7 +32,7 @@ class VendorMetricsController extends GetxController {
 
   void _loadMetrics() async {
     _isLoading.value = true;
-    
+
     try {
       await Future.wait([
         _loadDashboardMetrics(),
@@ -112,4 +115,4 @@ class VendorMetricsController extends GetxController {
         return Colors.grey;
     }
   }
-} 
+}

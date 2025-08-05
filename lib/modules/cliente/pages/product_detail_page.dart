@@ -16,30 +16,21 @@ class ProductDetailPage extends GetView<ProductDetailController> {
           controller.product?.name ?? 'Detalhes do Produto',
           style: const TextStyle(fontWeight: FontWeight.w600),
         )),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: controller.shareProduct,
-          ),
-        ],
       ),
-      body: _body,
-      bottomNavigationBar: _bottomNavigationBar,
+      body: _body(context),
     );
   }
 
-
-
-  Widget get _body => Obx(() {
+  Widget _body(BuildContext context) => Obx(() {
         if (controller.isLoading) {
           return _loadingWidget;
         }
 
         if (controller.product == null) {
-          return _errorWidget;
+          return _errorWidget(context);
         }
 
-        return _content;
+        return _content(context);
       });
 
   Widget get _loadingWidget => const Center(
@@ -56,7 +47,7 @@ class ProductDetailPage extends GetView<ProductDetailController> {
         ),
       );
 
-  Widget get _errorWidget => Center(
+  Widget _errorWidget(BuildContext context) => Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -65,12 +56,12 @@ class ProductDetailPage extends GetView<ProductDetailController> {
               Icon(
                 Icons.shopping_bag_outlined,
                 size: 80,
-                color: Theme.of(Get.context!).colorScheme.primary,
+                color: Theme.of(context).colorScheme.primary,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               Text(
                 'Produto não encontrado',
-                style: Theme.of(Get.context!).textTheme.headlineSmall?.copyWith(
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -78,7 +69,7 @@ class ProductDetailPage extends GetView<ProductDetailController> {
               Text(
                 'O produto que você está procurando\nnão está disponível no momento.',
                 textAlign: TextAlign.center,
-                style: Theme.of(Get.context!).textTheme.bodyLarge,
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
               const SizedBox(height: 32),
               ElevatedButton(
@@ -90,22 +81,22 @@ class ProductDetailPage extends GetView<ProductDetailController> {
         ),
       );
 
-  Widget get _content => SingleChildScrollView(
+  Widget _content(BuildContext context) => SingleChildScrollView(
         child: Column(
           children: [
-            // Product Image Section
+            // Compact Product Image Section
             Container(
-              height: 300,
+              height: 180,
               width: double.infinity,
-              margin: const EdgeInsets.all(16),
+              margin: const EdgeInsets.fromLTRB(12, 4, 12, 8),
               decoration: BoxDecoration(
-                color: Theme.of(Get.context!).colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(8),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
                   ),
                 ],
               ),
@@ -115,43 +106,40 @@ class ProductDetailPage extends GetView<ProductDetailController> {
                 onShare: controller.shareProduct,
               ),
             ),
-            // Product Info Section
-            Obx(() => ProductInfoWidget(
-                  product: controller.product!,
-                  isFavorite: controller.isFavorite,
-                  onToggleFavorite: controller.toggleFavorite,
-                )),
-            const SizedBox(height: 120), // Space for bottom navigation bar
+            // Compact Product Info Section
+             Padding(
+               padding: const EdgeInsets.symmetric(horizontal: 4),
+               child: ProductInfoWidget(
+                 product: controller.product!,
+               ),
+             ),
+            // Compact Quantity Selector Section
+            Container(
+              margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outline.withOpacity(0.15),
+                ),
+              ),
+              child: Obx(() => QuantitySelectorWidget(
+                    quantity: controller.quantity,
+                    maxQuantity: controller.product!.stock,
+                    onIncrement: controller.incrementQuantity,
+                    onDecrement: controller.decrementQuantity,
+                    totalPrice: controller.totalPrice,
+                    canAddToCart: controller.canAddToCart,
+                    onAddToCart: () => controller.addToCart(context),
+                    onGoToCart: controller.goToCart,
+                  )),
+            ),
+            // Minimal bottom padding
+            const SizedBox(height: 8),
           ],
         ),
       );
 
-  Widget get _bottomNavigationBar => Obx(() {
-        if (controller.product == null) {
-          return const SizedBox.shrink();
-        }
 
-        return Container(
-          decoration: BoxDecoration(
-            color: Theme.of(Get.context!).colorScheme.surface,
-            border: Border(
-              top: BorderSide(
-                color: Theme.of(Get.context!).colorScheme.outline.withOpacity(0.2),
-              ),
-            ),
-          ),
-          child: SafeArea(
-            child: QuantitySelectorWidget(
-              quantity: controller.quantity,
-              maxQuantity: controller.product!.stock,
-              onIncrement: controller.incrementQuantity,
-              onDecrement: controller.decrementQuantity,
-              totalPrice: controller.totalPrice,
-              canAddToCart: controller.canAddToCart,
-              onAddToCart: controller.addToCart,
-              onGoToCart: controller.goToCart,
-            ),
-          ),
-        );
-      });
 }

@@ -31,10 +31,10 @@ class VendorScanController extends GetxController {
 
   void processBarcode(String barcode) {
     _lastScannedCode.value = barcode;
-    
+
     // Simular busca do produto pelo código de barras
     final product = _findProductByBarcode(barcode);
-    
+
     if (product != null) {
       _addScannedItem(product);
       Get.snackbar(
@@ -55,8 +55,6 @@ class VendorScanController extends GetxController {
     }
   }
 
-
-
   Map<String, dynamic>? _findProductByBarcode(String barcode) {
     // Buscar nos produtos mock
     try {
@@ -72,7 +70,7 @@ class VendorScanController extends GetxController {
     final existingIndex = _scannedItems.indexWhere(
       (item) => item.barcode == product['barcode'],
     );
-    
+
     if (existingIndex >= 0) {
       _scannedItems[existingIndex].quantity++;
     } else {
@@ -89,7 +87,7 @@ class VendorScanController extends GetxController {
       _scannedItems.removeWhere((item) => item.barcode == barcode);
       return;
     }
-    
+
     final index = _scannedItems.indexWhere((item) => item.barcode == barcode);
     if (index >= 0) {
       _scannedItems[index].quantity = quantity;
@@ -120,7 +118,7 @@ class VendorScanController extends GetxController {
 
     // Simular geração de relatório
     final report = _generateReportText();
-    
+
     Get.dialog(
       AlertDialog(
         title: const Text('Relatório de Embalagem'),
@@ -158,7 +156,7 @@ class VendorScanController extends GetxController {
     buffer.writeln('');
     buffer.writeln('ITENS ESCANEADOS:');
     buffer.writeln('');
-    
+
     for (final item in _scannedItems) {
       buffer.writeln(item.name);
       buffer.writeln('  Código: ${item.barcode}');
@@ -167,7 +165,7 @@ class VendorScanController extends GetxController {
       buffer.writeln('  Subtotal: R\$ ${item.total.toStringAsFixed(2)}');
       buffer.writeln('');
     }
-    
+
     return buffer.toString();
   }
-} 
+}

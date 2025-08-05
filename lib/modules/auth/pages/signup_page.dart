@@ -151,6 +151,7 @@ class _SignupPageState extends State<SignupPage> {
                                     address: address,
                                     latitude: latitude,
                                     longitude: longitude,
+                                    context: context,
                                     istore: _isVendor,
                                   );
                                   if (ok) {
@@ -179,4 +180,4 @@ class _SignupPageState extends State<SignupPage> {
       ),
     );
   }
-} 
+}

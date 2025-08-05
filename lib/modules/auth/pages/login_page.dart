@@ -54,6 +54,7 @@ class LoginPage extends StatelessWidget {
                               await _authController.login(
                                 _emailController.text.trim(),
                                 _passwordController.text.trim(),
+                                context,
                               );
                               if (_authController.isLoggedIn) {
                                 if (_authController.isVendor) {

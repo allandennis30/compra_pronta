@@ -53,7 +53,7 @@ class OrderHistoryPage extends StatelessWidget {
             itemCount: controller.orders.length,
             itemBuilder: (context, index) {
               final order = controller.orders[index];
-              return _buildOrderCard(order);
+              return _buildOrderCard(context, order);
             },
           ),
         );
@@ -61,7 +61,7 @@ class OrderHistoryPage extends StatelessWidget {
     );
   }
 
-  Widget _buildOrderCard(OrderModel order) {
+  Widget _buildOrderCard(BuildContext context, OrderModel order) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: ExpansionTile(
@@ -180,7 +180,7 @@ class OrderHistoryPage extends StatelessWidget {
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: () => controller.repeatOrder(order.id),
+                        onPressed: () => controller.repeatOrder(order.id, context),
                         child: const Text('Repetir Pedido'),
                       ),
                     ),

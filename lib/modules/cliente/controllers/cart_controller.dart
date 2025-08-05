@@ -4,6 +4,7 @@ import 'package:get_storage/get_storage.dart';
 import '../models/product_model.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/utils/snackbar_utils.dart';
 
 class CartItem {
   final ProductModel product;
@@ -21,6 +22,7 @@ class CartController extends GetxController {
   final RxDouble subtotal = 0.0.obs;
   final RxDouble shipping = 0.0.obs;
   final RxDouble total = 0.0.obs;
+  DateTime? _lastSnackbarTime;
 
   List<CartItem> get items => cartItems;
   bool get isEmpty => cartItems.isEmpty;
@@ -65,7 +67,7 @@ class CartController extends GetxController {
     }
   }
 
-  void addItem(ProductModel product, {int quantity = 1}) {
+  void addItem(ProductModel product, {int quantity = 1, BuildContext? context}) {
     final existingIndex =
         cartItems.indexWhere((item) => item.product.id == product.id);
 
@@ -77,11 +79,16 @@ class CartController extends GetxController {
 
     _calculateTotals();
     _saveCart();
-    Get.snackbar(
-      'Sucesso',
-      'Produto adicionado ao carrinho!',
-      snackPosition: SnackPosition.BOTTOM,
-    );
+    
+    // Evitar múltiplas chamadas de snackbar em sequência rápida
+    final now = DateTime.now();
+    if (_lastSnackbarTime == null || 
+        now.difference(_lastSnackbarTime!).inMilliseconds > 1000) {
+      _lastSnackbarTime = now;
+      if (context != null) {
+        SnackBarUtils.showSuccess(context, 'Produto adicionado ao carrinho!');
+      }
+    }
   }
 
   void removeItem(String productId) {

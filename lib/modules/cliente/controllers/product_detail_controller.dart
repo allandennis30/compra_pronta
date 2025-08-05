@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/product_model.dart';
 import 'cart_controller.dart';
+import '../../../core/utils/snackbar_utils.dart';
 
 class ProductDetailController extends GetxController {
   final Rx<ProductModel?> _product = Rx<ProductModel?>(null);
@@ -51,39 +53,30 @@ class ProductDetailController extends GetxController {
     }
   }
 
-  void toggleFavorite() {
+  void toggleFavorite(BuildContext context) {
     _isFavorite.value = !_isFavorite.value;
     // TODO: Implementar persistência dos favoritos
-    Get.snackbar(
+    SnackBarUtils.showSuccess(
+      context,
       _isFavorite.value ? 'Adicionado aos favoritos' : 'Removido dos favoritos',
-      product?.name ?? '',
-      snackPosition: SnackPosition.BOTTOM,
     );
   }
 
-  void addToCart() {
+  void addToCart(BuildContext context) {
     if (product == null) return;
 
     try {
       final cartController = Get.find<CartController>();
       
-      for (int i = 0; i < _quantity.value; i++) {
-        cartController.addItem(product!);
-      }
-
-      Get.snackbar(
-        'Produto adicionado',
-        '${_quantity.value}x ${product!.name} adicionado ao carrinho',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      // Adicionar todos os itens de uma vez para evitar múltiplas notificações
+      cartController.addItem(product!, quantity: _quantity.value, context: context);
 
       // Reset quantity after adding to cart
       _quantity.value = 1;
     } catch (e) {
-      Get.snackbar(
-        'Erro',
+      SnackBarUtils.showError(
+        context,
         'Não foi possível adicionar o produto ao carrinho',
-        snackPosition: SnackPosition.BOTTOM,
       );
     }
   }

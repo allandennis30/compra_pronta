@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/utils/snackbar_utils.dart';
 import '../repositories/auth_repository.dart';
 
 class AuthController extends GetxController {
@@ -35,7 +36,7 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<bool> login(String email, String password) async {
+  Future<bool> login(String email, String password, BuildContext context) async {
     _isLoading.value = true;
 
     try {
@@ -46,23 +47,11 @@ class AuthController extends GetxController {
         _isLoggedIn.value = true;
         return true;
       } else {
-        Get.snackbar(
-          'Erro',
-          'Email ou senha incorretos',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Get.theme.colorScheme.error,
-          colorText: Colors.white,
-        );
+        SnackBarUtils.showError(context, 'Email ou senha incorretos');
         return false;
       }
     } catch (e) {
-      Get.snackbar(
-        'Erro',
-        'Erro ao fazer login: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Colors.white,
-      );
+      SnackBarUtils.showError(context, 'Erro ao fazer login: $e');
       return false;
     } finally {
       _isLoading.value = false;
@@ -77,6 +66,7 @@ class AuthController extends GetxController {
     required AddressModel address,
     required double latitude,
     required double longitude,
+    required BuildContext context,
     bool istore = false,
   }) async {
     _isLoading.value = true;
@@ -96,23 +86,11 @@ class AuthController extends GetxController {
       _currentUser.value = user;
       _isLoggedIn.value = true;
 
-      Get.snackbar(
-        'Sucesso',
-        'Conta criada com sucesso!',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.primary,
-        colorText: Colors.white,
-      );
+      SnackBarUtils.showSuccess(context, 'Conta criada com sucesso!');
 
       return true;
     } catch (e) {
-      Get.snackbar(
-        'Erro',
-        'Erro ao criar conta: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Colors.white,
-      );
+      SnackBarUtils.showError(context, 'Erro ao criar conta: $e');
       return false;
     } finally {
       _isLoading.value = false;
