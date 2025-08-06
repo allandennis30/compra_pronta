@@ -6,6 +6,7 @@
 // 3. Atualizar as referências de classe nos bindings
 
 import 'package:get/get.dart';
+import '../../modules/auth/repositories/auth_repository.dart';
 import '../../modules/vendedor/controllers/vendor_product_list_controller.dart';
 import '../../modules/vendedor/controllers/vendor_product_form_controller.dart';
 import '../../modules/vendedor/controllers/vendor_order_list_controller.dart';
@@ -13,7 +14,7 @@ import '../../modules/vendedor/controllers/vendor_order_detail_controller.dart';
 import '../../modules/vendedor/controllers/vendor_scan_controller.dart';
 import '../../modules/vendedor/controllers/vendor_metrics_controller.dart';
 import '../../modules/vendedor/repositories/vendor_metrics_repository.dart';
-import '../../modules/auth/repositories/auth_repository.dart';
+import '../../modules/vendedor/repositories/vendedor_product_repository.dart';
 import '../repositories/repository_factory.dart';
 
 class VendedorBinding extends Bindings {
@@ -24,6 +25,8 @@ class VendedorBinding extends Bindings {
     // TODO: Renomear para VendedorMetricsRepository após renomear os arquivos
     Get.lazyPut<VendorMetricsRepository>(
         () => RepositoryFactory.createVendorMetricsRepository());
+    Get.lazyPut<VendedorProductRepository>(
+        () => RepositoryFactory.createVendedorProductRepository());
 
     // Controllers
     // TODO: Renomear para VendedorProductListController após renomear os arquivos

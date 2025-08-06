@@ -3,6 +3,7 @@ import '../../modules/cliente/repositories/product_repository.dart';
 import '../../modules/cliente/repositories/cart_repository.dart';
 import '../../modules/cliente/repositories/order_repository.dart';
 import '../../modules/vendedor/repositories/vendor_metrics_repository.dart';
+import '../../modules/vendedor/repositories/vendedor_product_repository.dart';
 
 /// Factory para gerenciar repositories
 /// Permite trocar facilmente entre implementações mock e reais
@@ -52,6 +53,15 @@ class RepositoryFactory {
     } else {
       // return VendorMetricsApiRepository(); // Implementação real da API
       return VendorMetricsRepositoryImpl(); // Fallback para mock
+    }
+  }
+
+  static VendedorProductRepository createVendedorProductRepository() {
+    if (_useMockData) {
+      return VendedorProductRepositoryImpl();
+    } else {
+      // return VendedorProductApiRepository(); // Implementação real da API
+      return VendedorProductRepositoryImpl(); // Fallback para mock
     }
   }
 }

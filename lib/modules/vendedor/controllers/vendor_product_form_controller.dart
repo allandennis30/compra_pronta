@@ -27,10 +27,9 @@ class VendorProductFormController extends GetxController {
 
   final ImagePicker _picker = ImagePicker();
   final categories = [
-    'Frutas',
-    'Vegetais',
+    'Frutas e Verduras',
     'Carnes',
-    'Padaria',
+    'Pães e Massas',
     'Bebidas',
     'Laticínios',
     'Limpeza',
