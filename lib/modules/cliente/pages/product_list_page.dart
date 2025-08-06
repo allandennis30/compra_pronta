@@ -184,31 +184,16 @@ class ProductListPage extends StatelessWidget {
                   ],
                 ),
               ),
-              Column(
-                children: [
-                  Obx(() => IconButton(
-                        icon: Icon(
-                          controller.isFavorite(product.id)
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          color: controller.isFavorite(product.id)
-                              ? Colors.red
-                              : null,
-                        ),
-                        onPressed: () => controller.toggleFavorite(product.id, context: context),
-                      )),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.all(8),
-                      minimumSize: const Size(40, 40),
-                    ),
-                    onPressed: () {
-                      final cartController = Get.find<CartController>();
-                      cartController.addItem(product, context: context);
-                    },
-                    child: const Text('+'),
-                  ),
-                ],
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.all(8),
+                  minimumSize: const Size(40, 40),
+                ),
+                onPressed: () {
+                  final cartController = Get.find<CartController>();
+                  cartController.addItem(product, context: context);
+                },
+                child: const Text('+'),
               ),
             ],
           ),
