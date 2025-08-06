@@ -111,6 +111,11 @@ class AppPages {
       binding: VendedorBinding(),
     ),
     GetPage(
+      name: '/vendor/pedido/:orderId',
+      page: () => VendorOrderDetailPage(),
+      binding: VendedorBinding(),
+    ),
+    GetPage(
       name: Routes.vendorScan,
       page: () => VendorScanPage(),
       binding: VendedorBinding(),
