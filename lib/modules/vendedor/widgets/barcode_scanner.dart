@@ -16,7 +16,7 @@ class BarcodeScanner extends StatefulWidget {
 
 class _BarcodeScannerState extends State<BarcodeScanner> {
   late MobileScannerController controller;
-  bool _hasDetectedBarcode = false;
+  bool _isProcessing = false;
   bool _isTorchOn = false;
   bool _isFrontCamera = false;
   final TextEditingController _manualInputController = TextEditingController();
@@ -50,14 +50,29 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
       return;
     }
 
-    if (_hasDetectedBarcode) return;
+    if (_isProcessing) return;
+
+    _processBarcode(barcode.trim());
+    _manualInputController.clear();
+  }
+
+  void _processBarcode(String barcode) async {
+    if (_isProcessing) return;
 
     setState(() {
-      _hasDetectedBarcode = true;
+      _isProcessing = true;
     });
 
-    widget.onBarcodeDetected(barcode.trim());
-    Get.back();
+    widget.onBarcodeDetected(barcode);
+
+    // Aguarda 1 segundo antes de permitir novo escaneamento
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (mounted) {
+      setState(() {
+        _isProcessing = false;
+      });
+    }
   }
 
   @override
@@ -102,23 +117,32 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
           ),
         ),
         Expanded(
-          child: MobileScanner(
-              controller: controller,
-              onDetect: (capture) {
-                if (_hasDetectedBarcode) return;
+          child: Stack(
+            children: [
+              MobileScanner(
+                controller: controller,
+                onDetect: (capture) {
+                  if (_isProcessing) return;
 
-                final List<Barcode> barcodes = capture.barcodes;
-                if (barcodes.isNotEmpty) {
-                  final Barcode barcode = barcodes.first;
-                  if (barcode.rawValue != null) {
-                    setState(() {
-                      _hasDetectedBarcode = true;
-                    });
-                    widget.onBarcodeDetected(barcode.rawValue!);
-                    Get.back();
+                  final List<Barcode> barcodes = capture.barcodes;
+                  if (barcodes.isNotEmpty) {
+                    final Barcode barcode = barcodes.first;
+                    if (barcode.rawValue != null) {
+                      _processBarcode(barcode.rawValue!);
+                    }
                   }
-                }
-              },
+                },
+              ),
+              if (_isProcessing)
+                Container(
+                  color: Colors.black.withOpacity(0.3),
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
         Container(
@@ -130,7 +154,9 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Aponte a câmera para o código de barras',
+                  _isProcessing 
+                      ? 'Processando código de barras...'
+                      : 'Aponte a câmera para o código de barras',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
@@ -138,7 +164,9 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'O código será detectado automaticamente',
+                  _isProcessing
+                      ? 'Aguarde 1 segundo para escanear novamente'
+                      : 'O código será detectado automaticamente',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),

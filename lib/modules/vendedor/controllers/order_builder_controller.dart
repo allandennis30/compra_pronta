@@ -28,6 +28,7 @@ class OrderBuilderController extends GetxController {
       orderItem: item,
       isScanned: false,
       product: null,
+      scannedQuantity: 0,
     )).toList();
   }
   
@@ -44,19 +45,50 @@ class OrderBuilderController extends GetxController {
         );
         
         if (itemIndex != -1) {
-          // Marcar item como escaneado
-          orderItems[itemIndex] = orderItems[itemIndex].copyWith(
-            isScanned: true,
+          final currentItem = orderItems[itemIndex];
+          
+          // Verificar se já atingiu a quantidade total
+          if (currentItem.isComplete) {
+            Get.snackbar(
+              'Quantidade Completa',
+              'Produto ${product.name} já foi escaneado completamente (${currentItem.scannedQuantity}/${currentItem.orderItem.quantity})',
+              snackPosition: SnackPosition.TOP,
+              backgroundColor: Get.theme.colorScheme.tertiary,
+              colorText: Get.theme.colorScheme.onTertiary,
+              duration: const Duration(seconds: 2),
+            );
+            return;
+          }
+          
+          // Incrementar quantidade escaneada
+          final newScannedQuantity = currentItem.scannedQuantity + 1;
+          final isNowComplete = newScannedQuantity >= currentItem.orderItem.quantity;
+          
+          orderItems[itemIndex] = currentItem.copyWith(
+            isScanned: newScannedQuantity > 0,
             product: product,
+            scannedQuantity: newScannedQuantity,
           );
           
-          Get.snackbar(
-            'Sucesso',
-            'Produto ${product.name} encontrado!',
-            snackPosition: SnackPosition.TOP,
-            backgroundColor: Get.theme.colorScheme.primary,
-            colorText: Get.theme.colorScheme.onPrimary,
-          );
+          if (isNowComplete) {
+            Get.snackbar(
+              'Item Completo!',
+              'Produto ${product.name} escaneado completamente (${newScannedQuantity}/${currentItem.orderItem.quantity})',
+              snackPosition: SnackPosition.TOP,
+              backgroundColor: Get.theme.colorScheme.primary,
+              colorText: Get.theme.colorScheme.onPrimary,
+              duration: const Duration(seconds: 2),
+            );
+          } else {
+            Get.snackbar(
+              'Produto Adicionado',
+              'Produto ${product.name} (${newScannedQuantity}/${currentItem.orderItem.quantity})',
+              snackPosition: SnackPosition.TOP,
+              backgroundColor: Get.theme.colorScheme.secondary,
+              colorText: Get.theme.colorScheme.onSecondary,
+              duration: const Duration(seconds: 1),
+            );
+          }
         } else {
           Get.snackbar(
             'Produto não encontrado',
@@ -64,6 +96,7 @@ class OrderBuilderController extends GetxController {
             snackPosition: SnackPosition.TOP,
             backgroundColor: Get.theme.colorScheme.error,
             colorText: Get.theme.colorScheme.onError,
+            duration: const Duration(seconds: 2),
           );
         }
       } else {
@@ -73,6 +106,7 @@ class OrderBuilderController extends GetxController {
           snackPosition: SnackPosition.TOP,
           backgroundColor: Get.theme.colorScheme.error,
           colorText: Get.theme.colorScheme.onError,
+          duration: const Duration(seconds: 2),
         );
       }
     } catch (e) {
@@ -82,21 +116,32 @@ class OrderBuilderController extends GetxController {
         snackPosition: SnackPosition.TOP,
         backgroundColor: Get.theme.colorScheme.error,
         colorText: Get.theme.colorScheme.onError,
+        duration: const Duration(seconds: 2),
       );
     }
   }
   
-  // Verificar se todos os itens foram escaneados
-  bool get allItemsScanned => orderItems.every((item) => item.isScanned);
+  // Verificar se todos os itens foram escaneados completamente
+  bool get allItemsScanned => orderItems.every((item) => item.isComplete);
   
-  // Contar itens escaneados
-  int get scannedItemsCount => orderItems.where((item) => item.isScanned).length;
+  // Contar itens completamente escaneados
+  int get scannedItemsCount => orderItems.where((item) => item.isComplete).length;
   
   // Total de itens
   int get totalItemsCount => orderItems.length;
   
-  // Progresso em porcentagem
+  // Progresso em porcentagem baseado em itens completos
   double get progress => totalItemsCount > 0 ? scannedItemsCount / totalItemsCount : 0.0;
+  
+  // Progresso detalhado baseado em quantidades
+  double get detailedProgress {
+    if (orderItems.isEmpty) return 0.0;
+    
+    int totalQuantityNeeded = orderItems.fold(0, (sum, item) => sum + item.orderItem.quantity);
+    int totalQuantityScanned = orderItems.fold(0, (sum, item) => sum + item.scannedQuantity);
+    
+    return totalQuantityNeeded > 0 ? totalQuantityScanned / totalQuantityNeeded : 0.0;
+  }
 }
 
 // Classe para representar o status de um item do pedido
@@ -104,22 +149,32 @@ class OrderItemStatus {
   final OrderItemModel orderItem;
   final bool isScanned;
   final ProductModel? product;
+  final int scannedQuantity;
   
   OrderItemStatus({
     required this.orderItem,
     required this.isScanned,
     this.product,
+    this.scannedQuantity = 0,
   });
   
   OrderItemStatus copyWith({
     OrderItemModel? orderItem,
     bool? isScanned,
     ProductModel? product,
+    int? scannedQuantity,
   }) {
     return OrderItemStatus(
       orderItem: orderItem ?? this.orderItem,
       isScanned: isScanned ?? this.isScanned,
       product: product ?? this.product,
+      scannedQuantity: scannedQuantity ?? this.scannedQuantity,
     );
   }
+  
+  // Verifica se a quantidade total foi atingida
+  bool get isComplete => scannedQuantity >= orderItem.quantity;
+  
+  // Progresso do item (0.0 a 1.0)
+  double get progress => orderItem.quantity > 0 ? scannedQuantity / orderItem.quantity : 0.0;
 }

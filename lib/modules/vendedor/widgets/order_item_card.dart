@@ -4,29 +4,57 @@ import '../controllers/order_builder_controller.dart';
 class OrderItemCard extends StatelessWidget {
   final OrderItemStatus itemStatus;
   final VoidCallback? onTap;
+  final VoidCallback? onManualAdd;
 
   const OrderItemCard({
     super.key,
     required this.itemStatus,
     this.onTap,
+    this.onManualAdd,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isScanned = itemStatus.isScanned;
+    final isComplete = itemStatus.isComplete;
     final item = itemStatus.orderItem;
+    final progress = itemStatus.progress;
+
+    // Cores baseadas no status
+    Color cardColor;
+    Color borderColor;
+    Color iconColor;
+    Color textColor;
+    
+    if (isComplete) {
+      // Verde quando completo
+      cardColor = theme.colorScheme.primary.withOpacity(0.15);
+      borderColor = theme.colorScheme.primary;
+      iconColor = theme.colorScheme.primary;
+      textColor = theme.colorScheme.primary;
+    } else if (isScanned) {
+      // Azul quando parcialmente escaneado
+      cardColor = theme.colorScheme.secondary.withOpacity(0.1);
+      borderColor = theme.colorScheme.secondary;
+      iconColor = theme.colorScheme.secondary;
+      textColor = theme.colorScheme.secondary;
+    } else {
+      // Cinza quando não escaneado
+      cardColor = theme.colorScheme.surface;
+      borderColor = theme.colorScheme.outline.withOpacity(0.3);
+      iconColor = theme.colorScheme.onSurface.withOpacity(0.6);
+      textColor = theme.colorScheme.onSurface;
+    }
 
     return Card(
-      elevation: 2,
+      elevation: isComplete ? 4 : 2,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: isScanned
-              ? theme.colorScheme.primary
-              : theme.colorScheme.outline.withOpacity(0.3),
-          width: isScanned ? 2 : 1,
+          color: borderColor,
+          width: isComplete ? 3 : (isScanned ? 2 : 1),
         ),
       ),
       child: InkWell(
@@ -36,9 +64,7 @@ class OrderItemCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            color: isScanned
-                ? theme.colorScheme.primary.withOpacity(0.1)
-                : theme.colorScheme.surface,
+            color: cardColor,
           ),
           child: Row(
             children: [
@@ -47,17 +73,40 @@ class OrderItemCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: isScanned
+                  color: isComplete
                       ? theme.colorScheme.primary
-                      : theme.colorScheme.outline.withOpacity(0.3),
+                      : isScanned
+                          ? theme.colorScheme.secondary
+                          : theme.colorScheme.outline.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(24),
                 ),
-                child: Icon(
-                  isScanned ? Icons.check : Icons.shopping_bag_outlined,
-                  color: isScanned
-                      ? theme.colorScheme.onPrimary
-                      : theme.colorScheme.onSurface.withOpacity(0.6),
-                  size: 24,
+                child: Stack(
+                  children: [
+                    Center(
+                      child: Icon(
+                        isComplete
+                            ? Icons.check_circle
+                            : isScanned
+                                ? Icons.hourglass_empty
+                                : Icons.shopping_bag_outlined,
+                        color: isComplete || isScanned
+                            ? theme.colorScheme.onPrimary
+                            : theme.colorScheme.onSurface.withOpacity(0.6),
+                        size: 24,
+                      ),
+                    ),
+                    if (isScanned && !isComplete)
+                      Positioned.fill(
+                        child: CircularProgressIndicator(
+                          value: progress,
+                          strokeWidth: 3,
+                          backgroundColor: Colors.transparent,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            theme.colorScheme.onPrimary,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
               const SizedBox(width: 16),
@@ -71,9 +120,7 @@ class OrderItemCard extends StatelessWidget {
                       item.productName,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: isScanned
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurface,
+                        color: textColor,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -88,9 +135,12 @@ class OrderItemCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Qtd: ${item.quantity}',
+                          'Qtd: ${itemStatus.scannedQuantity}/${item.quantity}',
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.7),
+                            color: isComplete
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.onSurface.withOpacity(0.7),
+                            fontWeight: isComplete ? FontWeight.w600 : FontWeight.normal,
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -131,7 +181,7 @@ class OrderItemCard extends StatelessWidget {
                 ),
               ),
 
-              // Valor total
+              // Valor total e botão manual
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -150,6 +200,26 @@ class OrderItemCard extends StatelessWidget {
                           : theme.colorScheme.onSurface,
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  // Botão de adicionar manualmente
+                  if (onManualAdd != null && !isComplete)
+                    SizedBox(
+                      width: 36,
+                      height: 36,
+                      child: IconButton(
+                        onPressed: onManualAdd,
+                        icon: Icon(
+                          Icons.add_circle_outline,
+                          size: 20,
+                        ),
+                        style: IconButton.styleFrom(
+                          backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+                          foregroundColor: theme.colorScheme.primary,
+                          padding: EdgeInsets.zero,
+                        ),
+                        tooltip: 'Adicionar manualmente',
+                      ),
+                    ),
                 ],
               ),
             ],

@@ -6,7 +6,7 @@ import '../widgets/order_item_card.dart';
 import '../widgets/barcode_scanner.dart';
 
 class OrderBuilderPage extends StatelessWidget {
-  const OrderBuilderPage({Key? key}) : super(key: key);
+  const OrderBuilderPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -198,6 +198,7 @@ class OrderBuilderPage extends StatelessWidget {
                                 itemStatus: itemStatus,
                                 onTap: () =>
                                     _showItemDetails(context, itemStatus),
+                                onManualAdd: () => _addManually(itemStatus),
                               ),
                             );
                           },
@@ -246,8 +247,13 @@ class OrderBuilderPage extends StatelessWidget {
               ),
               child: Obx(() {
                 final progress = orderController.progress;
+                final detailedProgress = orderController.detailedProgress;
                 final scannedCount = orderController.scannedItemsCount;
                 final totalCount = orderController.totalItemsCount;
+                
+                // Calcular quantidades totais
+                final totalQuantityNeeded = orderController.orderItems.fold(0, (sum, item) => sum + item.orderItem.quantity);
+                final totalQuantityScanned = orderController.orderItems.fold(0, (sum, item) => sum + item.scannedQuantity);
 
                 return Padding(
                   padding:
@@ -268,7 +274,7 @@ class OrderBuilderPage extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'Progresso: $scannedCount/$totalCount',
+                              'Itens: $scannedCount/$totalCount • Qtd: $totalQuantityScanned/$totalQuantityNeeded',
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: isDark
                                     ? theme.colorScheme.onPrimaryContainer
@@ -280,7 +286,7 @@ class OrderBuilderPage extends StatelessWidget {
                             ClipRRect(
                               borderRadius: BorderRadius.circular(3),
                               child: LinearProgressIndicator(
-                                value: progress,
+                                value: detailedProgress,
                                 backgroundColor: isDark
                                     ? theme.colorScheme.onPrimaryContainer
                                         .withOpacity(0.2)
@@ -308,7 +314,7 @@ class OrderBuilderPage extends StatelessWidget {
                         )
                       else
                         Text(
-                          '${(progress * 100).toInt()}%',
+                          '${(detailedProgress * 100).toInt()}%',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: isDark
                                 ? theme.colorScheme.onPrimaryContainer
@@ -352,9 +358,11 @@ class OrderBuilderPage extends StatelessWidget {
                   width: 4,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: itemStatus.isScanned
+                    color: itemStatus.isComplete
                         ? theme.colorScheme.primary
-                        : theme.colorScheme.outline,
+                        : itemStatus.isScanned
+                            ? theme.colorScheme.secondary
+                            : theme.colorScheme.outline,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -370,11 +378,17 @@ class OrderBuilderPage extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        itemStatus.isScanned ? 'ESCANEADO' : 'PENDENTE',
+                        itemStatus.isComplete
+                            ? 'COMPLETO'
+                            : itemStatus.isScanned
+                                ? 'PARCIAL'
+                                : 'PENDENTE',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: itemStatus.isScanned
+                          color: itemStatus.isComplete
                               ? theme.colorScheme.primary
-                              : theme.colorScheme.error,
+                              : itemStatus.isScanned
+                                  ? theme.colorScheme.secondary
+                                  : theme.colorScheme.error,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -386,9 +400,21 @@ class OrderBuilderPage extends StatelessWidget {
             const SizedBox(height: 20),
             _buildDetailRow(
               context,
-              'Quantidade',
+              'Quantidade Necessária',
               '${itemStatus.orderItem.quantity} unidades',
               Icons.inventory_2_outlined,
+            ),
+            _buildDetailRow(
+              context,
+              'Quantidade Escaneada',
+              '${itemStatus.scannedQuantity} unidades',
+              Icons.qr_code_scanner,
+            ),
+            _buildDetailRow(
+              context,
+              'Progresso',
+              '${(itemStatus.progress * 100).toInt()}%',
+              Icons.trending_up,
             ),
             _buildDetailRow(
               context,
@@ -482,6 +508,43 @@ class OrderBuilderPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _addManually(OrderItemStatus itemStatus) {
+    final orderController = Get.find<OrderBuilderController>();
+    
+    // Verificar se o produto tem código de barras
+    if (itemStatus.product?.barcode != null && itemStatus.product!.barcode.isNotEmpty) {
+      // Processar o código de barras do produto
+      orderController.processScannedBarcode(itemStatus.product!.barcode);
+    } else {
+      // Se não tem código de barras, simular adição manual
+      Get.snackbar(
+        'Adição Manual',
+        'Produto ${itemStatus.orderItem.productName} adicionado manualmente',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Get.theme.colorScheme.primary,
+        colorText: Get.theme.colorScheme.onPrimary,
+        duration: const Duration(seconds: 2),
+      );
+      
+      // Incrementar quantidade escaneada diretamente
+      final currentItem = itemStatus;
+      final newScannedQuantity = currentItem.scannedQuantity + 1;
+      
+      if (newScannedQuantity <= currentItem.orderItem.quantity) {
+        final index = orderController.orderItems.indexWhere(
+          (item) => item.orderItem.productId == currentItem.orderItem.productId,
+        );
+        
+        if (index != -1) {
+          orderController.orderItems[index] = currentItem.copyWith(
+            isScanned: newScannedQuantity > 0,
+            scannedQuantity: newScannedQuantity,
+          );
+        }
+      }
+    }
   }
 
   void _showCompletionDialog(
