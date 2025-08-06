@@ -14,9 +14,11 @@ class VendorProductFormController extends GetxController {
   final TextEditingController priceController = TextEditingController();
   final TextEditingController stockController = TextEditingController();
   final TextEditingController barcodeController = TextEditingController();
+  final TextEditingController pricePerKgController = TextEditingController();
 
   final RxString selectedCategory = ''.obs;
   final RxBool isAvailable = true.obs;
+  final RxBool isSoldByWeight = false.obs;
   final RxBool isLoading = false.obs;
   final RxBool hasError = false.obs;
   final RxString errorMessage = ''.obs;
@@ -57,6 +59,7 @@ class VendorProductFormController extends GetxController {
     priceController.dispose();
     stockController.dispose();
     barcodeController.dispose();
+    pricePerKgController.dispose();
     super.onClose();
   }
 
@@ -71,6 +74,8 @@ class VendorProductFormController extends GetxController {
     barcodeController.text = product.barcode;
     selectedCategory.value = product.category;
     isAvailable.value = product.isAvailable;
+    isSoldByWeight.value = product.isSoldByWeight;
+    pricePerKgController.text = product.pricePerKg?.toString() ?? '';
     imageUrl.value = product.imageUrl;
   }
 
@@ -109,12 +114,21 @@ class VendorProductFormController extends GetxController {
     isAvailable.value = !isAvailable.value;
   }
 
+  void toggleSoldByWeight() {
+    isSoldByWeight.value = !isSoldByWeight.value;
+    // Limpar campos quando alternar o tipo de venda
+    if (isSoldByWeight.value) {
+      stockController.clear();
+    } else {
+      pricePerKgController.clear();
+    }
+  }
+
   bool validateForm() {
+    // Campos obrigatórios básicos
     if (nameController.text.isEmpty ||
         descriptionController.text.isEmpty ||
-        priceController.text.isEmpty ||
         selectedCategory.value.isEmpty ||
-        stockController.text.isEmpty ||
         barcodeController.text.isEmpty ||
         (productImage.value == null && imageUrl.value.isEmpty)) {
       errorMessage.value = 'Preencha todos os campos obrigatórios';
@@ -122,16 +136,41 @@ class VendorProductFormController extends GetxController {
       return false;
     }
 
-    if (double.tryParse(priceController.text) == null) {
-      errorMessage.value = 'Preço inválido';
-      hasError.value = true;
-      return false;
-    }
-
-    if (int.tryParse(stockController.text) == null) {
-      errorMessage.value = 'Quantidade em estoque inválida';
-      hasError.value = true;
-      return false;
+    // Validação condicional baseada no tipo de venda
+    if (isSoldByWeight.value) {
+      // Para produtos vendidos por peso
+      if (pricePerKgController.text.isEmpty) {
+        errorMessage.value = 'Preço por kg é obrigatório para produtos vendidos por peso';
+        hasError.value = true;
+        return false;
+      }
+      if (double.tryParse(pricePerKgController.text) == null) {
+        errorMessage.value = 'Preço por kg inválido';
+        hasError.value = true;
+        return false;
+      }
+    } else {
+      // Para produtos vendidos por unidade
+      if (priceController.text.isEmpty) {
+        errorMessage.value = 'Preço é obrigatório';
+        hasError.value = true;
+        return false;
+      }
+      if (double.tryParse(priceController.text) == null) {
+        errorMessage.value = 'Preço inválido';
+        hasError.value = true;
+        return false;
+      }
+      if (stockController.text.isEmpty) {
+        errorMessage.value = 'Quantidade em estoque é obrigatória';
+        hasError.value = true;
+        return false;
+      }
+      if (int.tryParse(stockController.text) == null) {
+        errorMessage.value = 'Quantidade em estoque inválida';
+        hasError.value = true;
+        return false;
+      }
     }
 
     hasError.value = false;
@@ -176,12 +215,14 @@ class VendorProductFormController extends GetxController {
         id: isEditing.value ? editingProductId.value! : const Uuid().v4(),
         name: nameController.text.trim(),
         description: descriptionController.text.trim(),
-        price: double.parse(priceController.text),
+        price: isSoldByWeight.value ? 0.0 : double.parse(priceController.text),
         imageUrl: finalImageUrl,
         category: selectedCategory.value,
         barcode: barcodeController.text.trim(),
-        stock: int.parse(stockController.text),
+        stock: isSoldByWeight.value ? 0 : int.parse(stockController.text),
         isAvailable: isAvailable.value,
+        isSoldByWeight: isSoldByWeight.value,
+        pricePerKg: isSoldByWeight.value ? double.parse(pricePerKgController.text) : null,
       );
 
       if (isEditing.value) {

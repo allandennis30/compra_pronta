@@ -95,27 +95,31 @@ class AppConstants {
       "id": "prod_001",
       "name": "Maçã Fuji",
       "description": "Maçãs frescas e doces, ideais para consumo in natura",
-      "price": 8.90,
+      "price": 0.0,
       "imageUrl": "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400",
       "category": "Frutas e Verduras",
       "barcode": "7891234567890",
-      "stock": 50,
+      "stock": 0,
       "isAvailable": true,
       "rating": 4.5,
-      "reviewCount": 12
+      "reviewCount": 12,
+      "isSoldByWeight": true,
+      "pricePerKg": 8.90
     },
     {
       "id": "prod_002",
       "name": "Banana Prata",
       "description": "Bananas prata maduras e saborosas",
-      "price": 4.50,
+      "price": 0.0,
       "imageUrl": "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400",
       "category": "Frutas e Verduras",
       "barcode": "7891234567891",
-      "stock": 30,
+      "stock": 0,
       "isAvailable": true,
       "rating": 4.2,
-      "reviewCount": 8
+      "reviewCount": 8,
+      "isSoldByWeight": true,
+      "pricePerKg": 4.50
     },
     {
       "id": "prod_003",
@@ -170,4 +174,4 @@ class AppConstants {
       "reviewCount": 10
     }
   ];
-} 
+}

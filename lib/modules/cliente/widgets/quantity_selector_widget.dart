@@ -9,6 +9,8 @@ class QuantitySelectorWidget extends StatelessWidget {
   final bool canAddToCart;
   final VoidCallback onAddToCart;
   final VoidCallback onGoToCart;
+  final bool isSoldByWeight;
+  final double? weight;
 
   const QuantitySelectorWidget({
     super.key,
@@ -20,6 +22,8 @@ class QuantitySelectorWidget extends StatelessWidget {
     required this.canAddToCart,
     required this.onAddToCart,
     required this.onGoToCart,
+    this.isSoldByWeight = false,
+    this.weight,
   });
 
   @override
@@ -65,12 +69,14 @@ class QuantitySelectorWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Quantidade',
+                  isSoldByWeight ? 'Peso' : 'Quantidade',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Máx: $maxQuantity unidades',
+                  isSoldByWeight 
+                      ? 'Selecione o peso em kg'
+                      : 'Máx: $maxQuantity unidades',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -87,13 +93,17 @@ class QuantitySelectorWidget extends StatelessWidget {
                   _buildQuantityButton(
                     context: context,
                     icon: Icons.remove,
-                    onPressed: quantity > 1 ? onDecrement : null,
+                    onPressed: isSoldByWeight 
+                        ? (weight != null && weight! > 0.1 ? onDecrement : null)
+                        : (quantity > 1 ? onDecrement : null),
                   ),
                   Container(
                     width: 60,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Text(
-                      quantity.toString(),
+                      isSoldByWeight 
+                          ? '${(weight ?? 0.0).toStringAsFixed(1)}kg'
+                          : quantity.toString(),
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
@@ -103,7 +113,9 @@ class QuantitySelectorWidget extends StatelessWidget {
                   _buildQuantityButton(
                     context: context,
                     icon: Icons.add,
-                    onPressed: quantity < maxQuantity ? onIncrement : null,
+                    onPressed: isSoldByWeight 
+                        ? onIncrement
+                        : (quantity < maxQuantity ? onIncrement : null),
                   ),
                 ],
               ),

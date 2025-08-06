@@ -10,6 +10,8 @@ class ProductModel {
   final bool isAvailable;
   final double rating;
   final int reviewCount;
+  final bool isSoldByWeight;
+  final double? pricePerKg;
 
   ProductModel({
     required this.id,
@@ -23,6 +25,8 @@ class ProductModel {
     this.isAvailable = true,
     this.rating = 0.0,
     this.reviewCount = 0,
+    this.isSoldByWeight = false,
+    this.pricePerKg,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) => ProductModel(
@@ -37,6 +41,8 @@ class ProductModel {
     isAvailable: json['isAvailable'] ?? true,
     rating: json['rating']?.toDouble() ?? 0.0,
     reviewCount: json['reviewCount'] ?? 0,
+    isSoldByWeight: json['isSoldByWeight'] ?? false,
+    pricePerKg: json['pricePerKg']?.toDouble(),
   );
 
   Map<String, dynamic> toJson() => {
@@ -51,6 +57,8 @@ class ProductModel {
     'isAvailable': isAvailable,
     'rating': rating,
     'reviewCount': reviewCount,
+    'isSoldByWeight': isSoldByWeight,
+    'pricePerKg': pricePerKg,
   };
 
   ProductModel copyWith({
@@ -65,6 +73,8 @@ class ProductModel {
     bool? isAvailable,
     double? rating,
     int? reviewCount,
+    bool? isSoldByWeight,
+    double? pricePerKg,
   }) {
     return ProductModel(
       id: id ?? this.id,
@@ -78,6 +88,8 @@ class ProductModel {
       isAvailable: isAvailable ?? this.isAvailable,
       rating: rating ?? this.rating,
       reviewCount: reviewCount ?? this.reviewCount,
+      isSoldByWeight: isSoldByWeight ?? this.isSoldByWeight,
+      pricePerKg: pricePerKg ?? this.pricePerKg,
     );
   }
-} 
+}

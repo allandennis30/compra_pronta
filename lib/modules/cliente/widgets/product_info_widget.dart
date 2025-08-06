@@ -62,7 +62,9 @@ class ProductInfoWidget extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        'R\$ ${product.price.toStringAsFixed(2)}',
+                        product.isSoldByWeight
+                            ? 'R\$ ${product.pricePerKg?.toStringAsFixed(2) ?? '0.00'}/kg'
+                            : 'R\$ ${product.price.toStringAsFixed(2)}',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.onPrimary,
@@ -73,7 +75,7 @@ class ProductInfoWidget extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: product.isAvailable && product.stock > 0
+                        color: (product.isSoldByWeight ? product.isAvailable : (product.isAvailable && product.stock > 0))
                             ? Colors.green[50]
                             : Colors.red[50],
                         borderRadius: BorderRadius.circular(8),
@@ -82,21 +84,23 @@ class ProductInfoWidget extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            product.isAvailable && product.stock > 0
+                            (product.isSoldByWeight ? product.isAvailable : (product.isAvailable && product.stock > 0))
                                 ? Icons.check_circle
                                 : Icons.cancel,
-                            color: product.isAvailable && product.stock > 0
+                            color: (product.isSoldByWeight ? product.isAvailable : (product.isAvailable && product.stock > 0))
                                 ? Colors.green[700]
                                 : Colors.red[700],
                             size: 14,
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            product.isAvailable && product.stock > 0
-                                ? '${product.stock} un.'
-                                : 'Indisponível',
+                            product.isSoldByWeight
+                                ? (product.isAvailable ? 'Disponível' : 'Indisponível')
+                                : (product.isAvailable && product.stock > 0
+                                    ? '${product.stock} un.'
+                                    : 'Indisponível'),
                             style: TextStyle(
-                              color: product.isAvailable && product.stock > 0
+                              color: (product.isSoldByWeight ? product.isAvailable : (product.isAvailable && product.stock > 0))
                                   ? Colors.green[700]
                                   : Colors.red[700],
                               fontWeight: FontWeight.w600,

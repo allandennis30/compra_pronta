@@ -7,11 +7,13 @@ import '../../../core/utils/snackbar_utils.dart';
 class ProductDetailController extends GetxController {
   final Rx<ProductModel?> _product = Rx<ProductModel?>(null);
   final RxInt _quantity = 1.obs;
+  final RxDouble _weight = 0.5.obs; // Peso inicial de 0.5kg
   final RxBool _isLoading = false.obs;
   final RxBool _isFavorite = false.obs;
 
   ProductModel? get product => _product.value;
   int get quantity => _quantity.value;
+  double get weight => _weight.value;
   bool get isLoading => _isLoading.value;
   bool get isFavorite => _isFavorite.value;
 
@@ -36,20 +38,39 @@ class ProductDetailController extends GetxController {
   }
 
   void incrementQuantity() {
-    if (_quantity.value < (product?.stock ?? 0)) {
-      _quantity.value++;
+    if (product?.isSoldByWeight == true) {
+      _weight.value += 0.1; // Incrementa 0.1kg
+    } else {
+      if (_quantity.value < (product?.stock ?? 0)) {
+        _quantity.value++;
+      }
     }
   }
 
   void decrementQuantity() {
-    if (_quantity.value > 1) {
-      _quantity.value--;
+    if (product?.isSoldByWeight == true) {
+      if (_weight.value > 0.1) {
+        _weight.value -= 0.1; // Decrementa 0.1kg
+        if (_weight.value < 0.1) {
+          _weight.value = 0.1; // Peso mínimo de 0.1kg
+        }
+      }
+    } else {
+      if (_quantity.value > 1) {
+        _quantity.value--;
+      }
     }
   }
 
   void setQuantity(int newQuantity) {
     if (newQuantity >= 1 && newQuantity <= (product?.stock ?? 0)) {
       _quantity.value = newQuantity;
+    }
+  }
+
+  void setWeight(double newWeight) {
+    if (newWeight >= 0.1) {
+      _weight.value = newWeight;
     }
   }
 
@@ -68,11 +89,17 @@ class ProductDetailController extends GetxController {
     try {
       final cartController = Get.find<CartController>();
       
-      // Adicionar todos os itens de uma vez para evitar múltiplas notificações
-      cartController.addItem(product!, quantity: _quantity.value, context: context);
-
-      // Reset quantity after adding to cart
-      _quantity.value = 1;
+      if (product!.isSoldByWeight) {
+        // Para produtos vendidos por peso, usar o peso como quantidade
+        cartController.addItem(product!, quantity: (_weight.value * 10).round(), context: context);
+        // Reset weight after adding to cart
+        _weight.value = 0.5;
+      } else {
+        // Adicionar todos os itens de uma vez para evitar múltiplas notificações
+        cartController.addItem(product!, quantity: _quantity.value, context: context);
+        // Reset quantity after adding to cart
+        _quantity.value = 1;
+      }
     } catch (e) {
       SnackBarUtils.showError(
         context,
@@ -94,11 +121,12 @@ class ProductDetailController extends GetxController {
     );
   }
 
-  double get totalPrice => (product?.price ?? 0.0) * _quantity.value;
+  double get totalPrice => product?.isSoldByWeight == true
+      ? (product?.pricePerKg ?? 0.0) * _weight.value
+      : (product?.price ?? 0.0) * _quantity.value;
 
   bool get canAddToCart => 
       product != null && 
       product!.isAvailable && 
-      product!.stock > 0 && 
-      _quantity.value <= product!.stock;
+      (product!.isSoldByWeight || (product!.stock > 0 && _quantity.value <= product!.stock));
 }

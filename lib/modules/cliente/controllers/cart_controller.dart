@@ -12,7 +12,13 @@ class CartItem {
 
   CartItem({required this.product, this.quantity = 1});
 
-  double get total => product.price * quantity;
+  double get total => product.isSoldByWeight 
+      ? (product.pricePerKg ?? 0.0) * (quantity / 10.0) // Para produtos por peso, quantity é peso * 10
+      : product.price * quantity;
+
+  double get displayQuantity => product.isSoldByWeight 
+      ? quantity / 10.0 // Converte de volta para kg
+      : quantity.toDouble();
 }
 
 class CartController extends GetxController {
@@ -32,7 +38,14 @@ class CartController extends GetxController {
   }
 
   int get itemCount {
-    return cartItems.fold(0, (sum, item) => sum + item.quantity);
+    return cartItems.fold(0, (sum, item) {
+      if (item.product.isSoldByWeight) {
+        // Para produtos por peso, conta como 1 item independente do peso
+        return sum + 1;
+      } else {
+        return sum + item.quantity;
+      }
+    });
   }
 
   @override

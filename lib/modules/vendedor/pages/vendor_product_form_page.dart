@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 import '../controllers/vendor_product_form_controller.dart';
 import '../widgets/image_picker_widget.dart';
 import '../widgets/barcode_scanner.dart';
@@ -47,17 +46,27 @@ class VendorProductFormPage extends GetView<VendorProductFormController> {
           const SizedBox(height: 16),
           _buildDescription(),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(child: _buildPrice()),
-              const SizedBox(width: 16),
-              Expanded(child: _buildStock()),
-            ],
+          Obx(
+            () => controller.isSoldByWeight.value
+                ? const SizedBox() // Não mostrar preço e estoque para produtos por peso
+                : Row(
+                    children: [
+                      Expanded(child: _buildPrice()),
+                      const SizedBox(width: 16),
+                      Expanded(child: _buildStock()),
+                    ],
+                  ),
           ),
           const SizedBox(height: 16),
           _buildBarcodeField(),
           const SizedBox(height: 16),
           _buildCategoryDropdown(),
+          const SizedBox(height: 16),
+          _buildSoldByWeightToggle(),
+          const SizedBox(height: 16),
+          Obx(() => controller.isSoldByWeight.value
+              ? _buildPricePerKgField()
+              : const SizedBox()),
           const SizedBox(height: 16),
           _buildAvailabilityToggle(),
           const SizedBox(height: 24),
@@ -208,6 +217,42 @@ class VendorProductFormPage extends GetView<VendorProductFormController> {
         }
       },
       hint: const Text('Selecione uma categoria'),
+    );
+  }
+
+  Widget _buildSoldByWeightToggle() {
+    return Obx(() => SwitchListTile(
+          title: const Text('Vendido por peso'),
+          subtitle: Text(
+            controller.isSoldByWeight.value
+                ? 'Cliente escolhe o peso desejado'
+                : 'Produto vendido por unidade',
+            style: TextStyle(
+              color: controller.isSoldByWeight.value
+                  ? Colors.blue.shade700
+                  : Colors.grey,
+            ),
+          ),
+          value: controller.isSoldByWeight.value,
+          onChanged: (value) => controller.toggleSoldByWeight(),
+          secondary: Icon(
+            controller.isSoldByWeight.value ? Icons.scale : Icons.inventory_2,
+            color: controller.isSoldByWeight.value ? Colors.blue : Colors.grey,
+          ),
+        ));
+  }
+
+  Widget _buildPricePerKgField() {
+    return TextFormField(
+      controller: controller.pricePerKgController,
+      decoration: const InputDecoration(
+        labelText: 'Preço por Kg (R\$)',
+        hintText: 'Ex: 12.50',
+        border: OutlineInputBorder(),
+        prefixIcon: Icon(Icons.scale),
+        suffixText: '/kg',
+      ),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
     );
   }
 

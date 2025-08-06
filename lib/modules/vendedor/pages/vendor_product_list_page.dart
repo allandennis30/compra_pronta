@@ -118,7 +118,9 @@ class VendorProductListPage extends GetView<VendorProductListController> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'R\$ ${product.price.toStringAsFixed(2)} | Estoque: ${product.stock}',
+                  product.isSoldByWeight
+                      ? 'R\$ ${product.pricePerKg?.toStringAsFixed(2) ?? '0.00'}/kg'
+                      : 'R\$ ${product.price.toStringAsFixed(2)} | Estoque: ${product.stock}',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(

@@ -133,6 +133,8 @@ class ProductDetailPage extends GetView<ProductDetailController> {
                     canAddToCart: controller.canAddToCart,
                     onAddToCart: () => controller.addToCart(context),
                     onGoToCart: controller.goToCart,
+                    isSoldByWeight: controller.product!.isSoldByWeight,
+                    weight: controller.weight,
                   )),
             ),
             // Minimal bottom padding

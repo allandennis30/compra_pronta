@@ -162,7 +162,9 @@ class ProductListPage extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          'R\$ ${product.price.toStringAsFixed(2)}',
+                          product.isSoldByWeight
+                              ? 'R\$ ${product.pricePerKg?.toStringAsFixed(2) ?? '0.00'}/kg'
+                              : 'R\$ ${product.price.toStringAsFixed(2)}',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
