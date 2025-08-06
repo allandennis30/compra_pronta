@@ -9,6 +9,9 @@ class OrderBuilderController extends GetxController {
   // Estado reativo dos itens do pedido
   final RxList<OrderItemStatus> orderItems = <OrderItemStatus>[].obs;
   
+  // Controle de visibilidade do scanner
+  final RxBool isScannerVisible = false.obs;
+  
   // Pedido atual
   late OrderModel currentOrder;
   
@@ -141,6 +144,11 @@ class OrderBuilderController extends GetxController {
     int totalQuantityScanned = orderItems.fold(0, (sum, item) => sum + item.scannedQuantity);
     
     return totalQuantityNeeded > 0 ? totalQuantityScanned / totalQuantityNeeded : 0.0;
+  }
+  
+  // Alternar visibilidade do scanner
+  void toggleScannerVisibility() {
+    isScannerVisible.value = !isScannerVisible.value;
   }
 }
 

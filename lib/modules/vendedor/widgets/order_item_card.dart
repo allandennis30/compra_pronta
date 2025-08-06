@@ -5,12 +5,14 @@ class OrderItemCard extends StatelessWidget {
   final OrderItemStatus itemStatus;
   final VoidCallback? onTap;
   final VoidCallback? onManualAdd;
+  final VoidCallback? onManualRemove;
 
   const OrderItemCard({
     super.key,
     required this.itemStatus,
     this.onTap,
     this.onManualAdd,
+    this.onManualRemove,
   });
 
   @override
@@ -135,7 +137,9 @@ class OrderItemCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Qtd: ${itemStatus.scannedQuantity}/${item.quantity}',
+                          itemStatus.product?.isSoldByWeight == true
+                              ? 'Peso: ${(itemStatus.scannedQuantity / 10.0).toStringAsFixed(1)}kg/${(item.quantity / 10.0).toStringAsFixed(1)}kg'
+                              : 'Qtd: ${itemStatus.scannedQuantity}/${item.quantity}',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: isComplete
                                 ? theme.colorScheme.primary
@@ -150,7 +154,9 @@ class OrderItemCard extends StatelessWidget {
                           color: theme.colorScheme.onSurface.withOpacity(0.6),
                         ),
                         Text(
-                          'R\$ ${item.price.toStringAsFixed(2)}',
+                          itemStatus.product?.isSoldByWeight == true
+                              ? 'R\$ ${(itemStatus.product?.pricePerKg ?? 0.0).toStringAsFixed(2)}/kg'
+                              : 'R\$ ${item.price.toStringAsFixed(2)}',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurface.withOpacity(0.7),
                           ),
@@ -192,7 +198,9 @@ class OrderItemCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'R\$ ${(item.price * item.quantity).toStringAsFixed(2)}',
+                    itemStatus.product?.isSoldByWeight == true
+                        ? 'R\$ ${((itemStatus.product?.pricePerKg ?? 0.0) * (item.quantity / 10.0)).toStringAsFixed(2)}'
+                        : 'R\$ ${(item.price * item.quantity).toStringAsFixed(2)}',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: isScanned
@@ -201,25 +209,52 @@ class OrderItemCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  // Botão de adicionar manualmente
-                  if (onManualAdd != null && !isComplete)
-                    SizedBox(
-                      width: 36,
-                      height: 36,
-                      child: IconButton(
-                        onPressed: onManualAdd,
-                        icon: Icon(
-                          Icons.add_circle_outline,
-                          size: 20,
+                  // Botões de controle manual
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Botão de remover
+                      if (onManualRemove != null && isScanned)
+                        SizedBox(
+                          width: 32,
+                          height: 32,
+                          child: IconButton(
+                            onPressed: onManualRemove,
+                            icon: Icon(
+                              Icons.remove_circle_outline,
+                              size: 18,
+                            ),
+                            style: IconButton.styleFrom(
+                              backgroundColor: theme.colorScheme.error.withOpacity(0.1),
+                              foregroundColor: theme.colorScheme.error,
+                              padding: EdgeInsets.zero,
+                            ),
+                            tooltip: 'Remover manualmente',
+                          ),
                         ),
-                        style: IconButton.styleFrom(
-                          backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
-                          foregroundColor: theme.colorScheme.primary,
-                          padding: EdgeInsets.zero,
+                      if (onManualRemove != null && isScanned && onManualAdd != null && !isComplete)
+                        const SizedBox(width: 4),
+                      // Botão de adicionar
+                      if (onManualAdd != null && !isComplete)
+                        SizedBox(
+                          width: 32,
+                          height: 32,
+                          child: IconButton(
+                            onPressed: onManualAdd,
+                            icon: Icon(
+                              Icons.add_circle_outline,
+                              size: 18,
+                            ),
+                            style: IconButton.styleFrom(
+                              backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+                              foregroundColor: theme.colorScheme.primary,
+                              padding: EdgeInsets.zero,
+                            ),
+                            tooltip: 'Adicionar manualmente',
+                          ),
                         ),
-                        tooltip: 'Adicionar manualmente',
-                      ),
-                    ),
+                    ],
+                  ),
                 ],
               ),
             ],

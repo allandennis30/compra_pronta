@@ -69,50 +69,92 @@ class OrderBuilderPage extends StatelessWidget {
         children: [
           Column(
             children: [
-              // Scanner de código de barras - otimizado
+              // Botão para abrir/fechar leitor
               Container(
-                margin: const EdgeInsets.symmetric(horizontal: 12),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? theme.colorScheme.surface
-                      : theme.colorScheme.background,
-                  borderRadius: BorderRadius.circular(12),
-                  border: isDark
-                      ? Border.all(
-                          color: theme.colorScheme.outline.withOpacity(0.2),
-                          width: 1,
-                        )
-                      : null,
-                  boxShadow: isDark
-                      ? null
-                      : [
-                          BoxShadow(
-                            color: theme.colorScheme.shadow.withOpacity(0.08),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      height: 300, // Aumentado para melhor visualização
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: BarcodeScanner(
-                          onBarcodeDetected: (barcode) {
-                            orderController.processScannedBarcode(barcode);
-                          },
+                width: double.infinity,
+                margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+                child: Obx(() => ElevatedButton.icon(
+                      onPressed: () => orderController.toggleScannerVisibility(),
+                      icon: Icon(
+                        orderController.isScannerVisible.value
+                            ? Icons.close
+                            : Icons.qr_code_scanner,
+                        size: 18,
+                        color: Colors.white,
+                      ),
+                      label: Text(
+                        orderController.isScannerVisible.value
+                            ? 'Fechar Leitor'
+                            : 'Abrir Leitor',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: Colors.white,
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                      style: ElevatedButton.styleFrom(
+                         backgroundColor: orderController.isScannerVisible.value
+                             ? Colors.red
+                             : Colors.green,
+                         foregroundColor: Colors.white,
+                         padding: const EdgeInsets.symmetric(
+                           horizontal: 12,
+                           vertical: 8,
+                         ),
+                         shape: RoundedRectangleBorder(
+                           borderRadius: BorderRadius.circular(8),
+                         ),
+                         elevation: 2,
+                       ),
+                    )),
               ),
 
-              const SizedBox(height: 12),
+              // Scanner de código de barras - condicional
+              Obx(() => orderController.isScannerVisible.value
+                  ? Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? theme.colorScheme.surface
+                            : theme.colorScheme.background,
+                        borderRadius: BorderRadius.circular(12),
+                        border: isDark
+                            ? Border.all(
+                                color: theme.colorScheme.outline.withOpacity(0.2),
+                                width: 1,
+                              )
+                            : null,
+                        boxShadow: isDark
+                            ? null
+                            : [
+                                BoxShadow(
+                                  color: theme.colorScheme.shadow.withOpacity(0.08),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            height: 300, // Aumentado para melhor visualização
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: BarcodeScanner(
+                                onBarcodeDetected: (barcode) {
+                                  orderController.processScannedBarcode(barcode);
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : const SizedBox.shrink()),
+
+              Obx(() => orderController.isScannerVisible.value
+                  ? const SizedBox(height: 12)
+                  : const SizedBox.shrink()),
 
               // Lista de itens do pedido
               Expanded(
@@ -199,6 +241,7 @@ class OrderBuilderPage extends StatelessWidget {
                                 onTap: () =>
                                     _showItemDetails(context, itemStatus),
                                 onManualAdd: () => _addManually(itemStatus),
+                                onManualRemove: () => _removeManually(itemStatus),
                               ),
                             );
                           },
@@ -400,14 +443,18 @@ class OrderBuilderPage extends StatelessWidget {
             const SizedBox(height: 20),
             _buildDetailRow(
               context,
-              'Quantidade Necessária',
-              '${itemStatus.orderItem.quantity} unidades',
+              itemStatus.product?.isSoldByWeight == true ? 'Peso Necessário' : 'Quantidade Necessária',
+              itemStatus.product?.isSoldByWeight == true 
+                  ? '${(itemStatus.orderItem.quantity / 10.0).toStringAsFixed(1)} kg'
+                  : '${itemStatus.orderItem.quantity} unidades',
               Icons.inventory_2_outlined,
             ),
             _buildDetailRow(
               context,
-              'Quantidade Escaneada',
-              '${itemStatus.scannedQuantity} unidades',
+              itemStatus.product?.isSoldByWeight == true ? 'Peso Escaneado' : 'Quantidade Escaneada',
+              itemStatus.product?.isSoldByWeight == true 
+                  ? '${(itemStatus.scannedQuantity / 10.0).toStringAsFixed(1)} kg'
+                  : '${itemStatus.scannedQuantity} unidades',
               Icons.qr_code_scanner,
             ),
             _buildDetailRow(
@@ -418,8 +465,10 @@ class OrderBuilderPage extends StatelessWidget {
             ),
             _buildDetailRow(
               context,
-              'Preço Unitário',
-              'R\$ ${itemStatus.orderItem.price.toStringAsFixed(2)}',
+              itemStatus.product?.isSoldByWeight == true ? 'Preço por Kg' : 'Preço Unitário',
+              itemStatus.product?.isSoldByWeight == true 
+                  ? 'R\$ ${(itemStatus.product?.pricePerKg ?? 0.0).toStringAsFixed(2)}/kg'
+                  : 'R\$ ${itemStatus.orderItem.price.toStringAsFixed(2)}',
               Icons.attach_money,
             ),
             _buildDetailRow(
@@ -544,6 +593,37 @@ class OrderBuilderPage extends StatelessWidget {
           );
         }
       }
+    }
+  }
+
+  void _removeManually(OrderItemStatus itemStatus) {
+    final orderController = Get.find<OrderBuilderController>();
+    
+    // Verificar se há quantidade para remover
+    if (itemStatus.scannedQuantity > 0) {
+      // Decrementar quantidade escaneada
+      final currentItem = itemStatus;
+      final newScannedQuantity = currentItem.scannedQuantity - 1;
+      
+      final index = orderController.orderItems.indexWhere(
+        (item) => item.orderItem.productId == currentItem.orderItem.productId,
+      );
+      
+      if (index != -1) {
+        orderController.orderItems[index] = currentItem.copyWith(
+          isScanned: newScannedQuantity > 0,
+          scannedQuantity: newScannedQuantity,
+        );
+      }
+    } else {
+      Get.snackbar(
+        'Aviso',
+        'Não há quantidade escaneada para remover',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Get.theme.colorScheme.tertiary,
+        colorText: Get.theme.colorScheme.onTertiary,
+        duration: const Duration(seconds: 2),
+      );
     }
   }
 
