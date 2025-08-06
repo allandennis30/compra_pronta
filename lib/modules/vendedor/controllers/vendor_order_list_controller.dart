@@ -121,23 +121,25 @@ class VendorOrderListController extends GetxController {
   }
 
   Color getStatusColor(String status) {
+    // Note: This method should ideally receive a BuildContext to access theme
+    // For now, using Material Design default colors that work in both themes
     switch (status) {
       case 'pending':
-        return Colors.orange;
+        return const Color(0xFFFF9800); // Orange
       case 'confirmed':
-        return Colors.blue;
+        return const Color(0xFF2196F3); // Blue
       case 'preparing':
-        return Colors.purple;
-      case 'ready':
-        return Colors.green;
+        return const Color(0xFF2196F3); // Blue
       case 'delivering':
-        return Colors.indigo;
+        return const Color(0xFF2196F3); // Blue
       case 'delivered':
-        return Colors.green.shade700;
+        return const Color(0xFF4CAF50); // Green
+      case 'ready_for_pickup':
+        return const Color(0xFF388E3C); // Dark Green
       case 'cancelled':
-        return Colors.red;
+        return const Color(0xFFF44336); // Red
       default:
-        return Colors.grey;
+        return const Color(0xFF9E9E9E); // Grey
     }
   }
 

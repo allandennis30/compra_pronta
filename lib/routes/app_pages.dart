@@ -13,14 +13,15 @@ import '../modules/vendedor/pages/vendor_order_list_page.dart';
 import '../modules/vendedor/pages/vendor_order_detail_page.dart';
 import '../modules/vendedor/pages/vendor_scan_page.dart';
 import '../modules/vendedor/pages/vendor_settings_page.dart';
+import '../modules/vendedor/pages/order_builder_page.dart';
 import '../modules/auth/controllers/auth_controller.dart';
 import '../core/bindings/cliente_binding.dart';
 import '../core/bindings/vendedor_binding.dart';
 import '../modules/cliente/pages/profile_page.dart';
 import '../modules/cliente/bindings/product_detail_binding.dart';
-import '../modules/vendedor/bindings/vendor_settings_binding.dart';
-import '../modules/vendedor/bindings/vendor_product_list_binding.dart';
-import '../modules/vendedor/bindings/vendor_product_form_binding.dart';
+import '../modules/vendedor/bindings/vendedor_settings_binding.dart';
+import '../modules/vendedor/bindings/vendedor_product_list_binding.dart';
+import '../modules/vendedor/bindings/vendedor_product_form_binding.dart';
 
 class AuthBinding extends Bindings {
   @override
@@ -44,6 +45,7 @@ abstract class Routes {
   static const vendorPedidoDetalhe = '/vendor/pedido';
   static const vendorScan = '/vendor/scan';
   static const vendorConfig = '/vendor/config';
+  static const vendorOrderBuilder = '/vendor/order-builder';
 }
 
 class AppPages {
@@ -93,12 +95,12 @@ class AppPages {
     GetPage(
       name: Routes.vendorProdutos,
       page: () => VendorProductListPage(),
-      binding: VendorProductListBinding(),
+      binding: VendedorProductListBinding(),
     ),
     GetPage(
       name: Routes.vendorForm,
       page: () => VendorProductFormPage(),
-      binding: VendorProductFormBinding(),
+      binding: VendedorProductFormBinding(),
     ),
     GetPage(
       name: Routes.vendorPedidos,
@@ -123,7 +125,12 @@ class AppPages {
     GetPage(
       name: Routes.vendorConfig,
       page: () => VendorSettingsPage(),
-      binding: VendorSettingsBinding(),
+      binding: VendedorSettingsBinding(),
+    ),
+    GetPage(
+      name: Routes.vendorOrderBuilder,
+      page: () => OrderBuilderPage(),
+      binding: VendedorBinding(),
     ),
     GetPage(
       name: '/cliente/perfil',

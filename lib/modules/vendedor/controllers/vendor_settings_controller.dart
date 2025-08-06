@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../models/horario_funcionamento.dart';
 
-class VendorSettingsController extends GetxController {
+class VendedorSettingsController extends GetxController {
   // Informações da loja
   var nomeLoja = ''.obs;
   var cnpjCpf = ''.obs;

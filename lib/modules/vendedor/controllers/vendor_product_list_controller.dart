@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 import '../../cliente/models/product_model.dart';
 import '../repositories/vendedor_product_repository.dart';
 
-class VendorProductListController extends GetxController {
+class VendedorProductListController extends GetxController {
   final VendedorProductRepository _repository;
   final RxList<ProductModel> products = <ProductModel>[].obs;
   final RxList<ProductModel> _allProducts = <ProductModel>[].obs;
@@ -13,7 +13,7 @@ class VendorProductListController extends GetxController {
   final RxString selectedCategory = ''.obs;
   final RxBool isSearching = false.obs;
 
-  VendorProductListController({required VendedorProductRepository repository})
+  VendedorProductListController({required VendedorProductRepository repository})
       : _repository = repository;
 
   @override
@@ -117,8 +117,12 @@ class VendorProductListController extends GetxController {
     // Aplicar filtro de busca
     if (searchQuery.value.isNotEmpty) {
       filteredProducts = filteredProducts.where((product) {
-        return product.name.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
-               product.description.toLowerCase().contains(searchQuery.value.toLowerCase());
+        return product.name
+                .toLowerCase()
+                .contains(searchQuery.value.toLowerCase()) ||
+            product.description
+                .toLowerCase()
+                .contains(searchQuery.value.toLowerCase());
       }).toList();
     }
 
@@ -133,7 +137,8 @@ class VendorProductListController extends GetxController {
   }
 
   List<String> get availableCategories {
-    return _allProducts.map((product) => product.category).toSet().toList()..sort();
+    return _allProducts.map((product) => product.category).toSet().toList()
+      ..sort();
   }
 
   void toggleSearch() {

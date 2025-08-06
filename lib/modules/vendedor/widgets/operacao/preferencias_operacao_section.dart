@@ -5,7 +5,7 @@ import '../../controllers/vendor_settings_controller.dart';
 import '../../models/horario_funcionamento.dart';
 
 class PreferenciasOperacaoSection extends StatelessWidget {
-  final VendorSettingsController controller;
+  final VendedorSettingsController controller;
 
   const PreferenciasOperacaoSection({
     super.key,

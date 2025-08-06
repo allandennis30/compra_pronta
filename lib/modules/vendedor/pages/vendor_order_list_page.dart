@@ -46,8 +46,6 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
           fontWeight: FontWeight.bold,
         ),
       ),
-      backgroundColor: Colors.white,
-      foregroundColor: Colors.black87,
       elevation: 0,
       actions: [
         Obx(() => IconButton(

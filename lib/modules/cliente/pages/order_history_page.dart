@@ -10,6 +10,8 @@ class OrderHistoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Histórico de Pedidos'),
@@ -26,20 +28,28 @@ class OrderHistoryPage extends StatelessWidget {
         }
 
         if (controller.orders.isEmpty) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.history, size: 64, color: Colors.grey),
-                SizedBox(height: 16),
+                Icon(
+                  Icons.history, 
+                  size: 64, 
+                  color: theme.colorScheme.onSurface.withOpacity(0.5),
+                ),
+                const SizedBox(height: 16),
                 Text(
                   'Nenhum pedido encontrado',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
                   'Faça seu primeiro pedido para ver o histórico aqui',
-                  style: TextStyle(color: Colors.grey),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  ),
                 ),
               ],
             ),
@@ -62,6 +72,8 @@ class OrderHistoryPage extends StatelessWidget {
   }
 
   Widget _buildOrderCard(BuildContext context, OrderModel order) {
+    final theme = Theme.of(context);
+    
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: ExpansionTile(
@@ -73,15 +85,14 @@ class OrderHistoryPage extends StatelessWidget {
                 children: [
                   Text(
                     'Pedido #${order.id}',
-                    style: const TextStyle(
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
                     ),
                   ),
                   Text(
                     'R\$ ${order.total.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      color: Colors.green,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -110,11 +121,15 @@ class OrderHistoryPage extends StatelessWidget {
           children: [
             Text(
               '${order.items.length} item${order.items.length > 1 ? 's' : ''}',
-              style: TextStyle(color: Colors.grey[600]),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
+              ),
             ),
             Text(
               'Data: ${_formatDate(order.createdAt)}',
-              style: TextStyle(color: Colors.grey[600]),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
+              ),
             ),
           ],
         ),
@@ -124,9 +139,11 @@ class OrderHistoryPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Itens do Pedido:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 ...order.items.map((item) => Padding(
@@ -134,12 +151,22 @@ class OrderHistoryPage extends StatelessWidget {
                       child: Row(
                         children: [
                           Expanded(
-                            child: Text(item.productName),
+                            child: Text(
+                              item.productName,
+                              style: theme.textTheme.bodyMedium,
+                            ),
                           ),
-                          Text('${item.quantity}x'),
+                          Text(
+                            '${item.quantity}x',
+                            style: theme.textTheme.bodyMedium,
+                          ),
                           const SizedBox(width: 16),
                           Text(
-                              'R\$ ${(item.price * item.quantity).toStringAsFixed(2)}'),
+                            'R\$ ${(item.price * item.quantity).toStringAsFixed(2)}',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ],
                       ),
                     )),
@@ -147,30 +174,44 @@ class OrderHistoryPage extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Subtotal:'),
-                    Text('R\$ ${order.subtotal.toStringAsFixed(2)}'),
+                    Text(
+                      'Subtotal:',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    Text(
+                      'R\$ ${order.subtotal.toStringAsFixed(2)}',
+                      style: theme.textTheme.bodyMedium,
+                    ),
                   ],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Taxa de entrega:'),
-                    Text('R\$ ${order.deliveryFee.toStringAsFixed(2)}'),
+                    Text(
+                      'Taxa de entrega:',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    Text(
+                      'R\$ ${order.deliveryFee.toStringAsFixed(2)}',
+                      style: theme.textTheme.bodyMedium,
+                    ),
                   ],
                 ),
                 const Divider(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Total:',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Text(
                       'R\$ ${order.total.toStringAsFixed(2)}',
-                      style: const TextStyle(
+                      style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Colors.green,
+                        color: theme.colorScheme.primary,
                       ),
                     ),
                   ],
@@ -206,28 +247,56 @@ class OrderHistoryPage extends StatelessWidget {
   }
 
   void _showOrderDetails(OrderModel order) {
+    final theme = Theme.of(Get.context!);
+    
     Get.dialog(
       AlertDialog(
-        title: Text('Detalhes do Pedido #${order.id}'),
+        title: Text(
+          'Detalhes do Pedido #${order.id}',
+          style: theme.textTheme.titleLarge,
+        ),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Status: ${controller.getStatusText(order.status)}'),
-              Text('Data: ${_formatDate(order.createdAt)}'),
+              Text(
+                'Status: ${controller.getStatusText(order.status)}',
+                style: theme.textTheme.bodyMedium,
+              ),
+              Text(
+                'Data: ${_formatDate(order.createdAt)}',
+                style: theme.textTheme.bodyMedium,
+              ),
               if (order.deliveredAt != null)
-                Text('Entregue em: ${_formatDate(order.deliveredAt!)}'),
+                Text(
+                  'Entregue em: ${_formatDate(order.deliveredAt!)}',
+                  style: theme.textTheme.bodyMedium,
+                ),
               const SizedBox(height: 16),
-              const Text('Endereço de Entrega:',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
               Text(
-                  '${order.deliveryAddress.street}, ${order.deliveryAddress.number}'),
+                'Endereço de Entrega:',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                '${order.deliveryAddress.street}, ${order.deliveryAddress.number}',
+                style: theme.textTheme.bodyMedium,
+              ),
               if (order.deliveryAddress.complement != null)
-                Text('Complemento: ${order.deliveryAddress.complement}'),
+                Text(
+                  'Complemento: ${order.deliveryAddress.complement}',
+                  style: theme.textTheme.bodyMedium,
+                ),
               Text(
-                  '${order.deliveryAddress.neighborhood}, ${order.deliveryAddress.city} - ${order.deliveryAddress.state}'),
-              Text('CEP: ${order.deliveryAddress.zipCode}'),
+                '${order.deliveryAddress.neighborhood}, ${order.deliveryAddress.city} - ${order.deliveryAddress.state}',
+                style: theme.textTheme.bodyMedium,
+              ),
+              Text(
+                'CEP: ${order.deliveryAddress.zipCode}',
+                style: theme.textTheme.bodyMedium,
+              ),
             ],
           ),
         ),

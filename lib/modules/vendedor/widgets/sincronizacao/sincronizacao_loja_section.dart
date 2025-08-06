@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../controllers/vendor_settings_controller.dart';
 
 class SincronizacaoLojaSection extends StatelessWidget {
-  final VendorSettingsController controller;
+  final VendedorSettingsController controller;
 
   const SincronizacaoLojaSection({
     super.key,

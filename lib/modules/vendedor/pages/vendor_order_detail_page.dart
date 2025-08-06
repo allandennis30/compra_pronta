@@ -7,16 +7,15 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text(
           'Detalhes do Pedido',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 0,
         actions: [
           Obx(() => controller.order != null
               ? IconButton(
@@ -29,13 +28,20 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
       ),
       body: Obx(() {
         if (controller.isLoading) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Carregando detalhes do pedido...'),
+                CircularProgressIndicator(
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Carregando detalhes do pedido...',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  ),
+                ),
               ],
             ),
           );
@@ -49,14 +55,14 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
                 Icon(
                   Icons.error_outline,
                   size: 64,
-                  color: Colors.red.shade300,
+                  color: theme.colorScheme.error,
                 ),
                 const SizedBox(height: 16),
                 Text(
                   controller.errorMessage,
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.red.shade700,
+                    color: theme.colorScheme.error,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -71,8 +77,11 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
         }
 
         if (controller.order == null) {
-          return const Center(
-            child: Text('Pedido não encontrado'),
+          return Center(
+            child: Text(
+              'Pedido não encontrado',
+              style: theme.textTheme.bodyLarge,
+            ),
           );
         }
 
@@ -81,17 +90,15 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildOrderHeader(),
+              _buildOrderHeader(context),
               const SizedBox(height: 16),
-              _buildCustomerInfo(),
+              _buildCustomerAndDeliveryInfo(context),
               const SizedBox(height: 16),
-              _buildDeliveryAddress(),
+              _buildOrderItems(context),
               const SizedBox(height: 16),
-              _buildOrderItems(),
+              _buildOrderSummary(context),
               const SizedBox(height: 16),
-              _buildOrderSummary(),
-              const SizedBox(height: 16),
-              _buildStatusSection(),
+              _buildStatusSection(context),
               const SizedBox(height: 24),
             ],
           ),
@@ -100,11 +107,11 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
     );
   }
 
-  Widget _buildOrderHeader() {
+  Widget _buildOrderHeader(BuildContext context) {
     final order = controller.order!;
+    final theme = Theme.of(context);
+
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -118,19 +125,17 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
                   children: [
                     Text(
                       'Pedido #${order.id}',
-                      style: const TextStyle(
-                        fontSize: 20,
+                      style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                       controller.formatDateTime(order.createdAt),
-                       style: TextStyle(
-                         fontSize: 14,
-                         color: Colors.grey.shade600,
-                       ),
-                     ),
+                      controller.formatDateTime(order.createdAt),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                    ),
                   ],
                 ),
                 Container(
@@ -139,7 +144,9 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: controller.getStatusColor(order.status).withOpacity(0.1),
+                    color: controller
+                        .getStatusColor(order.status)
+                        .withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: controller.getStatusColor(order.status),
@@ -163,17 +170,17 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
                 children: [
                   Icon(
                     Icons.check_circle,
-                    color: Colors.green.shade600,
+                    color: theme.colorScheme.primary,
                     size: 16,
                   ),
                   const SizedBox(width: 8),
                   Text(
-                     'Entregue em ${controller.formatDateTime(order.deliveredAt!)}',
-                     style: TextStyle(
-                       color: Colors.green.shade700,
-                       fontWeight: FontWeight.w500,
-                     ),
-                   ),
+                    'Entregue em ${controller.formatDateTime(order.deliveredAt!)}',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -183,28 +190,30 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
     );
   }
 
-  Widget _buildCustomerInfo() {
+  Widget _buildCustomerAndDeliveryInfo(BuildContext context) {
     final customer = controller.customer;
+    final address = controller.order!.deliveryAddress;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Seção de Informações do Cliente
             Row(
               children: [
                 Icon(
                   Icons.person,
-                  color: Colors.blue.shade600,
+                  color: theme.colorScheme.primary,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   'Informações do Cliente',
-                  style: TextStyle(
-                    fontSize: 16,
+                  style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -212,42 +221,36 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
             ),
             const SizedBox(height: 16),
             if (customer != null) ...[
-              _buildInfoRow('Nome', customer.name),
-              _buildInfoRow('Email', customer.email),
-              _buildInfoRow('Telefone', customer.phone),
+              _buildInfoRow('Nome', customer.name, context),
+              _buildInfoRow('Email', customer.email, context),
+              _buildInfoRow('Telefone', customer.phone, context),
             ] else
-              const Text(
+              Text(
                 'Informações do cliente não disponíveis',
-                style: TextStyle(color: Colors.grey),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                ),
               ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildDeliveryAddress() {
-    final address = controller.order!.deliveryAddress;
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+            // Divisor
+            const SizedBox(height: 24),
+            Divider(
+              color: theme.colorScheme.outline.withOpacity(0.3),
+            ),
+            const SizedBox(height: 16),
+
+            // Seção de Endereço de Entrega
             Row(
               children: [
                 Icon(
                   Icons.location_on,
-                  color: Colors.red.shade600,
+                  color: theme.colorScheme.error,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   'Endereço de Entrega',
-                  style: TextStyle(
-                    fontSize: 16,
+                  style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -258,14 +261,17 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
+                color: isDark
+                    ? theme.colorScheme.surface.withOpacity(0.5)
+                    : theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(
+                  color: theme.colorScheme.outline.withOpacity(0.3),
+                ),
               ),
               child: Text(
                 address.fullAddress,
-                style: const TextStyle(
-                  fontSize: 14,
+                style: theme.textTheme.bodyMedium?.copyWith(
                   height: 1.4,
                 ),
               ),
@@ -276,11 +282,12 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
     );
   }
 
-  Widget _buildOrderItems() {
+  Widget _buildOrderItems(BuildContext context) {
     final items = controller.order!.items;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -290,14 +297,13 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
               children: [
                 Icon(
                   Icons.shopping_bag,
-                  color: Colors.green.shade600,
+                  color: theme.colorScheme.primary,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   'Itens do Pedido',
-                  style: TextStyle(
-                    fontSize: 16,
+                  style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -317,13 +323,17 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
                       width: 50,
                       height: 50,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
+                        color: isDark
+                            ? theme.colorScheme.surface.withOpacity(0.5)
+                            : theme.colorScheme.surface,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade200),
+                        border: Border.all(
+                          color: theme.colorScheme.outline.withOpacity(0.3),
+                        ),
                       ),
                       child: Icon(
                         Icons.inventory_2,
-                        color: Colors.grey.shade600,
+                        color: theme.colorScheme.onSurface.withOpacity(0.6),
                         size: 24,
                       ),
                     ),
@@ -334,17 +344,16 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
                         children: [
                           Text(
                             item.productName,
-                            style: const TextStyle(
-                              fontSize: 14,
+                            style: theme.textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             'Qtd: ${item.quantity}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color:
+                                  theme.colorScheme.onSurface.withOpacity(0.6),
                             ),
                           ),
                         ],
@@ -355,17 +364,15 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
                       children: [
                         Text(
                           'R\$ ${item.price.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            fontSize: 14,
+                          style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Total: R\$ ${(item.price * item.quantity).toStringAsFixed(2)}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurface.withOpacity(0.6),
                           ),
                         ),
                       ],
@@ -374,17 +381,32 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
                 );
               },
             ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _navigateToOrderBuilder(context),
+                icon: const Icon(Icons.qr_code),
+                label: const Text('Montar Pedido'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildOrderSummary() {
+  Widget _buildOrderSummary(BuildContext context) {
     final order = controller.order!;
+    final theme = Theme.of(context);
+
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -394,26 +416,28 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
               children: [
                 Icon(
                   Icons.receipt,
-                  color: Colors.purple.shade600,
+                  color: theme.colorScheme.secondary,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   'Resumo do Pedido',
-                  style: TextStyle(
-                    fontSize: 16,
+                  style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            _buildSummaryRow('Subtotal', 'R\$ ${order.subtotal.toStringAsFixed(2)}'),
-            _buildSummaryRow('Taxa de Entrega', 'R\$ ${order.deliveryFee.toStringAsFixed(2)}'),
+            _buildSummaryRow('Subtotal',
+                'R\$ ${order.subtotal.toStringAsFixed(2)}', context),
+            _buildSummaryRow('Taxa de Entrega',
+                'R\$ ${order.deliveryFee.toStringAsFixed(2)}', context),
             const Divider(height: 24),
             _buildSummaryRow(
               'Total',
               'R\$ ${order.total.toStringAsFixed(2)}',
+              context,
               isTotal: true,
             ),
           ],
@@ -422,11 +446,11 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
     );
   }
 
-  Widget _buildStatusSection() {
+  Widget _buildStatusSection(BuildContext context) {
     final order = controller.order!;
+    final theme = Theme.of(context);
+
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -436,14 +460,13 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
               children: [
                 Icon(
                   Icons.update,
-                  color: Colors.orange.shade600,
+                  color: theme.colorScheme.tertiary,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   'Atualizar Status',
-                  style: TextStyle(
-                    fontSize: 16,
+                  style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -452,9 +475,8 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
             const SizedBox(height: 16),
             Text(
               'Status atual: ${controller.getStatusDisplayName(order.status)}',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade700,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
               ),
             ),
             const SizedBox(height: 16),
@@ -494,11 +516,19 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
   }
 
   void _showStatusConfirmation(String newStatus) {
+    final theme = Theme.of(Get.context!);
+
     Get.dialog(
       AlertDialog(
-        title: const Text('Confirmar Alteração'),
+        title: Text(
+          'Confirmar Alteração',
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         content: Text(
           'Deseja alterar o status do pedido para "${controller.getStatusDisplayName(newStatus)}"?',
+          style: theme.textTheme.bodyMedium,
         ),
         actions: [
           TextButton(
@@ -517,7 +547,9 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(String label, String value, BuildContext context) {
+    final theme = Theme.of(context);
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -527,9 +559,8 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
             width: 80,
             child: Text(
               '$label:',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -537,8 +568,7 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                fontSize: 14,
+              style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -548,7 +578,10 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
     );
   }
 
-  Widget _buildSummaryRow(String label, String value, {bool isTotal = false}) {
+  Widget _buildSummaryRow(String label, String value, BuildContext context,
+      {bool isTotal = false}) {
+    final theme = Theme.of(context);
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -556,22 +589,37 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
         children: [
           Text(
             label,
-            style: TextStyle(
-              fontSize: isTotal ? 16 : 14,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
-              color: isTotal ? Colors.black87 : Colors.grey.shade700,
-            ),
+            style: isTotal
+                ? theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  )
+                : theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  ),
           ),
           Text(
             value,
-            style: TextStyle(
-              fontSize: isTotal ? 16 : 14,
-              fontWeight: FontWeight.bold,
-              color: isTotal ? Colors.green.shade700 : Colors.black87,
-            ),
+            style: isTotal
+                ? theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
+                  )
+                : theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
           ),
         ],
       ),
+    );
+  }
+
+  void _navigateToOrderBuilder(BuildContext context) {
+    Get.toNamed(
+      '/vendor/order-builder',
+      arguments: {
+        'order': controller.order,
+      },
     );
   }
 }

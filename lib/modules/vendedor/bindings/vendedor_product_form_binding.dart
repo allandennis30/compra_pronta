@@ -1,16 +1,16 @@
 import 'package:get/get.dart';
-import '../controllers/vendor_product_list_controller.dart';
+import '../controllers/vendor_product_form_controller.dart';
 import '../repositories/vendedor_product_repository.dart';
 
-class VendorProductListBinding extends Bindings {
+class VendedorProductFormBinding extends Bindings {
   @override
   void dependencies() {
     Get.lazyPut<VendedorProductRepository>(
       () => VendedorProductRepositoryImpl(),
     );
 
-    Get.lazyPut<VendorProductListController>(
-      () => VendorProductListController(
+    Get.lazyPut<VendorProductFormController>(
+      () => VendorProductFormController(
         repository: Get.find<VendedorProductRepository>(),
       ),
     );

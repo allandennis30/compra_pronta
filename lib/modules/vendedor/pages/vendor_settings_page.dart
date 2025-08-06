@@ -8,7 +8,7 @@ import '../widgets/operacao/preferencias_operacao_section.dart';
 import '../widgets/entrega/politica_entrega_section.dart';
 import '../widgets/sincronizacao/sincronizacao_loja_section.dart';
 
-class VendorSettingsPage extends GetView<VendorSettingsController> {
+class VendorSettingsPage extends GetView<VendedorSettingsController> {
   const VendorSettingsPage({super.key});
 
   @override

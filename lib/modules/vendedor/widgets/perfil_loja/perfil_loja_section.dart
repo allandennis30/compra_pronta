@@ -3,7 +3,7 @@ import '../campo_editavel.dart';
 import '../../controllers/vendor_settings_controller.dart';
 
 class PerfilLojaSection extends StatelessWidget {
-  final VendorSettingsController controller;
+  final VendedorSettingsController controller;
 
   const PerfilLojaSection({
     super.key,

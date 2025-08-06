@@ -30,8 +30,8 @@ class VendedorBinding extends Bindings {
 
     // Controllers
     // TODO: Renomear para VendedorProductListController após renomear os arquivos
-    Get.lazyPut<VendorProductListController>(
-        () => VendorProductListController(repository: Get.find()));
+    Get.lazyPut<VendedorProductListController>(
+        () => VendedorProductListController(repository: Get.find()));
     // TODO: Renomear para VendedorProductFormController após renomear os arquivos
     Get.lazyPut<VendorProductFormController>(
         () => VendorProductFormController(repository: Get.find()));

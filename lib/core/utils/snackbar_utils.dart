@@ -2,37 +2,41 @@ import 'package:flutter/material.dart';
 
 class SnackBarUtils {
   static void showSuccess(BuildContext context, String message) {
+    final theme = Theme.of(context);
     _showSnackBar(
       context,
       message,
-      backgroundColor: Colors.green,
+      backgroundColor: theme.colorScheme.primary,
       icon: Icons.check_circle,
     );
   }
 
   static void showError(BuildContext context, String message) {
+    final theme = Theme.of(context);
     _showSnackBar(
       context,
       message,
-      backgroundColor: Colors.orange,
+      backgroundColor: theme.colorScheme.error,
       icon: Icons.error,
     );
   }
 
   static void showInfo(BuildContext context, String message) {
+    final theme = Theme.of(context);
     _showSnackBar(
       context,
       message,
-      backgroundColor: Colors.blue,
+      backgroundColor: theme.colorScheme.secondary,
       icon: Icons.info,
     );
   }
 
   static void showWarning(BuildContext context, String message) {
+    final theme = Theme.of(context);
     _showSnackBar(
       context,
       message,
-      backgroundColor: Colors.amber,
+      backgroundColor: theme.colorScheme.tertiary ?? Colors.amber,
       icon: Icons.warning,
     );
   }
