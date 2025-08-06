@@ -9,42 +9,161 @@ class VendorProductListPage extends GetView<VendorProductListController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Obx(() => Scaffold(
       appBar: AppBar(
-        title: const Text('Meus Produtos'),
+        title: controller.isSearching.value
+            ? _buildSearchField()
+            : const Text('Meus Produtos'),
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list),
-            onPressed: () {
-              // TODO: Implementar filtro de produtos
-            },
+            onPressed: _showFilterDialog,
           ),
           IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // TODO: Implementar busca de produtos
-            },
+            icon: Icon(controller.isSearching.value ? Icons.close : Icons.search),
+            onPressed: controller.toggleSearch,
           ),
         ],
       ),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (controller.products.isEmpty) {
-          return _buildEmptyState();
-        }
-
-        return _buildProductList();
-      }),
+      body: controller.isLoading.value
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                _buildFilterIndicator(),
+                Expanded(
+                  child: controller.products.isEmpty
+                      ? _buildEmptyState()
+                      : _buildProductList(),
+                ),
+              ],
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _navigateToProductForm(),
         backgroundColor: Colors.green,
         child: const Icon(Icons.add),
       ),
+    ));
+  }
+
+  Widget _buildSearchField() {
+    return TextField(
+      autofocus: true,
+      decoration: const InputDecoration(
+        hintText: 'Buscar produtos...',
+        border: InputBorder.none,
+        hintStyle: TextStyle(color: Colors.white70),
+      ),
+      style: const TextStyle(color: Colors.white),
+      onChanged: controller.searchProducts,
     );
   }
+
+  Widget _buildFilterIndicator() {
+     return Obx(() {
+       final hasFilters = controller.searchQuery.value.isNotEmpty ||
+           controller.selectedCategory.value.isNotEmpty;
+       
+       if (!hasFilters) return const SizedBox.shrink();
+       
+       return Container(
+         width: double.infinity,
+         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+         color: Colors.blue.shade50,
+         child: Row(
+           children: [
+             Icon(Icons.filter_alt, size: 16, color: Colors.blue.shade700),
+             const SizedBox(width: 8),
+             Expanded(
+               child: Text(
+                 _getFilterText(),
+                 style: TextStyle(
+                   fontSize: 12,
+                   color: Colors.blue.shade700,
+                   fontWeight: FontWeight.w500,
+                 ),
+               ),
+             ),
+             TextButton(
+               onPressed: controller.clearFilters,
+               style: TextButton.styleFrom(
+                 padding: const EdgeInsets.symmetric(horizontal: 8),
+                 minimumSize: const Size(0, 32),
+               ),
+               child: const Text('Limpar', style: TextStyle(fontSize: 12)),
+             ),
+           ],
+         ),
+       );
+     });
+   }
+
+   String _getFilterText() {
+     final filters = <String>[];
+     
+     if (controller.searchQuery.value.isNotEmpty) {
+       filters.add('Busca: "${controller.searchQuery.value}"');
+     }
+     
+     if (controller.selectedCategory.value.isNotEmpty) {
+       filters.add('Categoria: ${controller.selectedCategory.value}');
+     }
+     
+     final resultText = '${controller.products.length} produto(s) encontrado(s)';
+     
+     return '${filters.join(' • ')} • $resultText';
+   }
+
+   void _showFilterDialog() {
+     Get.dialog(
+       AlertDialog(
+         title: const Text('Filtrar Produtos'),
+         content: Column(
+           mainAxisSize: MainAxisSize.min,
+           children: [
+             const Text('Filtrar por categoria:'),
+             const SizedBox(height: 16),
+             Obx(() => DropdownButtonFormField<String>(
+               decoration: const InputDecoration(
+                 border: OutlineInputBorder(),
+                 labelText: 'Categoria',
+               ),
+               value: controller.selectedCategory.value.isEmpty
+                   ? null
+                   : controller.selectedCategory.value,
+               items: [
+                 const DropdownMenuItem<String>(
+                   value: null,
+                   child: Text('Todas as categorias'),
+                 ),
+                 ...controller.availableCategories.map((category) {
+                   return DropdownMenuItem<String>(
+                     value: category,
+                     child: Text(category),
+                   );
+                 }),
+               ],
+               onChanged: (value) {
+                 controller.filterByCategory(value);
+               },
+             )),
+           ],
+         ),
+         actions: [
+           TextButton(
+             onPressed: () {
+               controller.clearFilters();
+               Get.back();
+             },
+             child: const Text('Limpar Filtros'),
+           ),
+           TextButton(
+             onPressed: () => Get.back(),
+             child: const Text('Fechar'),
+           ),
+         ],
+       ),
+     );
+   }
 
   Widget _buildEmptyState() {
     return Center(

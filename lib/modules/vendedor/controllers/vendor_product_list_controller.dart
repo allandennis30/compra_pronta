@@ -5,9 +5,13 @@ import '../repositories/vendedor_product_repository.dart';
 class VendorProductListController extends GetxController {
   final VendedorProductRepository _repository;
   final RxList<ProductModel> products = <ProductModel>[].obs;
+  final RxList<ProductModel> _allProducts = <ProductModel>[].obs;
   final RxBool isLoading = false.obs;
   final RxBool hasError = false.obs;
   final RxString errorMessage = ''.obs;
+  final RxString searchQuery = ''.obs;
+  final RxString selectedCategory = ''.obs;
+  final RxBool isSearching = false.obs;
 
   VendorProductListController({required VendedorProductRepository repository})
       : _repository = repository;
@@ -24,7 +28,8 @@ class VendorProductListController extends GetxController {
       hasError.value = false;
 
       final productList = await _repository.getAll();
-      products.assignAll(productList);
+      _allProducts.assignAll(productList);
+      _applyFilters();
     } catch (e) {
       hasError.value = true;
       errorMessage.value = 'Erro ao carregar produtos: $e';
@@ -87,6 +92,55 @@ class VendorProductListController extends GetxController {
         'Erro ao atualizar disponibilidade: $e',
         snackPosition: SnackPosition.BOTTOM,
       );
+    }
+  }
+
+  void searchProducts(String query) {
+    searchQuery.value = query;
+    _applyFilters();
+  }
+
+  void filterByCategory(String? category) {
+    selectedCategory.value = category ?? '';
+    _applyFilters();
+  }
+
+  void clearFilters() {
+    searchQuery.value = '';
+    selectedCategory.value = '';
+    _applyFilters();
+  }
+
+  void _applyFilters() {
+    var filteredProducts = _allProducts.toList();
+
+    // Aplicar filtro de busca
+    if (searchQuery.value.isNotEmpty) {
+      filteredProducts = filteredProducts.where((product) {
+        return product.name.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
+               product.description.toLowerCase().contains(searchQuery.value.toLowerCase());
+      }).toList();
+    }
+
+    // Aplicar filtro de categoria
+    if (selectedCategory.value.isNotEmpty) {
+      filteredProducts = filteredProducts.where((product) {
+        return product.category == selectedCategory.value;
+      }).toList();
+    }
+
+    products.assignAll(filteredProducts);
+  }
+
+  List<String> get availableCategories {
+    return _allProducts.map((product) => product.category).toSet().toList()..sort();
+  }
+
+  void toggleSearch() {
+    isSearching.value = !isSearching.value;
+    if (!isSearching.value) {
+      searchQuery.value = '';
+      _applyFilters();
     }
   }
 }
