@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/profile_controller.dart';
+import '../widgets/client_bottom_nav.dart';
 
 class ProfilePage extends GetView<ProfileController> {
   const ProfilePage({super.key});
@@ -253,6 +254,7 @@ class ProfilePage extends GetView<ProfileController> {
           ),
         );
       }),
+      bottomNavigationBar: const ClientBottomNav(currentIndex: 3),
     );
   }
 

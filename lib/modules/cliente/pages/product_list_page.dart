@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controllers/product_list_controller.dart';
 import '../controllers/cart_controller.dart';
 import '../models/product_model.dart';
+import '../widgets/client_bottom_nav.dart';
 
 class ProductListPage extends StatelessWidget {
   final ProductListController controller = Get.put(ProductListController());
@@ -15,16 +16,6 @@ class ProductListPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Produtos'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () => Get.toNamed('/cliente/perfil'),
-            tooltip: 'Perfil',
-          ),
-          IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: () => Get.toNamed('/cliente/historico'),
-            tooltip: 'Histórico de Pedidos',
-          ),
           IconButton(
             icon: const Icon(Icons.shopping_cart),
             onPressed: () => Get.toNamed('/cliente/carrinho'),
@@ -41,6 +32,7 @@ class ProductListPage extends StatelessWidget {
           ),
         ],
       ),
+      bottomNavigationBar: const ClientBottomNav(currentIndex: 0),
     );
   }
 
