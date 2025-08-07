@@ -66,6 +66,11 @@ class VendorScanController extends GetxController {
     }
   }
 
+  // Método público para buscar produto por código de barras
+  Map<String, dynamic>? findProductByBarcode(String barcode) {
+    return _findProductByBarcode(barcode);
+  }
+
   void _addScannedItem(Map<String, dynamic> product) {
     final existingIndex = _scannedItems.indexWhere(
       (item) => item.barcode == product['barcode'],

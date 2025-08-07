@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/vendor_metrics_controller.dart';
+import '../widgets/dashboard/index.dart';
 
 class VendorDashboardPage extends StatelessWidget {
   final VendorMetricsController controller = Get.put(VendorMetricsController());
@@ -10,260 +11,146 @@ class VendorDashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => Get.toNamed('/vendor/config'),
+      backgroundColor: Colors.grey[50],
+      appBar: const DashboardAppBar(),
+      body: _buildBody(),
+      bottomNavigationBar: const DashboardBottomNav(),
+    );
+  }
+
+  Widget _buildBody() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildWelcomeSection(),
+          const SizedBox(height: 24),
+          RecentOrdersSection(controller: controller),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWelcomeSection() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.blue[600]!,
+            Colors.blue[400]!,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withOpacity(0.3),
+            spreadRadius: 1,
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildMetricsCards(),
-            const SizedBox(height: 24),
-            _buildRecentOrders(),
-            const SizedBox(height: 24),
-            _buildTopProducts(),
-          ],
-        ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Bem-vindo de volta!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Gerencie seus produtos e pedidos',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    _buildQuickAction(
+                      icon: Icons.add_circle_outline,
+                      label: 'Produto',
+                      onTap: () => Get.toNamed('/vendor/produto_form'),
+                    ),
+                    const SizedBox(width: 12),
+                    _buildQuickAction(
+                      icon: Icons.qr_code_scanner,
+                      label: 'Scanner',
+                      onTap: () => Get.toNamed('/vendor/scan'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.store_rounded,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+        ],
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
-  Widget _buildMetricsCards() {
-    return Obx(() => GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 1.5,
-          children: [
-            _buildMetricCard(
-              'Vendas Totais',
-              'R\$ ${controller.totalSales.toStringAsFixed(2)}',
-              Icons.attach_money,
-              Colors.green,
-            ),
-            _buildMetricCard(
-              'Pedidos',
-              '${controller.totalOrders}',
-              Icons.shopping_bag,
-              Colors.blue,
-            ),
-            _buildMetricCard(
-              'Pendentes',
-              '${controller.pendingOrders}',
-              Icons.pending,
-              Colors.orange,
-            ),
-            _buildMetricCard(
-              'Produtos',
-              '${controller.totalProducts}',
-              Icons.inventory,
-              Colors.purple,
-            ),
-          ],
-        ));
-  }
-
-  Widget _buildMetricCard(
-      String title, String value, IconData icon, Color color) {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 28, color: color),
-            const SizedBox(height: 6),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: color,
+  Widget _buildQuickAction({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.white.withOpacity(0.2),
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                color: Colors.white,
+                size: 16,
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 11,
-                color: Colors.grey,
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRecentOrders() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Pedidos Recentes',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            TextButton(
-              onPressed: () => Get.toNamed('/vendor/pedidos'),
-              child: const Text('Ver Todos'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Obx(() {
-          if (controller.recentOrders.isEmpty) {
-            return const Text('Nenhum pedido recente.');
-          }
-          return ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: controller.recentOrders.length,
-            itemBuilder: (context, index) {
-              final order = controller.recentOrders[index];
-              return _buildOrderCard(order);
-            },
-          );
-        }),
-      ],
-    );
-  }
-
-  Widget _buildOrderCard(Map<String, dynamic> order) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: controller.getStatusColor(order['status']),
-          child: Text(
-            order['id'].toString().split('_').last,
-            style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-        ),
-        title: Text(order['customer']),
-        subtitle: Text('R\$ ${order['total'].toStringAsFixed(2)}'),
-        trailing: Chip(
-          label: Text(
-            controller.getStatusText(order['status']),
-            style: const TextStyle(fontSize: 10, color: Colors.white),
-          ),
-          backgroundColor: controller.getStatusColor(order['status']),
-        ),
-        onTap: () => Get.toNamed('/vendor/pedido', arguments: order['id']),
-      ),
-    );
-  }
-
-  Widget _buildTopProducts() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Produtos Mais Vendidos',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Obx(() {
-          if (controller.topProducts.isEmpty) {
-            return const Text('Nenhum produto vendido ainda.');
-          }
-          return ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: controller.topProducts.length,
-            itemBuilder: (context, index) {
-              final product = controller.topProducts[index];
-              return _buildProductCard(product, index + 1);
-            },
-          );
-        }),
-      ],
-    );
-  }
-
-  Widget _buildProductCard(Map<String, dynamic> product, int rank) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Colors.green,
-          child: Text(
-            '$rank',
-            style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-        ),
-        title: Text(product['name']),
-        subtitle: Text('${product['sales']} vendas'),
-        trailing: Text(
-          'R\$ ${product['revenue'].toStringAsFixed(2)}',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.green,
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildBottomNav() {
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.dashboard),
-          label: 'Dashboard',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.inventory),
-          label: 'Produtos',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.shopping_bag),
-          label: 'Pedidos',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.qr_code_scanner),
-          label: 'Scanner',
-        ),
-      ],
-      onTap: (index) {
-        switch (index) {
-          case 1:
-            Get.toNamed('/vendor/produtos');
-            break;
-          case 2:
-            Get.toNamed('/vendor/pedidos');
-            break;
-          case 3:
-            Get.toNamed('/vendor/scan');
-            break;
-        }
-      },
-    );
-  }
+
+
+
 }

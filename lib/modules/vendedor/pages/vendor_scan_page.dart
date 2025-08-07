@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/vendor_scan_controller.dart';
+import '../widgets/barcode_scanner.dart';
 
 class VendorScanPage extends StatelessWidget {
   final VendorScanController controller = Get.put(VendorScanController());
@@ -11,21 +12,16 @@ class VendorScanPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Scanner de Embalagem'),
-        actions: [
-          Obx(() => controller.scannedItems.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.assessment),
-                  onPressed: controller.generateReport,
-                )
-              : const SizedBox()),
-        ],
+        title: const Text('Scanner de Código de Barras'),
+        backgroundColor: Colors.blue.shade600,
+        foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: Column(
         children: [
           _buildScannerArea(),
-          Expanded(child: _buildScannedItems()),
-          _buildSummary(),
+          const SizedBox(height: 16),
+          _buildInstructions(),
         ],
       ),
     );
@@ -33,241 +29,88 @@ class VendorScanPage extends StatelessWidget {
 
   Widget _buildScannerArea() {
     return Container(
-      height: 200,
+      height: 400,
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey),
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: BarcodeScanner(
+          onBarcodeDetected: (barcode) {
+            controller.processBarcode(barcode);
+            _navigateToProductDetail(barcode);
+          },
+        ),
+      ),
+    );
+  }
+
+  void _navigateToProductDetail(String barcode) {
+    // Buscar produto pelo código de barras
+    final product = controller.findProductByBarcode(barcode);
+    
+    if (product != null) {
+      // Navegar para a página de detalhes do produto
+      Get.toNamed('/vendor/produto_form', arguments: {
+        'product': product,
+        'isEditing': true,
+      });
+    } else {
+      // Se produto não encontrado, navegar para cadastro de novo produto
+      Get.toNamed('/vendor/produto_form', arguments: {
+        'barcode': barcode,
+        'isEditing': false,
+      });
+    }
+  }
+
+  Widget _buildInstructions() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue.shade200),
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.qr_code_scanner,
-            size: 64,
-            color: Colors.grey[400],
+            Icons.info_outline,
+            color: Colors.blue.shade600,
+            size: 32,
           ),
-          const SizedBox(height: 16),
-          const Text(
-            'Scanner de Código de Barras',
+          const SizedBox(height: 12),
+          Text(
+            'Como usar o scanner',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
+              color: Colors.blue.shade800,
             ),
           ),
           const SizedBox(height: 8),
           const Text(
-            'Digite o código manualmente ou use a câmera',
+            'Aponte a câmera para o código de barras do produto. Após escanear, você será direcionado para a página de detalhes do produto.',
+            textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey,
             ),
           ),
-          const SizedBox(height: 16),
-          _buildManualInput(),
         ],
       ),
     );
   }
 
-  Widget _buildManualInput() {
-    final textController = TextEditingController();
-    
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: textController,
-              decoration: const InputDecoration(
-                hintText: 'Digite o código de barras',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            onPressed: () {
-              if (textController.text.isNotEmpty) {
-                controller.processBarcode(textController.text);
-                textController.clear();
-              }
-            },
-            child: const Text('Buscar'),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildScannedItems() {
-    return Obx(() {
-      if (controller.scannedItems.isEmpty) {
-        return const Center(
-          child: Text(
-            'Nenhum item escaneado ainda',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-            ),
-          ),
-        );
-      }
-
-      return ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: controller.scannedItems.length,
-        itemBuilder: (context, index) {
-          final item = controller.scannedItems[index];
-          return _buildScannedItemCard(item);
-        },
-      );
-    });
-  }
-
-  Widget _buildScannedItemCard(ScannedItem item) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Colors.green,
-          child: Text(
-            item.quantity.toString(),
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        title: Text(item.name),
-        subtitle: Text('Código: ${item.barcode}'),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  'R\$ ${item.price.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-                Text(
-                  'R\$ ${item.total.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
-                ),
-              ],
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: () => controller.removeItem(item.barcode),
-            ),
-          ],
-        ),
-        onTap: () => _showQuantityDialog(item),
-      ),
-    );
-  }
-
-  Widget _buildSummary() {
-    return Obx(() {
-      if (controller.scannedItems.isEmpty) {
-        return const SizedBox();
-      }
-
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
-              spreadRadius: 1,
-              blurRadius: 5,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Total de itens: ${controller.scannedItems.length}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  'R\$ ${controller.total.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: controller.clearScannedItems,
-                    child: const Text('Limpar'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: controller.generateReport,
-                    child: const Text('Gerar Relatório'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    });
-  }
-
-  void _showQuantityDialog(ScannedItem item) {
-    final quantityController = TextEditingController(text: item.quantity.toString());
-    
-    Get.dialog(
-      AlertDialog(
-        title: Text('Quantidade - ${item.name}'),
-        content: TextField(
-          controller: quantityController,
-          decoration: const InputDecoration(
-            labelText: 'Quantidade',
-            border: OutlineInputBorder(),
-          ),
-          keyboardType: TextInputType.number,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final quantity = int.tryParse(quantityController.text) ?? 0;
-              controller.updateQuantity(item.barcode, quantity);
-              Get.back();
-            },
-            child: const Text('Salvar'),
-          ),
-        ],
-      ),
-    );
-  }
-} 
+}

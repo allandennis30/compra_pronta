@@ -6,22 +6,11 @@ import '../../../core/utils/logger.dart';
 class VendorMetricsController extends GetxController {
   final VendorMetricsRepository _metricsRepository =
       Get.find<VendorMetricsRepository>();
-  final RxDouble _totalSales = 0.0.obs;
-  final RxInt _totalOrders = 0.obs;
-  final RxInt _pendingOrders = 0.obs;
-  final RxInt _totalProducts = 0.obs;
   final RxList<Map<String, dynamic>> _recentOrders =
-      <Map<String, dynamic>>[].obs;
-  final RxList<Map<String, dynamic>> _topProducts =
       <Map<String, dynamic>>[].obs;
   final RxBool _isLoading = false.obs;
 
-  double get totalSales => _totalSales.value;
-  int get totalOrders => _totalOrders.value;
-  int get pendingOrders => _pendingOrders.value;
-  int get totalProducts => _totalProducts.value;
   List<Map<String, dynamic>> get recentOrders => _recentOrders;
-  List<Map<String, dynamic>> get topProducts => _topProducts;
   bool get isLoading => _isLoading.value;
 
   @override
@@ -34,11 +23,7 @@ class VendorMetricsController extends GetxController {
     _isLoading.value = true;
 
     try {
-      await Future.wait([
-        _loadDashboardMetrics(),
-        _loadRecentOrders(),
-        _loadTopProducts(),
-      ]);
+      await _loadRecentOrders();
     } catch (e) {
       Get.snackbar(
         'Erro',
@@ -52,18 +37,6 @@ class VendorMetricsController extends GetxController {
     }
   }
 
-  Future<void> _loadDashboardMetrics() async {
-    try {
-      final metrics = await _metricsRepository.getDashboardMetrics();
-      _totalSales.value = metrics['totalSales'] ?? 0.0;
-      _totalOrders.value = metrics['totalOrders'] ?? 0;
-      _pendingOrders.value = metrics['pendingOrders'] ?? 0;
-      _totalProducts.value = metrics['totalProducts'] ?? 0;
-    } catch (e) {
-      AppLogger.error('Erro ao carregar métricas do dashboard', e);
-    }
-  }
-
   Future<void> _loadRecentOrders() async {
     try {
       final orders = await _metricsRepository.getRecentOrders();
@@ -73,14 +46,7 @@ class VendorMetricsController extends GetxController {
     }
   }
 
-  Future<void> _loadTopProducts() async {
-    try {
-      final products = await _metricsRepository.getTopProducts();
-      _topProducts.value = products;
-    } catch (e) {
-      AppLogger.error('Erro ao carregar produtos mais vendidos', e);
-    }
-  }
+
 
   String getStatusText(String status) {
     switch (status) {

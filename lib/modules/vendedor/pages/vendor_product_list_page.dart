@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import '../controllers/vendor_product_list_controller.dart';
 import 'vendor_product_form_page.dart';
 import '../bindings/vendedor_product_form_binding.dart';
+import '../widgets/product_card.dart';
+import '../../cliente/models/product_model.dart';
 
 class VendorProductListPage extends GetView<VendedorProductListController> {
   const VendorProductListPage({super.key});
@@ -209,74 +211,15 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
 
   Widget _buildProductList() {
     return ListView.builder(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: controller.products.length,
       itemBuilder: (context, index) {
         final product = controller.products[index];
-        return Card(
-          elevation: 2,
-          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: ListTile(
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: Image.network(
-                product.imageUrl,
-                width: 50,
-                height: 50,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  width: 50,
-                  height: 50,
-                  color: Colors.grey[300],
-                  child:
-                      const Icon(Icons.image_not_supported, color: Colors.grey),
-                ),
-              ),
-            ),
-            title: Text(product.name),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product.isSoldByWeight
-                      ? 'R\$ ${product.pricePerKg?.toStringAsFixed(2) ?? '0.00'}/kg'
-                      : 'R\$ ${product.price.toStringAsFixed(2)} | Estoque: ${product.stock}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  product.category,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  product.isAvailable ? Icons.circle : Icons.circle_outlined,
-                  color: product.isAvailable ? Colors.green : Colors.grey,
-                  size: 12,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  product.isAvailable ? 'Ativo' : 'Inativo',
-                  style: TextStyle(
-                    color: product.isAvailable ? Colors.green : Colors.grey,
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.edit, size: 20),
-                  onPressed: () => _navigateToProductForm(product: product),
-                ),
-              ],
-            ),
-            onTap: () => _navigateToProductForm(product: product),
-          ),
+        return ProductCard(
+          product: product,
+          onTap: () => _navigateToProductForm(product: product),
+          onEdit: () => _navigateToProductForm(product: product),
+          onToggleStatus: () => _toggleProductStatus(product),
         );
       },
     );
@@ -292,5 +235,18 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
     if (result == true) {
       controller.loadProducts();
     }
+  }
+
+  void _toggleProductStatus(ProductModel product) {
+    // Implementar lógica para alternar status do produto
+    // Por enquanto, apenas mostra um snackbar
+    Get.snackbar(
+      'Status do Produto',
+      product.isAvailable
+          ? 'Produto ${product.name} foi desativado'
+          : 'Produto ${product.name} foi ativado',
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 2),
+    );
   }
 }

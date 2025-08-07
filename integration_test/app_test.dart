@@ -144,16 +144,6 @@ void main() {
       expect(find.text('Pedidos'), findsOneWidget);
       expect(find.byType(ListView), findsOneWidget);
 
-      // Navigate to metrics
-      await tester.tap(find.text('Métricas'));
-      await tester.pumpAndSettle();
-
-      // Verify metrics page
-      expect(find.text('Métricas de Vendas'), findsOneWidget);
-      expect(find.text('Vendas do Dia'), findsOneWidget);
-      expect(find.text('Vendas da Semana'), findsOneWidget);
-      expect(find.text('Vendas do Mês'), findsOneWidget);
-
       // Navigate to settings
       await tester.tap(find.text('Configurações'));
       await tester.pumpAndSettle();
