@@ -60,7 +60,7 @@ class AuthRepositoryImpl implements AuthRepository {
          final userData = responseData['user'];
          
          // Criar AddressModel a partir dos dados do backend
-         final addressData = userData['address'] ?? {};
+         final addressData = userData['endereco'] ?? userData['address'] ?? {};
          final address = AddressModel(
            street: addressData['street'] ?? '',
            number: addressData['number'] ?? '',
@@ -73,13 +73,13 @@ class AuthRepositoryImpl implements AuthRepository {
          
          final user = UserModel(
            id: userData['id'].toString(),
-           name: userData['name'],
+           name: userData['nome'] ?? userData['name'] ?? '',
            email: userData['email'],
-           phone: userData['phone'] ?? '',
+           phone: userData['telefone'] ?? userData['phone'] ?? '',
            address: address,
            latitude: userData['latitude']?.toDouble() ?? 0.0,
            longitude: userData['longitude']?.toDouble() ?? 0.0,
-           istore: userData['istore'] ?? false,
+           istore: userData['tipo'] == 'vendedor' || userData['istore'] == true,
          );
         
         await saveUser(user);
@@ -160,7 +160,7 @@ class AuthRepositoryImpl implements AuthRepository {
         
         // Criar modelo do usuário a partir da resposta
         final userData = responseData['user'];
-        final addressData = userData['address'];
+        final addressData = userData['endereco'] ?? userData['address'];
         
         final addressModel = AddressModel(
           street: addressData['street'] ?? '',
@@ -174,13 +174,13 @@ class AuthRepositoryImpl implements AuthRepository {
         
         final user = UserModel(
           id: userData['id'].toString(),
-          name: userData['name'],
+          name: userData['nome'] ?? userData['name'] ?? '',
           email: userData['email'],
-          phone: userData['phone'] ?? '',
+          phone: userData['telefone'] ?? userData['phone'] ?? '',
           address: addressModel,
           latitude: userData['latitude']?.toDouble() ?? 0.0,
           longitude: userData['longitude']?.toDouble() ?? 0.0,
-          istore: userData['istore'] ?? false,
+          istore: userData['tipo'] == 'vendedor' || userData['istore'] == true,
         );
         
         await saveUser(user);

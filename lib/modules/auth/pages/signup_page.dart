@@ -25,6 +25,8 @@ class _SignupPageState extends State<SignupPage> {
   final _stateController = TextEditingController();
   final _zipController = TextEditingController();
   bool _isVendor = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   final AuthController _authController = Get.find();
 
@@ -54,15 +56,39 @@ class _SignupPageState extends State<SignupPage> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _passwordController,
-                  decoration: const InputDecoration(labelText: 'Senha'),
-                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'Senha',
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
+                  ),
+                  obscureText: _obscurePassword,
                   validator: (v) => v == null || v.length < 6 ? 'Mínimo 6 caracteres' : null,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _confirmPasswordController,
-                  decoration: const InputDecoration(labelText: 'Confirme a senha'),
-                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'Confirme a senha',
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                        });
+                      },
+                    ),
+                  ),
+                  obscureText: _obscureConfirmPassword,
                   validator: (v) => v != _passwordController.text ? 'Senhas não conferem' : null,
                 ),
                 const SizedBox(height: 12),
