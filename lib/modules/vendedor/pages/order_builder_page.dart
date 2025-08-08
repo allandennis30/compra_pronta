@@ -12,12 +12,12 @@ class OrderBuilderPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final orderController = Get.put(OrderBuilderController());
-    final scanController = Get.put(VendorScanController());
+    Get.put(VendorScanController());
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor:
-          isDark ? theme.colorScheme.background : theme.colorScheme.surface,
+          isDark ? theme.colorScheme.surface : theme.colorScheme.surface,
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,7 +74,8 @@ class OrderBuilderPage extends StatelessWidget {
                 width: double.infinity,
                 margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
                 child: Obx(() => ElevatedButton.icon(
-                      onPressed: () => orderController.toggleScannerVisibility(),
+                      onPressed: () =>
+                          orderController.toggleScannerVisibility(),
                       icon: Icon(
                         orderController.isScannerVisible.value
                             ? Icons.close
@@ -91,19 +92,19 @@ class OrderBuilderPage extends StatelessWidget {
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                         backgroundColor: orderController.isScannerVisible.value
-                             ? Colors.red
-                             : Colors.green,
-                         foregroundColor: Colors.white,
-                         padding: const EdgeInsets.symmetric(
-                           horizontal: 12,
-                           vertical: 8,
-                         ),
-                         shape: RoundedRectangleBorder(
-                           borderRadius: BorderRadius.circular(8),
-                         ),
-                         elevation: 2,
-                       ),
+                        backgroundColor: orderController.isScannerVisible.value
+                            ? Colors.red
+                            : Colors.green,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 2,
+                      ),
                     )),
               ),
 
@@ -119,7 +120,8 @@ class OrderBuilderPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                         border: isDark
                             ? Border.all(
-                                color: theme.colorScheme.outline.withOpacity(0.2),
+                                color:
+                                    theme.colorScheme.outline.withOpacity(0.2),
                                 width: 1,
                               )
                             : null,
@@ -127,7 +129,8 @@ class OrderBuilderPage extends StatelessWidget {
                             ? null
                             : [
                                 BoxShadow(
-                                  color: theme.colorScheme.shadow.withOpacity(0.08),
+                                  color: theme.colorScheme.shadow
+                                      .withOpacity(0.08),
                                   blurRadius: 6,
                                   offset: const Offset(0, 2),
                                 ),
@@ -142,7 +145,8 @@ class OrderBuilderPage extends StatelessWidget {
                               borderRadius: BorderRadius.circular(8),
                               child: BarcodeScanner(
                                 onBarcodeDetected: (barcode) {
-                                  orderController.processScannedBarcode(barcode);
+                                  orderController
+                                      .processScannedBarcode(barcode);
                                 },
                               ),
                             ),
@@ -241,7 +245,8 @@ class OrderBuilderPage extends StatelessWidget {
                                 onTap: () =>
                                     _showItemDetails(context, itemStatus),
                                 onManualAdd: () => _addManually(itemStatus),
-                                onManualRemove: () => _removeManually(itemStatus),
+                                onManualRemove: () =>
+                                    _removeManually(itemStatus),
                               ),
                             );
                           },
@@ -293,10 +298,12 @@ class OrderBuilderPage extends StatelessWidget {
                 final detailedProgress = orderController.detailedProgress;
                 final scannedCount = orderController.scannedItemsCount;
                 final totalCount = orderController.totalItemsCount;
-                
+
                 // Calcular quantidades totais
-                final totalQuantityNeeded = orderController.orderItems.fold(0, (sum, item) => sum + item.orderItem.quantity);
-                final totalQuantityScanned = orderController.orderItems.fold(0, (sum, item) => sum + item.scannedQuantity);
+                final totalQuantityNeeded = orderController.orderItems
+                    .fold(0, (sum, item) => sum + item.orderItem.quantity);
+                final totalQuantityScanned = orderController.orderItems
+                    .fold(0, (sum, item) => sum + item.scannedQuantity);
 
                 return Padding(
                   padding:
@@ -443,16 +450,20 @@ class OrderBuilderPage extends StatelessWidget {
             const SizedBox(height: 20),
             _buildDetailRow(
               context,
-              itemStatus.product?.isSoldByWeight == true ? 'Peso Necessário' : 'Quantidade Necessária',
-              itemStatus.product?.isSoldByWeight == true 
+              itemStatus.product?.isSoldByWeight == true
+                  ? 'Peso Necessário'
+                  : 'Quantidade Necessária',
+              itemStatus.product?.isSoldByWeight == true
                   ? '${(itemStatus.orderItem.quantity / 10.0).toStringAsFixed(1)} kg'
                   : '${itemStatus.orderItem.quantity} unidades',
               Icons.inventory_2_outlined,
             ),
             _buildDetailRow(
               context,
-              itemStatus.product?.isSoldByWeight == true ? 'Peso Escaneado' : 'Quantidade Escaneada',
-              itemStatus.product?.isSoldByWeight == true 
+              itemStatus.product?.isSoldByWeight == true
+                  ? 'Peso Escaneado'
+                  : 'Quantidade Escaneada',
+              itemStatus.product?.isSoldByWeight == true
                   ? '${(itemStatus.scannedQuantity / 10.0).toStringAsFixed(1)} kg'
                   : '${itemStatus.scannedQuantity} unidades',
               Icons.qr_code_scanner,
@@ -465,8 +476,10 @@ class OrderBuilderPage extends StatelessWidget {
             ),
             _buildDetailRow(
               context,
-              itemStatus.product?.isSoldByWeight == true ? 'Preço por Kg' : 'Preço Unitário',
-              itemStatus.product?.isSoldByWeight == true 
+              itemStatus.product?.isSoldByWeight == true
+                  ? 'Preço por Kg'
+                  : 'Preço Unitário',
+              itemStatus.product?.isSoldByWeight == true
                   ? 'R\$ ${(itemStatus.product?.pricePerKg ?? 0.0).toStringAsFixed(2)}/kg'
                   : 'R\$ ${itemStatus.orderItem.price.toStringAsFixed(2)}',
               Icons.attach_money,
@@ -561,9 +574,10 @@ class OrderBuilderPage extends StatelessWidget {
 
   void _addManually(OrderItemStatus itemStatus) {
     final orderController = Get.find<OrderBuilderController>();
-    
+
     // Verificar se o produto tem código de barras
-    if (itemStatus.product?.barcode != null && itemStatus.product!.barcode.isNotEmpty) {
+    if (itemStatus.product?.barcode != null &&
+        itemStatus.product!.barcode.isNotEmpty) {
       // Processar o código de barras do produto
       orderController.processScannedBarcode(itemStatus.product!.barcode);
     } else {
@@ -576,16 +590,16 @@ class OrderBuilderPage extends StatelessWidget {
         colorText: Get.theme.colorScheme.onPrimary,
         duration: const Duration(seconds: 2),
       );
-      
+
       // Incrementar quantidade escaneada diretamente
       final currentItem = itemStatus;
       final newScannedQuantity = currentItem.scannedQuantity + 1;
-      
+
       if (newScannedQuantity <= currentItem.orderItem.quantity) {
         final index = orderController.orderItems.indexWhere(
           (item) => item.orderItem.productId == currentItem.orderItem.productId,
         );
-        
+
         if (index != -1) {
           orderController.orderItems[index] = currentItem.copyWith(
             isScanned: newScannedQuantity > 0,
@@ -598,17 +612,17 @@ class OrderBuilderPage extends StatelessWidget {
 
   void _removeManually(OrderItemStatus itemStatus) {
     final orderController = Get.find<OrderBuilderController>();
-    
+
     // Verificar se há quantidade para remover
     if (itemStatus.scannedQuantity > 0) {
       // Decrementar quantidade escaneada
       final currentItem = itemStatus;
       final newScannedQuantity = currentItem.scannedQuantity - 1;
-      
+
       final index = orderController.orderItems.indexWhere(
         (item) => item.orderItem.productId == currentItem.orderItem.productId,
       );
-      
+
       if (index != -1) {
         orderController.orderItems[index] = currentItem.copyWith(
           isScanned: newScannedQuantity > 0,
