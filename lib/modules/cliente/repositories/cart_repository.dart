@@ -1,7 +1,7 @@
 import 'package:get_storage/get_storage.dart';
 import '../controllers/cart_controller.dart';
 import '../models/product_model.dart';
-import '../../../core/constants/app_constants.dart';
+import '../../../constants/app_constants.dart';
 import '../../../core/utils/logger.dart';
 import '../../auth/controllers/auth_controller.dart';
 import 'package:get/get.dart';

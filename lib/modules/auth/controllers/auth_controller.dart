@@ -24,13 +24,21 @@ class AuthController extends GetxController {
 
   void _loadUserFromStorage() async {
     try {
-      final user = await _authRepository.getCurrentUser();
-      if (user != null) {
-        _currentUser.value = user;
-        _isLoggedIn.value = true;
+      final isAuthenticated = await _authRepository.isAuthenticated();
+      if (isAuthenticated) {
+        final user = await _authRepository.getCurrentUser();
+        if (user != null) {
+          _currentUser.value = user;
+          _isLoggedIn.value = true;
+        } else {
+          // Token existe mas usuário não, limpar dados
+          await _authRepository.logout();
+        }
       }
     } catch (e) {
       AppLogger.error('Erro ao carregar usuário do storage', e);
+      // Em caso de erro, fazer logout para limpar dados corrompidos
+      await _authRepository.logout();
     } finally {
       _isLoading.value = false;
     }
@@ -120,4 +128,14 @@ class AuthController extends GetxController {
 
   bool get isVendor => currentUser?.istore ?? false;
   bool get isClient => !isVendor;
+
+  /// Obtém o token JWT para requisições autenticadas
+  Future<String?> getAuthToken() async {
+    return await _authRepository.getToken();
+  }
+
+  /// Verifica se o usuário está autenticado
+  Future<bool> checkAuthentication() async {
+    return await _authRepository.isAuthenticated();
+  }
 }

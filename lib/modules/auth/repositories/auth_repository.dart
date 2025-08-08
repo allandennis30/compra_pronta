@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart' as http;
 import '../../../core/models/user_model.dart';
-import '../../../core/constants/app_constants.dart';
+import '../../../constants/app_constants.dart';
 import '../../../core/utils/logger.dart';
 
 abstract class AuthRepository {
@@ -19,6 +21,8 @@ abstract class AuthRepository {
   Future<void> saveUser(UserModel user);
   Future<void> logout();
   Future<void> updateUser(UserModel user);
+  Future<String?> getToken();
+  Future<bool> isAuthenticated();
 }
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -26,23 +30,89 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<UserModel?> login(String email, String password) async {
-    // Simular delay de rede
-    await Future.delayed(Duration(seconds: 1));
-    
-    // Verificar credenciais mock
-    UserModel? user;
-    
-    if (email == 'testecliente@teste.com' && password == 'Senha@123') {
-      user = UserModel.fromJson(AppConstants.mockCliente);
-    } else if (email == 'testevendedor@teste.com' && password == 'Venda@123') {
-      user = UserModel.fromJson(AppConstants.mockVendedor);
+    try {
+      final response = await http.post(
+        Uri.parse(AppConstants.loginEndpoint),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'email': email,
+          'senha': password,
+        }),
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw Exception('Timeout: Servidor demorou para responder');
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        
+        // Salvar token JWT
+        final token = responseData['token'];
+        if (token != null) {
+          await _storage.write(AppConstants.tokenKey, token);
+        }
+        
+        // Criar modelo do usuário a partir da resposta
+         final userData = responseData['user'];
+         
+         // Criar AddressModel a partir dos dados do backend
+         final addressData = userData['address'] ?? {};
+         final address = AddressModel(
+           street: addressData['street'] ?? '',
+           number: addressData['number'] ?? '',
+           complement: addressData['complement'],
+           neighborhood: addressData['neighborhood'] ?? '',
+           city: addressData['city'] ?? '',
+           state: addressData['state'] ?? '',
+           zipCode: addressData['zipCode'] ?? '',
+         );
+         
+         final user = UserModel(
+           id: userData['id'].toString(),
+           name: userData['name'],
+           email: userData['email'],
+           phone: userData['phone'] ?? '',
+           address: address,
+           latitude: userData['latitude']?.toDouble() ?? 0.0,
+           longitude: userData['longitude']?.toDouble() ?? 0.0,
+           istore: userData['istore'] ?? false,
+         );
+        
+        await saveUser(user);
+        return user;
+      } else if (response.statusCode == 401) {
+        throw Exception('Email ou senha incorretos');
+      } else if (response.statusCode == 404) {
+        throw Exception('Usuário não encontrado');
+      } else if (response.statusCode >= 500) {
+        throw Exception('Erro interno do servidor. Tente novamente mais tarde.');
+      } else {
+        try {
+          final errorData = json.decode(response.body);
+          throw Exception(errorData['message'] ?? 'Erro no login');
+        } catch (e) {
+          throw Exception('Erro no login: ${response.statusCode}');
+        }
+      }
+    } catch (e) {
+      AppLogger.error('Erro ao fazer login', e);
+      
+      if (e.toString().contains('SocketException')) {
+        throw Exception('Sem conexão com a internet. Verifique sua rede.');
+      } else if (e.toString().contains('TimeoutException') || e.toString().contains('Timeout:')) {
+        throw Exception('Conexão muito lenta. Tente novamente.');
+      } else if (e.toString().contains('HandshakeException')) {
+        throw Exception('Erro de segurança na conexão.');
+      } else if (e.toString().contains('FormatException')) {
+        throw Exception('Resposta inválida do servidor.');
+      }
+      
+      rethrow;
     }
-    
-    if (user != null) {
-      await saveUser(user);
-    }
-    
-    return user;
   }
 
   @override
@@ -56,23 +126,95 @@ class AuthRepositoryImpl implements AuthRepository {
     required double longitude,
     bool istore = false,
   }) async {
-    // Simular delay de rede
-    await Future.delayed(Duration(seconds: 1));
-    
-    // Criar novo usuário
-    final user = UserModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: name,
-      email: email,
-      phone: phone,
-      address: address,
-      latitude: latitude,
-      longitude: longitude,
-      istore: istore,
-    );
-    
-    await saveUser(user);
-    return user;
+    try {
+      final response = await http.post(
+        Uri.parse(AppConstants.registerEndpoint),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'name': name,
+          'email': email,
+          'senha': password,
+          'phone': phone,
+          'address': address.toJson(),
+          'latitude': latitude,
+          'longitude': longitude,
+          'istore': istore,
+        }),
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw Exception('Timeout: Servidor demorou para responder');
+        },
+      );
+
+      if (response.statusCode == 201) {
+        final responseData = json.decode(response.body);
+        
+        // Salvar token JWT se fornecido
+        final token = responseData['token'];
+        if (token != null) {
+          await _storage.write(AppConstants.tokenKey, token);
+        }
+        
+        // Criar modelo do usuário a partir da resposta
+        final userData = responseData['user'];
+        final addressData = userData['address'];
+        
+        final addressModel = AddressModel(
+          street: addressData['street'] ?? '',
+          number: addressData['number'] ?? '',
+          complement: addressData['complement'],
+          neighborhood: addressData['neighborhood'] ?? '',
+          city: addressData['city'] ?? '',
+          state: addressData['state'] ?? '',
+          zipCode: addressData['zipCode'] ?? '',
+        );
+        
+        final user = UserModel(
+          id: userData['id'].toString(),
+          name: userData['name'],
+          email: userData['email'],
+          phone: userData['phone'] ?? '',
+          address: addressModel,
+          latitude: userData['latitude']?.toDouble() ?? 0.0,
+          longitude: userData['longitude']?.toDouble() ?? 0.0,
+          istore: userData['istore'] ?? false,
+        );
+        
+        await saveUser(user);
+        return user;
+      } else if (response.statusCode == 400) {
+        final errorData = json.decode(response.body);
+        throw Exception(errorData['message'] ?? 'Dados inválidos');
+      } else if (response.statusCode == 409) {
+        throw Exception('Email já está em uso');
+      } else if (response.statusCode >= 500) {
+        throw Exception('Erro interno do servidor. Tente novamente mais tarde.');
+      } else {
+        try {
+          final errorData = json.decode(response.body);
+          throw Exception(errorData['message'] ?? 'Erro no cadastro');
+        } catch (e) {
+          throw Exception('Erro no cadastro: ${response.statusCode}');
+        }
+      }
+    } catch (e) {
+      AppLogger.error('Erro ao fazer cadastro', e);
+      
+      if (e.toString().contains('SocketException')) {
+        throw Exception('Sem conexão com a internet. Verifique sua rede.');
+      } else if (e.toString().contains('TimeoutException') || e.toString().contains('Timeout:')) {
+        throw Exception('Conexão muito lenta. Tente novamente.');
+      } else if (e.toString().contains('HandshakeException')) {
+        throw Exception('Erro de segurança na conexão.');
+      } else if (e.toString().contains('FormatException')) {
+        throw Exception('Resposta inválida do servidor.');
+      }
+      
+      rethrow;
+    }
   }
 
   @override
@@ -102,6 +244,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> logout() async {
     try {
       await _storage.remove(AppConstants.userKey);
+      await _storage.remove(AppConstants.tokenKey);
       await _storage.remove(AppConstants.cartKey);
     } catch (e) {
       AppLogger.error('Erro ao fazer logout', e);
@@ -109,8 +252,24 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  /// Obtém o token JWT salvo no storage
+  Future<String?> getToken() async {
+    try {
+      return _storage.read(AppConstants.tokenKey);
+    } catch (e) {
+      AppLogger.error('Erro ao obter token', e);
+      return null;
+    }
+  }
+
+  /// Verifica se o usuário está autenticado (tem token válido)
+  Future<bool> isAuthenticated() async {
+    final token = await getToken();
+    return token != null && token.isNotEmpty;
+  }
+
   @override
   Future<void> updateUser(UserModel user) async {
     await saveUser(user);
   }
-} 
+}

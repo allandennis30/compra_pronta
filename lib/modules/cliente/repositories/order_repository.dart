@@ -1,7 +1,8 @@
+import 'package:compra_pronta/core/models/user_model.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../../core/repositories/base_repository.dart';
 import '../../../core/models/order_model.dart';
-import '../../../core/constants/app_constants.dart';
+import '../../../constants/app_constants.dart';
 import '../../../core/utils/logger.dart';
 import '../../auth/controllers/auth_controller.dart';
 import 'package:get/get.dart';
@@ -146,6 +147,17 @@ class OrderRepositoryImpl implements OrderRepository {
   }
 
   List<OrderModel> _getMockOrders() {
+    // Endereço padrão para dados mock
+    final defaultAddress = AddressModel(
+      street: 'Rua das Flores, 123',
+      number: '123',
+      complement: 'Apto 45',
+      neighborhood: 'Centro',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01234-567',
+    );
+
     return [
       OrderModel(
         id: 'order_001',
@@ -168,9 +180,9 @@ class OrderRepositoryImpl implements OrderRepository {
         deliveryFee: 5.00,
         total: 27.30,
         status: 'delivered',
-        createdAt: DateTime.now().subtract(Duration(days: 7)),
-        deliveredAt: DateTime.now().subtract(Duration(days: 6)),
-        deliveryAddress: AppConstants.mockCliente['address'],
+        createdAt: DateTime.now().subtract(const Duration(days: 7)),
+        deliveredAt: DateTime.now().subtract(const Duration(days: 6)),
+        deliveryAddress: defaultAddress,
       ),
       OrderModel(
         id: 'order_002',
@@ -188,7 +200,7 @@ class OrderRepositoryImpl implements OrderRepository {
         total: 11.90,
         status: 'delivering',
         createdAt: DateTime.now().subtract(Duration(hours: 2)),
-        deliveryAddress: AppConstants.mockCliente['address'],
+        deliveryAddress: defaultAddress,
       ),
     ];
   }

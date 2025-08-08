@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import '../constants/app_constants.dart';
+import '../../constants/app_constants.dart';
 
 class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       primarySwatch: Colors.green,
-      primaryColor: Color(AppConstants.primaryColor),
-      scaffoldBackgroundColor: Color(AppConstants.backgroundColor),
-      appBarTheme: AppBarTheme(
+      primaryColor: const Color(AppConstants.primaryColor),
+      scaffoldBackgroundColor: const Color(AppConstants.backgroundColor),
+      appBarTheme: const AppBarTheme(
         backgroundColor: Color(AppConstants.primaryColor),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -20,9 +20,9 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Color(AppConstants.primaryColor),
+          backgroundColor: const Color(AppConstants.primaryColor),
           foregroundColor: Colors.white,
-          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
@@ -39,27 +39,29 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Color(AppConstants.primaryColor)),
+          borderSide: const BorderSide(color: Color(AppConstants.primaryColor)),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Color(AppConstants.errorColor)),
+          borderSide: const BorderSide(color: Color(AppConstants.errorColor)),
         ),
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
       cardTheme: CardTheme(
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
-      colorScheme: ColorScheme.light(
+      colorScheme: const ColorScheme.light(
         primary: Color(AppConstants.primaryColor),
         secondary: Color(AppConstants.secondaryColor),
         error: Color(AppConstants.errorColor),
         surface: Colors.white,
         surfaceTint: Color(AppConstants.backgroundColor),
+        onSurface: Colors.black,
       ),
     );
   }

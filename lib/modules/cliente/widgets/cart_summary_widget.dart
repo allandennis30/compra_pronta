@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/cart_controller.dart';
-import '../../../core/constants/app_constants.dart';
+import '../../../constants/app_constants.dart';
 
 class CartSummaryWidget extends GetView<CartController> {
   final bool isDesktop;

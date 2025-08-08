@@ -1,7 +1,7 @@
 import 'package:get_storage/get_storage.dart';
 import '../../../core/repositories/base_repository.dart';
 import '../../cliente/models/product_model.dart';
-import '../../../core/constants/app_constants.dart';
+import '../../../constants/app_constants.dart';
 import '../../../core/utils/logger.dart';
 import 'dart:io';
 import 'dart:math';

@@ -47,47 +47,25 @@ class AppConstants {
   static const String ordersKey = 'orders';
   static const String productsKey = 'products';
   static const String favoritesKey = 'favorites';
+  static const String tokenKey = 'auth_token';
 
-  // Mock data
-  static const Map<String, dynamic> mockCliente = {
-    "id": "user_cliente_001",
-    "name": "Cliente Teste",
-    "email": "testecliente@teste.com",
-    "password": "Senha@123",
-    "phone": "+5511999999999",
-    "address": {
-      "street": "Rua Exemplo",
-      "number": "123",
-      "complement": "Apto 45",
-      "neighborhood": "Bairro Teste",
-      "city": "São Paulo",
-      "state": "SP",
-      "zipCode": "01000-000"
-    },
-    "latitude": -23.550520,
-    "longitude": -46.633308,
-    "istore": false
-  };
+  // API Configuration
+  static const String baseUrl = 'https://backend-compra-pronta.onrender.com';
+  static const String apiVersion = '/api';
+  static const String authEndpoint = '/auth';
+  
+  // API Endpoints
+  static const String loginEndpoint = '$baseUrl$apiVersion$authEndpoint/login';
+  static const String registerEndpoint = '$baseUrl$apiVersion$authEndpoint/register';
+  static const String verifyTokenEndpoint = '$baseUrl$apiVersion$authEndpoint/verify';
+  static const String refreshTokenEndpoint = '$baseUrl$apiVersion$authEndpoint/refresh';
+  static const String profileEndpoint = '$baseUrl$apiVersion$authEndpoint/profile';
+  static const String logoutEndpoint = '$baseUrl$apiVersion$authEndpoint/logout';
+  static const String usersEndpoint = '$baseUrl$apiVersion$authEndpoint/users';
 
-  static const Map<String, dynamic> mockVendedor = {
-    "id": "user_vendedor_001",
-    "name": "Vendedor Teste",
-    "email": "testevendedor@teste.com",
-    "password": "Venda@123",
-    "phone": "+5511988888888",
-    "address": {
-      "street": "Avenida Loja",
-      "number": "456",
-      "complement": null,
-      "neighborhood": "Centro",
-      "city": "São Paulo",
-      "state": "SP",
-      "zipCode": "01010-000"
-    },
-    "latitude": -23.551000,
-    "longitude": -46.634000,
-    "istore": true
-  };
+  // Credenciais de teste para o backend real
+  // Cliente: testecliente@teste.com / Senha@123
+  // Vendedor: testevendedor@teste.com / Venda@123
 
   // Mock produtos
   static const List<Map<String, dynamic>> mockProducts = [
@@ -170,4 +148,4 @@ class AppConstants {
       "reviewCount": 10
     }
   ];
-} 
+}

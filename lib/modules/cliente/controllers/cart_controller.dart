@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import '../models/product_model.dart';
-import '../../../core/constants/app_constants.dart';
+import '../../../constants/app_constants.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/utils/snackbar_utils.dart';
 

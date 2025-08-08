@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../core/constants/app_constants.dart';
+import '../../../constants/app_constants.dart';
 
 class EmptyCartWidget extends StatelessWidget {
   const EmptyCartWidget({super.key});
