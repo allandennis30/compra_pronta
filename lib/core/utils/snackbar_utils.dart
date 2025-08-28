@@ -47,46 +47,61 @@ class SnackBarUtils {
     required Color backgroundColor,
     required IconData icon,
   }) {
-    // Remove qualquer SnackBar existente antes de mostrar um novo
-    ScaffoldMessenger.of(context).clearSnackBars();
+    // Verificar se o contexto ainda é válido antes de usar
+    if (!context.mounted) return;
     
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(
-              icon,
-              color: Colors.white,
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+    try {
+      // Remove qualquer SnackBar existente antes de mostrar um novo
+      ScaffoldMessenger.of(context).clearSnackBars();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(
+                icon,
+                color: Colors.white,
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
+          backgroundColor: backgroundColor,
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          action: SnackBarAction(
+            label: 'Fechar',
+            textColor: Colors.white,
+            onPressed: () {
+              // Verificar se o contexto ainda é válido antes de usar
+              if (context.mounted) {
+                try {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                } catch (e) {
+                  // Ignorar erro se o contexto não for válido
+                }
+              }
+            },
+          ),
         ),
-        backgroundColor: backgroundColor,
-        duration: const Duration(seconds: 3),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        action: SnackBarAction(
-          label: 'Fechar',
-          textColor: Colors.white,
-          onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          },
-        ),
-      ),
-    );
+      );
+    } catch (e) {
+      // Se houver erro ao mostrar SnackBar, apenas logar (não quebrar o app)
+      debugPrint('Erro ao mostrar SnackBar: $e');
+    }
   }
 }

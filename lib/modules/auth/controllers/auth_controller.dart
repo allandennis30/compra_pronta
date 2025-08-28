@@ -55,11 +55,17 @@ class AuthController extends GetxController {
         _isLoggedIn.value = true;
         return true;
       } else {
-        SnackBarUtils.showError(context, 'Email ou senha incorretos');
+        // Verificar se o contexto ainda é válido antes de mostrar SnackBar
+        if (context.mounted) {
+          SnackBarUtils.showError(context, 'Email ou senha incorretos');
+        }
         return false;
       }
     } catch (e) {
-      SnackBarUtils.showError(context, 'Erro ao fazer login: $e');
+      // Verificar se o contexto ainda é válido antes de mostrar SnackBar
+      if (context.mounted) {
+        SnackBarUtils.showError(context, 'Erro ao fazer login: $e');
+      }
       return false;
     } finally {
       _isLoading.value = false;
@@ -94,11 +100,17 @@ class AuthController extends GetxController {
       _currentUser.value = user;
       _isLoggedIn.value = true;
 
-      SnackBarUtils.showSuccess(context, 'Conta criada com sucesso!');
+      // Verificar se o contexto ainda é válido antes de mostrar SnackBar
+      if (context.mounted) {
+        SnackBarUtils.showSuccess(context, 'Conta criada com sucesso!');
+      }
 
       return true;
     } catch (e) {
-      SnackBarUtils.showError(context, 'Erro ao criar conta: $e');
+      // Verificar se o contexto ainda é válido antes de mostrar SnackBar
+      if (context.mounted) {
+        SnackBarUtils.showError(context, 'Erro ao criar conta: $e');
+      }
       return false;
     } finally {
       _isLoading.value = false;
