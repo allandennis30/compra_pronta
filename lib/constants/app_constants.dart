@@ -60,7 +60,9 @@ class AppConstants {
   // API Endpoints
   static const String loginEndpoint = '$baseUrl$apiVersion$authEndpoint/login';
   static const String registerEndpoint =
-      '$baseUrl$apiVersion$authEndpoint/register';
+      '$baseUrl$apiVersion$authEndpoint/register/client';
+  static const String registerSellerEndpoint =
+      '$baseUrl$apiVersion$authEndpoint/register/seller';
   static const String verifyTokenEndpoint =
       '$baseUrl$apiVersion$authEndpoint/verify';
   static const String refreshTokenEndpoint =

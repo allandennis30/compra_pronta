@@ -31,7 +31,8 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<UserModel?> login(String email, String password) async {
     try {
-      final response = await http.post(
+      final response = await http
+          .post(
         Uri.parse(AppConstants.loginEndpoint),
         headers: {
           'Content-Type': 'application/json',
@@ -40,7 +41,8 @@ class AuthRepositoryImpl implements AuthRepository {
           'email': email,
           'senha': password,
         }),
-      ).timeout(
+      )
+          .timeout(
         const Duration(seconds: 30),
         onTimeout: () {
           throw Exception('Timeout: Servidor demorou para responder');
@@ -49,39 +51,39 @@ class AuthRepositoryImpl implements AuthRepository {
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
-        
+
         // Salvar token JWT
         final token = responseData['token'];
         if (token != null) {
           await _storage.write(AppConstants.tokenKey, token);
         }
-        
+
         // Criar modelo do usuário a partir da resposta
-         final userData = responseData['user'];
-         
-         // Criar AddressModel a partir dos dados do backend
-         final addressData = userData['endereco'] ?? userData['address'] ?? {};
-         final address = AddressModel(
-           street: addressData['street'] ?? '',
-           number: addressData['number'] ?? '',
-           complement: addressData['complement'],
-           neighborhood: addressData['neighborhood'] ?? '',
-           city: addressData['city'] ?? '',
-           state: addressData['state'] ?? '',
-           zipCode: addressData['zipCode'] ?? '',
-         );
-         
-         final user = UserModel(
-           id: userData['id'].toString(),
-           name: userData['nome'] ?? userData['name'] ?? '',
-           email: userData['email'],
-           phone: userData['telefone'] ?? userData['phone'] ?? '',
-           address: address,
-           latitude: userData['latitude']?.toDouble() ?? 0.0,
-           longitude: userData['longitude']?.toDouble() ?? 0.0,
-           istore: userData['tipo'] == 'vendedor' || userData['istore'] == true,
-         );
-        
+        final userData = responseData['user'];
+
+        // Criar AddressModel a partir dos dados do backend
+        final addressData = userData['endereco'] ?? userData['address'] ?? {};
+        final address = AddressModel(
+          street: addressData['street'] ?? '',
+          number: addressData['number'] ?? '',
+          complement: addressData['complement'],
+          neighborhood: addressData['neighborhood'] ?? '',
+          city: addressData['city'] ?? '',
+          state: addressData['state'] ?? '',
+          zipCode: addressData['zipCode'] ?? '',
+        );
+
+        final user = UserModel(
+          id: userData['id'].toString(),
+          name: userData['nome'] ?? userData['name'] ?? '',
+          email: userData['email'],
+          phone: userData['telefone'] ?? userData['phone'] ?? '',
+          address: address,
+          latitude: userData['latitude']?.toDouble() ?? 0.0,
+          longitude: userData['longitude']?.toDouble() ?? 0.0,
+          istore: userData['tipo'] == 'vendedor' || userData['istore'] == true,
+        );
+
         await saveUser(user);
         return user;
       } else if (response.statusCode == 401) {
@@ -89,7 +91,8 @@ class AuthRepositoryImpl implements AuthRepository {
       } else if (response.statusCode == 404) {
         throw Exception('Usuário não encontrado');
       } else if (response.statusCode >= 500) {
-        throw Exception('Erro interno do servidor. Tente novamente mais tarde.');
+        throw Exception(
+            'Erro interno do servidor. Tente novamente mais tarde.');
       } else {
         try {
           final errorData = json.decode(response.body);
@@ -100,17 +103,18 @@ class AuthRepositoryImpl implements AuthRepository {
       }
     } catch (e) {
       AppLogger.error('Erro ao fazer login', e);
-      
+
       if (e.toString().contains('SocketException')) {
         throw Exception('Sem conexão com a internet. Verifique sua rede.');
-      } else if (e.toString().contains('TimeoutException') || e.toString().contains('Timeout:')) {
+      } else if (e.toString().contains('TimeoutException') ||
+          e.toString().contains('Timeout:')) {
         throw Exception('Conexão muito lenta. Tente novamente.');
       } else if (e.toString().contains('HandshakeException')) {
         throw Exception('Erro de segurança na conexão.');
       } else if (e.toString().contains('FormatException')) {
         throw Exception('Resposta inválida do servidor.');
       }
-      
+
       rethrow;
     }
   }
@@ -127,22 +131,23 @@ class AuthRepositoryImpl implements AuthRepository {
     bool istore = false,
   }) async {
     try {
-      final response = await http.post(
+      final response = await http
+          .post(
         Uri.parse(AppConstants.registerEndpoint),
         headers: {
           'Content-Type': 'application/json',
         },
         body: json.encode({
-          'name': name,
+          'nome': name,
           'email': email,
           'senha': password,
-          'phone': phone,
-          'address': address.toJson(),
+          'telefone': phone,
+          'endereco': address.toJson(),
           'latitude': latitude,
           'longitude': longitude,
-          'istore': istore,
         }),
-      ).timeout(
+      )
+          .timeout(
         const Duration(seconds: 30),
         onTimeout: () {
           throw Exception('Timeout: Servidor demorou para responder');
@@ -151,17 +156,17 @@ class AuthRepositoryImpl implements AuthRepository {
 
       if (response.statusCode == 201) {
         final responseData = json.decode(response.body);
-        
+
         // Salvar token JWT se fornecido
         final token = responseData['token'];
         if (token != null) {
           await _storage.write(AppConstants.tokenKey, token);
         }
-        
+
         // Criar modelo do usuário a partir da resposta
         final userData = responseData['user'];
         final addressData = userData['endereco'] ?? userData['address'];
-        
+
         final addressModel = AddressModel(
           street: addressData['street'] ?? '',
           number: addressData['number'] ?? '',
@@ -171,7 +176,7 @@ class AuthRepositoryImpl implements AuthRepository {
           state: addressData['state'] ?? '',
           zipCode: addressData['zipCode'] ?? '',
         );
-        
+
         final user = UserModel(
           id: userData['id'].toString(),
           name: userData['nome'] ?? userData['name'] ?? '',
@@ -182,7 +187,7 @@ class AuthRepositoryImpl implements AuthRepository {
           longitude: userData['longitude']?.toDouble() ?? 0.0,
           istore: userData['tipo'] == 'vendedor' || userData['istore'] == true,
         );
-        
+
         await saveUser(user);
         return user;
       } else if (response.statusCode == 400) {
@@ -191,7 +196,8 @@ class AuthRepositoryImpl implements AuthRepository {
       } else if (response.statusCode == 409) {
         throw Exception('Email já está em uso');
       } else if (response.statusCode >= 500) {
-        throw Exception('Erro interno do servidor. Tente novamente mais tarde.');
+        throw Exception(
+            'Erro interno do servidor. Tente novamente mais tarde.');
       } else {
         try {
           final errorData = json.decode(response.body);
@@ -202,17 +208,18 @@ class AuthRepositoryImpl implements AuthRepository {
       }
     } catch (e) {
       AppLogger.error('Erro ao fazer cadastro', e);
-      
+
       if (e.toString().contains('SocketException')) {
         throw Exception('Sem conexão com a internet. Verifique sua rede.');
-      } else if (e.toString().contains('TimeoutException') || e.toString().contains('Timeout:')) {
+      } else if (e.toString().contains('TimeoutException') ||
+          e.toString().contains('Timeout:')) {
         throw Exception('Conexão muito lenta. Tente novamente.');
       } else if (e.toString().contains('HandshakeException')) {
         throw Exception('Erro de segurança na conexão.');
       } else if (e.toString().contains('FormatException')) {
         throw Exception('Resposta inválida do servidor.');
       }
-      
+
       rethrow;
     }
   }
