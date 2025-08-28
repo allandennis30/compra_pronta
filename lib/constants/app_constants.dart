@@ -54,6 +54,9 @@ class AppConstants {
   static const String apiVersion = '/api';
   static const String authEndpoint = '/auth';
   
+  // Configuração para desenvolvimento local (descomente se necessário)
+  // static const String baseUrl = 'http://localhost:3000';
+  
   // API Endpoints
   static const String loginEndpoint = '$baseUrl$apiVersion$authEndpoint/login';
   static const String registerEndpoint = '$baseUrl$apiVersion$authEndpoint/register';
