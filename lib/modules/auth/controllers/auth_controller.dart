@@ -44,7 +44,8 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<bool> login(String email, String password, BuildContext context) async {
+  Future<bool> login(
+      String email, String password, BuildContext context) async {
     _isLoading.value = true;
 
     try {

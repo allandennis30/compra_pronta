@@ -49,11 +49,11 @@ class SnackBarUtils {
   }) {
     // Verificar se o contexto ainda é válido antes de usar
     if (!context.mounted) return;
-    
+
     try {
       // Remove qualquer SnackBar existente antes de mostrar um novo
       ScaffoldMessenger.of(context).clearSnackBars();
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
