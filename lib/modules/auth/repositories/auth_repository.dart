@@ -31,6 +31,10 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<UserModel?> login(String email, String password) async {
     try {
+      // Log da requisição
+      AppLogger.info(
+          '🔐 Iniciando login - Email: $email - Endpoint: ${AppConstants.loginEndpoint}');
+
       final response = await http
           .post(
         Uri.parse(AppConstants.loginEndpoint),
@@ -49,13 +53,22 @@ class AuthRepositoryImpl implements AuthRepository {
         },
       );
 
+      // Log da resposta
+      AppLogger.info(
+          '📡 Resposta do login recebida - Status: ${response.statusCode} - Tamanho: ${response.body.length}');
+
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
+
+        // Log do sucesso
+        AppLogger.success(
+            '✅ Login realizado com sucesso - UserID: ${responseData['user']?['id']} - Tipo: ${responseData['user']?['tipo']}');
 
         // Salvar token JWT
         final token = responseData['token'];
         if (token != null) {
           await _storage.write(AppConstants.tokenKey, token);
+          AppLogger.info('💾 Token JWT salvo no storage');
         }
 
         // Criar modelo do usuário a partir da resposta
@@ -85,24 +98,37 @@ class AuthRepositoryImpl implements AuthRepository {
         );
 
         await saveUser(user);
+        AppLogger.info('💾 Usuário salvo no storage local');
         return user;
       } else if (response.statusCode == 401) {
+        AppLogger.warning(
+            '❌ Login falhou: Credenciais inválidas - Status: ${response.statusCode} - Email: $email');
         throw Exception('Email ou senha incorretos');
       } else if (response.statusCode == 404) {
+        AppLogger.warning(
+            '❌ Login falhou: Usuário não encontrado - Status: ${response.statusCode} - Email: $email');
         throw Exception('Usuário não encontrado');
       } else if (response.statusCode >= 500) {
+        AppLogger.error(
+            '💥 Erro do servidor no login - Status: ${response.statusCode} - Response: ${response.body}',
+            response.body);
         throw Exception(
             'Erro interno do servidor. Tente novamente mais tarde.');
       } else {
         try {
           final errorData = json.decode(response.body);
+          AppLogger.warning(
+              '⚠️ Erro no login - Status: ${response.statusCode} - Mensagem: ${errorData['message']}');
           throw Exception(errorData['message'] ?? 'Erro no login');
         } catch (e) {
+          AppLogger.error(
+              '💥 Erro ao processar resposta do login - Status: ${response.statusCode} - Parse Error: $e',
+              e);
           throw Exception('Erro no login: ${response.statusCode}');
         }
       }
     } catch (e) {
-      AppLogger.error('Erro ao fazer login', e);
+      AppLogger.error('💥 Erro ao fazer login - Email: $email', e);
 
       if (e.toString().contains('SocketException')) {
         throw Exception('Sem conexão com a internet. Verifique sua rede.');
@@ -138,13 +164,14 @@ class AuthRepositoryImpl implements AuthRepository {
           'Content-Type': 'application/json',
         },
         body: json.encode({
-          'nome': name,
+          'name': name,
           'email': email,
           'senha': password,
-          'telefone': phone,
-          'endereco': address.toJson(),
+          'phone': phone,
+          'address': address.toJson(),
           'latitude': latitude,
           'longitude': longitude,
+          'istore': istore,
         }),
       )
           .timeout(
