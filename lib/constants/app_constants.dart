@@ -11,7 +11,7 @@ class AppConstants {
   // Textos
   static const String appName = 'Compra Pronta';
   static const String appVersion = '1.0.0';
-  
+
   // Status de pedidos
   static const String statusPending = 'pending';
   static const String statusConfirmed = 'confirmed';
@@ -53,17 +53,22 @@ class AppConstants {
   static const String baseUrl = 'https://backend-compra-pronta.onrender.com';
   static const String apiVersion = '/api';
   static const String authEndpoint = '/auth';
-  
+
   // Configuração para desenvolvimento local (descomente se necessário)
   // static const String baseUrl = 'http://localhost:3000';
-  
+
   // API Endpoints
   static const String loginEndpoint = '$baseUrl$apiVersion$authEndpoint/login';
-  static const String registerEndpoint = '$baseUrl$apiVersion$authEndpoint/register';
-  static const String verifyTokenEndpoint = '$baseUrl$apiVersion$authEndpoint/verify';
-  static const String refreshTokenEndpoint = '$baseUrl$apiVersion$authEndpoint/refresh';
-  static const String profileEndpoint = '$baseUrl$apiVersion$authEndpoint/profile';
-  static const String logoutEndpoint = '$baseUrl$apiVersion$authEndpoint/logout';
+  static const String registerEndpoint =
+      '$baseUrl$apiVersion$authEndpoint/register';
+  static const String verifyTokenEndpoint =
+      '$baseUrl$apiVersion$authEndpoint/verify';
+  static const String refreshTokenEndpoint =
+      '$baseUrl$apiVersion$authEndpoint/refresh';
+  static const String profileEndpoint =
+      '$baseUrl$apiVersion$authEndpoint/profile';
+  static const String logoutEndpoint =
+      '$baseUrl$apiVersion$authEndpoint/logout';
   static const String usersEndpoint = '$baseUrl$apiVersion$authEndpoint/users';
 
   // Credenciais de teste para o backend real
@@ -77,7 +82,8 @@ class AppConstants {
       "name": "Maçã Fuji",
       "description": "Maçãs frescas e doces, ideais para consumo in natura",
       "price": 8.90,
-      "imageUrl": "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400",
+      "imageUrl":
+          "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400",
       "category": "Frutas e Verduras",
       "barcode": "7891234567890",
       "stock": 50,
@@ -90,7 +96,8 @@ class AppConstants {
       "name": "Banana Prata",
       "description": "Bananas prata maduras e saborosas",
       "price": 4.50,
-      "imageUrl": "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400",
+      "imageUrl":
+          "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400",
       "category": "Frutas e Verduras",
       "barcode": "7891234567891",
       "stock": 30,
@@ -103,7 +110,8 @@ class AppConstants {
       "name": "Leite Integral",
       "description": "Leite integral fresco, 1L",
       "price": 6.90,
-      "imageUrl": "https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400",
+      "imageUrl":
+          "https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400",
       "category": "Laticínios",
       "barcode": "7891234567892",
       "stock": 25,
@@ -116,7 +124,8 @@ class AppConstants {
       "name": "Pão Francês",
       "description": "Pão francês fresco, 500g",
       "price": 3.50,
-      "imageUrl": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400",
+      "imageUrl":
+          "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400",
       "category": "Pães e Massas",
       "barcode": "7891234567893",
       "stock": 40,
@@ -129,7 +138,8 @@ class AppConstants {
       "name": "Coca-Cola",
       "description": "Refrigerante Coca-Cola, 2L",
       "price": 8.50,
-      "imageUrl": "https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=400",
+      "imageUrl":
+          "https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=400",
       "category": "Bebidas",
       "barcode": "7891234567894",
       "stock": 35,
@@ -142,7 +152,8 @@ class AppConstants {
       "name": "Detergente Líquido",
       "description": "Detergente líquido para louças, 500ml",
       "price": 5.90,
-      "imageUrl": "https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400",
+      "imageUrl":
+          "https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400",
       "category": "Limpeza",
       "barcode": "7891234567895",
       "stock": 20,
