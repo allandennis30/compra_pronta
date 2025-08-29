@@ -164,14 +164,14 @@ class AuthRepositoryImpl implements AuthRepository {
           'Content-Type': 'application/json',
         },
         body: json.encode({
-          'name': name,
+          'nome': name, // Corrigido: 'name' -> 'nome'
           'email': email,
           'senha': password,
-          'phone': phone,
-          'address': address.toJson(),
+          'telefone': phone, // Corrigido: 'phone' -> 'telefone'
+          'endereco': address.toJson(), // Corrigido: 'address' -> 'endereco'
           'latitude': latitude,
           'longitude': longitude,
-          'istore': istore,
+          // Removido: 'istore' (não é esperado pelo backend)
         }),
       )
           .timeout(
