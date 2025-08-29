@@ -140,7 +140,8 @@ class VendorProductFormController extends GetxController {
     if (isSoldByWeight.value) {
       // Para produtos vendidos por peso
       if (pricePerKgController.text.isEmpty) {
-        errorMessage.value = 'Preço por kg é obrigatório para produtos vendidos por peso';
+        errorMessage.value =
+            'Preço por kg é obrigatório para produtos vendidos por peso';
         hasError.value = true;
         return false;
       }
@@ -204,6 +205,7 @@ class VendorProductFormController extends GetxController {
 
     try {
       isLoading.value = true;
+      hasError.value = false;
 
       // Processar a imagem primeiro, se houver uma nova
       String finalImageUrl = imageUrl.value;
@@ -222,13 +224,31 @@ class VendorProductFormController extends GetxController {
         stock: isSoldByWeight.value ? 0 : int.parse(stockController.text),
         isAvailable: isAvailable.value,
         isSoldByWeight: isSoldByWeight.value,
-        pricePerKg: isSoldByWeight.value ? double.parse(pricePerKgController.text) : null,
+        pricePerKg: isSoldByWeight.value
+            ? double.parse(pricePerKgController.text)
+            : null,
       );
 
       if (isEditing.value) {
         await _repository.update(product);
+        Get.snackbar(
+          'Sucesso',
+          'Produto atualizado com sucesso!',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+        );
       } else {
         await _repository.create(product);
+        Get.snackbar(
+          'Sucesso',
+          'Produto cadastrado com sucesso!',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+        );
       }
 
       Get.back(result: true);
@@ -237,6 +257,16 @@ class VendorProductFormController extends GetxController {
       AppLogger.error('Erro ao salvar produto', e);
       errorMessage.value = 'Erro ao salvar produto: ${e.toString()}';
       hasError.value = true;
+
+      Get.snackbar(
+        'Erro',
+        'Erro ao salvar produto: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
+      );
+
       return false;
     } finally {
       isLoading.value = false;

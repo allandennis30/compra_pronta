@@ -233,7 +233,18 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
     );
 
     if (result == true) {
-      controller.loadProducts();
+      // Recarregar produtos e mostrar mensagem de sucesso
+      await controller.loadProducts();
+      Get.snackbar(
+        'Sucesso',
+        product != null
+            ? 'Produto atualizado com sucesso!'
+            : 'Produto cadastrado com sucesso!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
     }
   }
 

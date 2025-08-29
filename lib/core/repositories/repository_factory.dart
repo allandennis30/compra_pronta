@@ -4,12 +4,14 @@ import '../../modules/cliente/repositories/cart_repository.dart';
 import '../../modules/cliente/repositories/order_repository.dart';
 import '../../modules/vendedor/repositories/vendor_metrics_repository.dart';
 import '../../modules/vendedor/repositories/vendedor_product_repository.dart';
+import '../../modules/vendedor/repositories/vendedor_product_api_repository.dart';
+import 'package:get/get.dart';
 
 /// Factory para gerenciar repositories
 /// Permite trocar facilmente entre implementações mock e reais
 class RepositoryFactory {
   static const bool _useMockData =
-      true; // Alterar para false para usar APIs reais
+      false; // Alterar para false para usar APIs reais
 
   static AuthRepository createAuthRepository() {
     if (_useMockData) {
@@ -60,8 +62,9 @@ class RepositoryFactory {
     if (_useMockData) {
       return VendedorProductRepositoryImpl();
     } else {
-      // return VendedorProductApiRepository(); // Implementação real da API
-      return VendedorProductRepositoryImpl(); // Fallback para mock
+      return VendedorProductApiRepository(
+          authRepository:
+              Get.find<AuthRepository>()); // Implementação real da API
     }
   }
 }

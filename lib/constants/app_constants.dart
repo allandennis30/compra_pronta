@@ -73,6 +73,16 @@ class AppConstants {
       '$baseUrl$apiVersion$authEndpoint/logout';
   static const String usersEndpoint = '$baseUrl$apiVersion$authEndpoint/users';
 
+  // Products endpoints
+  static const String productsEndpoint = '$baseUrl$apiVersion/products';
+  static const String createProductEndpoint = '$baseUrl$apiVersion/products';
+  static const String listProductsEndpoint = '$baseUrl$apiVersion/products';
+  static const String getProductEndpoint = '$baseUrl$apiVersion/products';
+  static const String updateProductEndpoint = '$baseUrl$apiVersion/products';
+  static const String deleteProductEndpoint = '$baseUrl$apiVersion/products';
+  static const String checkBarcodeEndpoint =
+      '$baseUrl$apiVersion/products/barcode';
+
   // Credenciais de teste para o backend real
   // Cliente: testecliente@teste.com / Senha@123
   // Vendedor: testevendedor@teste.com / Venda@123

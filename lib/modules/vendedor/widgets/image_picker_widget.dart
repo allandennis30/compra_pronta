@@ -21,18 +21,25 @@ class ImagePickerWidget extends StatelessWidget {
     final hasImage =
         selectedImage != null || (imageUrl != null && imageUrl!.isNotEmpty);
 
-    return Container(
-      width: double.infinity,
-      height: 200,
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.grey[400]!,
-          width: 1,
-        ),
-      ),
-      child: hasImage ? _buildSelectedImage() : _buildPlaceholder(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isTablet = constraints.maxWidth > 600;
+        final isDesktop = constraints.maxWidth > 900;
+
+        return Container(
+          width: double.infinity,
+          height: isDesktop ? 300 : (isTablet ? 250 : 200),
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.grey[400]!,
+              width: 1,
+            ),
+          ),
+          child: hasImage ? _buildSelectedImage() : _buildPlaceholder(),
+        );
+      },
     );
   }
 

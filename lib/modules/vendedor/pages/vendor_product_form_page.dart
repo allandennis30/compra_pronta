@@ -35,48 +35,116 @@ class VendorProductFormPage extends GetView<VendorProductFormController> {
   }
 
   Widget _buildForm() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildImagePicker(),
-          const SizedBox(height: 24),
-          _buildProductName(),
-          const SizedBox(height: 16),
-          _buildDescription(),
-          const SizedBox(height: 16),
-          Obx(
-            () => controller.isSoldByWeight.value
-                ? const SizedBox() // Não mostrar preço e estoque para produtos por peso
-                : Row(
-                    children: [
-                      Expanded(child: _buildPrice()),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildStock()),
-                    ],
-                  ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isTablet = constraints.maxWidth > 600;
+        final isDesktop = constraints.maxWidth > 900;
+
+        return SingleChildScrollView(
+          padding: EdgeInsets.all(isTablet ? 24.0 : 16.0),
+          child: isDesktop ? _buildDesktopLayout() : _buildMobileLayout(),
+        );
+      },
+    );
+  }
+
+  Widget _buildDesktopLayout() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Coluna da esquerda - Imagem e informações básicas
+        Expanded(
+          flex: 1,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildImagePicker(),
+              const SizedBox(height: 24),
+              _buildProductName(),
+              const SizedBox(height: 16),
+              _buildDescription(),
+              const SizedBox(height: 16),
+              _buildBarcodeField(),
+            ],
           ),
-          const SizedBox(height: 16),
-          _buildBarcodeField(),
-          const SizedBox(height: 16),
-          _buildCategoryDropdown(),
-          const SizedBox(height: 16),
-          _buildSoldByWeightToggle(),
-          const SizedBox(height: 16),
-          Obx(() => controller.isSoldByWeight.value
-              ? _buildPricePerKgField()
-              : const SizedBox()),
-          const SizedBox(height: 16),
-          _buildAvailabilityToggle(),
-          const SizedBox(height: 24),
-          _buildSaveButton(),
-          const SizedBox(height: 16),
-          Obx(() => controller.hasError.value
-              ? _buildErrorMessage()
-              : const SizedBox()),
-        ],
-      ),
+        ),
+        const SizedBox(width: 32),
+        // Coluna da direita - Configurações e preços
+        Expanded(
+          flex: 1,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildCategoryDropdown(),
+              const SizedBox(height: 16),
+              _buildSoldByWeightToggle(),
+              const SizedBox(height: 16),
+              Obx(
+                () => controller.isSoldByWeight.value
+                    ? _buildPricePerKgField()
+                    : Column(
+                        children: [
+                          _buildPrice(),
+                          const SizedBox(height: 16),
+                          _buildStock(),
+                        ],
+                      ),
+              ),
+              const SizedBox(height: 16),
+              _buildAvailabilityToggle(),
+              const SizedBox(height: 24),
+              _buildSaveButton(),
+              const SizedBox(height: 16),
+              Obx(() => controller.hasError.value
+                  ? _buildErrorMessage()
+                  : const SizedBox()),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildImagePicker(),
+        const SizedBox(height: 24),
+        _buildProductName(),
+        const SizedBox(height: 16),
+        _buildDescription(),
+        const SizedBox(height: 16),
+        Obx(
+          () => controller.isSoldByWeight.value
+              ? const SizedBox() // Não mostrar preço e estoque para produtos por peso
+              : Row(
+                  children: [
+                    Expanded(child: _buildPrice()),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildStock()),
+                  ],
+                ),
+        ),
+        const SizedBox(height: 16),
+        _buildBarcodeField(),
+        const SizedBox(height: 16),
+        _buildCategoryDropdown(),
+        const SizedBox(height: 16),
+        _buildSoldByWeightToggle(),
+        const SizedBox(height: 16),
+        Obx(() => controller.isSoldByWeight.value
+            ? _buildPricePerKgField()
+            : const SizedBox()),
+        const SizedBox(height: 16),
+        _buildAvailabilityToggle(),
+        const SizedBox(height: 24),
+        _buildSaveButton(),
+        const SizedBox(height: 16),
+        Obx(() => controller.hasError.value
+            ? _buildErrorMessage()
+            : const SizedBox()),
+      ],
     );
   }
 
@@ -113,16 +181,27 @@ class VendorProductFormPage extends GetView<VendorProductFormController> {
   }
 
   Widget _buildProductName() {
-    return TextFormField(
-      controller: controller.nameController,
-      decoration: const InputDecoration(
-        labelText: 'Nome do Produto',
-        hintText: 'Ex: Arroz Integral 1kg',
-        border: OutlineInputBorder(),
-        prefixIcon: Icon(Icons.shopping_bag),
-      ),
-      textCapitalization: TextCapitalization.sentences,
-      maxLength: 100,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isTablet = constraints.maxWidth > 600;
+
+        return TextFormField(
+          controller: controller.nameController,
+          decoration: InputDecoration(
+            labelText: 'Nome do Produto',
+            hintText: 'Ex: Arroz Integral 1kg',
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.shopping_bag),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: isTablet ? 16 : 12,
+              vertical: isTablet ? 16 : 12,
+            ),
+          ),
+          textCapitalization: TextCapitalization.sentences,
+          maxLength: 100,
+          style: TextStyle(fontSize: isTablet ? 16 : 14),
+        );
+      },
     );
   }
 
@@ -281,29 +360,42 @@ class VendorProductFormPage extends GetView<VendorProductFormController> {
   }
 
   Widget _buildSaveButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: ElevatedButton(
-        onPressed: () => controller.saveProduct(),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green,
-          foregroundColor: Colors.white,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.save),
-            const SizedBox(width: 8),
-            Text(
-              controller.isEditing.value
-                  ? 'Atualizar Produto'
-                  : 'Cadastrar Produto',
-              style: const TextStyle(fontSize: 16),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isTablet = constraints.maxWidth > 600;
+        final isDesktop = constraints.maxWidth > 900;
+
+        return SizedBox(
+          width: isDesktop ? 300 : double.infinity,
+          height: isTablet ? 56 : 48,
+          child: ElevatedButton(
+            onPressed: () => controller.saveProduct(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+              ),
             ),
-          ],
-        ),
-      ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.save, size: isTablet ? 24 : 20),
+                SizedBox(width: isTablet ? 12 : 8),
+                Text(
+                  controller.isEditing.value
+                      ? 'Atualizar Produto'
+                      : 'Cadastrar Produto',
+                  style: TextStyle(
+                    fontSize: isTablet ? 18 : 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
