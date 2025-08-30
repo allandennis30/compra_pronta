@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../cliente/models/product_model.dart';
 import '../repositories/vendedor_product_repository.dart';
@@ -52,11 +53,18 @@ class VendedorProductListController extends GetxController {
 
       final success = await _repository.delete(productId);
       if (success) {
+        // Remover da lista principal
+        _allProducts.removeWhere((product) => product.id == productId);
+        // Remover da lista filtrada
         products.removeWhere((product) => product.id == productId);
+
         Get.snackbar(
           'Produto removido',
           'Produto removido com sucesso',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
         );
       } else {
         Get.snackbar(
@@ -84,15 +92,26 @@ class VendedorProductListController extends GetxController {
 
       await _repository.update(updatedProduct);
 
-      final index = products.indexWhere((p) => p.id == product.id);
-      if (index >= 0) {
-        products[index] = updatedProduct;
+      // Atualizar na lista principal (_allProducts)
+      final allProductsIndex =
+          _allProducts.indexWhere((p) => p.id == product.id);
+      if (allProductsIndex >= 0) {
+        _allProducts[allProductsIndex] = updatedProduct;
+      }
+
+      // Atualizar na lista filtrada (products)
+      final filteredIndex = products.indexWhere((p) => p.id == product.id);
+      if (filteredIndex >= 0) {
+        products[filteredIndex] = updatedProduct;
       }
 
       Get.snackbar(
         'Produto atualizado',
         'Disponibilidade atualizada com sucesso',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
       );
     } catch (e) {
       Get.snackbar(

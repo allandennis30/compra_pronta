@@ -166,12 +166,29 @@ class VendedorProductRepositoryImpl implements VendedorProductRepository {
 
   @override
   Future<String> saveProductImage(File imageFile) async {
-    // Em uma implementação real, você faria upload da imagem para um servidor
-    // e retornaria a URL da imagem
-    // Aqui, vamos simular esse processo retornando uma URL fake
+    try {
+      AppLogger.info('📸 [LOCAL] Iniciando upload de imagem real');
 
-    await Future.delayed(Duration(milliseconds: 300));
-    final random = Random().nextInt(1000);
-    return 'https://via.placeholder.com/500x500.png?text=Product+Image+$random';
+      // Verificar se o arquivo existe
+      if (!await imageFile.exists()) {
+        throw Exception('Arquivo de imagem não encontrado');
+      }
+
+      // Em uma implementação real, você faria upload da imagem para um servidor
+      // e retornaria a URL da imagem
+      // Por enquanto, vamos simular esse processo retornando uma URL fake
+
+      await Future.delayed(Duration(milliseconds: 300));
+      final random = Random().nextInt(1000);
+
+      // Usar uma URL de imagem real em vez de placeholder
+      final fakeUrl = 'https://picsum.photos/500/500?random=$random';
+
+      AppLogger.info('✅ [LOCAL] Imagem processada (simulada): $fakeUrl');
+      return fakeUrl;
+    } catch (e) {
+      AppLogger.error('💥 [LOCAL] Erro ao processar imagem', e);
+      rethrow;
+    }
   }
 }

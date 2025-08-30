@@ -89,6 +89,8 @@ class AppConstants {
       '$baseUrl$apiVersion/products/public';
   static String get publicProductsFiltersEndpoint =>
       '$baseUrl$apiVersion/products/public/filters';
+  static String get uploadImageEndpoint =>
+      '$baseUrl$apiVersion/products/upload-image';
 
   // Credenciais de teste para o backend
   // Cliente: teste@teste.com / teste123

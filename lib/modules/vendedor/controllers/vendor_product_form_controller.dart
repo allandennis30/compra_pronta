@@ -1,11 +1,12 @@
-import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import '../../cliente/models/product_model.dart';
 import '../repositories/vendedor_product_repository.dart';
 import '../../../core/utils/logger.dart';
 import 'package:uuid/uuid.dart';
+import '../pages/vendor_product_list_page.dart';
 
 class VendorProductFormController extends GetxController {
   final VendedorProductRepository _repository;
@@ -26,6 +27,7 @@ class VendorProductFormController extends GetxController {
   final RxString imageUrl = ''.obs;
   final RxBool isEditing = false.obs;
   final Rxn<String> editingProductId = Rxn<String>();
+  final RxBool isUploadingImage = false.obs;
 
   final ImagePicker _picker = ImagePicker();
   final categories = [
@@ -200,19 +202,50 @@ class VendorProductFormController extends GetxController {
 
   Future<bool> saveProduct() async {
     if (!validateForm()) {
+      AppLogger.info('❌ [FORM] Validação falhou');
       return false;
     }
 
     try {
+      AppLogger.info('🚀 [FORM] Iniciando salvamento do produto...');
+      AppLogger.info('📋 [FORM] Dados do formulário:');
+      AppLogger.info('   - Nome: ${nameController.text.trim()}');
+      AppLogger.info('   - Categoria: ${selectedCategory.value}');
+      AppLogger.info('   - Preço: ${priceController.text}');
+      AppLogger.info('   - Código de barras: ${barcodeController.text.trim()}');
+      AppLogger.info('   - Estoque: ${stockController.text}');
+      AppLogger.info('   - Vendido por peso: ${isSoldByWeight.value}');
+      AppLogger.info('   - Preço por kg: ${pricePerKgController.text}');
+      AppLogger.info('   - Imagem atual: ${imageUrl.value}');
+      AppLogger.info('   - Nova imagem: ${productImage.value != null ? "Sim" : "Não"}');
+
       isLoading.value = true;
       hasError.value = false;
 
       // Processar a imagem primeiro, se houver uma nova
       String finalImageUrl = imageUrl.value;
       if (productImage.value != null) {
-        finalImageUrl = await _repository.saveProductImage(productImage.value!);
+        try {
+          AppLogger.info('📸 [FORM] Iniciando upload de imagem...');
+          AppLogger.info('📸 [FORM] Arquivo: ${productImage.value!.path}');
+          AppLogger.info('📸 [FORM] Tamanho: ${await productImage.value!.length()} bytes');
+          
+          isUploadingImage.value = true;
+          finalImageUrl = await _repository.saveProductImage(productImage.value!);
+          
+          AppLogger.info('✅ [FORM] Upload de imagem concluído com sucesso!');
+          AppLogger.info('✅ [FORM] URL da imagem: $finalImageUrl');
+        } catch (e) {
+          AppLogger.error('💥 [FORM] Erro no upload de imagem', e);
+          rethrow;
+        } finally {
+          isUploadingImage.value = false;
+        }
+      } else {
+        AppLogger.info('ℹ️ [FORM] Nenhuma nova imagem para upload');
       }
 
+      AppLogger.info('🏗️ [FORM] Criando modelo do produto...');
       final product = ProductModel(
         id: isEditing.value ? editingProductId.value! : const Uuid().v4(),
         name: nameController.text.trim(),
@@ -229,46 +262,94 @@ class VendorProductFormController extends GetxController {
             : null,
       );
 
+      AppLogger.info('📤 [FORM] Enviando produto para o backend...');
+      AppLogger.info('📤 [FORM] Modo: ${isEditing.value ? "Edição" : "Criação"}');
+      AppLogger.info('📤 [FORM] ID do produto: ${product.id}');
+
       if (isEditing.value) {
-        await _repository.update(product);
+        AppLogger.info('✏️ [FORM] Atualizando produto existente...');
+        final updatedProduct = await _repository.update(product);
+        AppLogger.info('✅ [FORM] Produto atualizado com sucesso no backend');
+        AppLogger.info('✅ [FORM] Resposta do backend: ${updatedProduct.name}');
+
         Get.snackbar(
           'Sucesso',
           'Produto atualizado com sucesso!',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
           backgroundColor: Colors.green,
           colorText: Colors.white,
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 3),
         );
       } else {
-        await _repository.create(product);
+        AppLogger.info('🆕 [FORM] Criando novo produto...');
+        final createdProduct = await _repository.create(product);
+        AppLogger.info('✅ [FORM] Produto criado com sucesso no backend');
+        AppLogger.info('✅ [FORM] Resposta do backend: ${createdProduct.name}');
+
         Get.snackbar(
           'Sucesso',
           'Produto cadastrado com sucesso!',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
           backgroundColor: Colors.green,
           colorText: Colors.white,
-          duration: const Duration(seconds: 2),
+          duration: const Duration(seconds: 3),
         );
       }
 
-      Get.back(result: true);
+      AppLogger.info('🔄 [FORM] Aguardando feedback e saindo da página');
+      // Aguardar um pouco para o usuário ver a snackbar antes de sair
+      await Future.delayed(const Duration(milliseconds: 1500));
+
+      AppLogger.info('⬅️ [FORM] Voltando para tela "Meus Produtos"');
+      // Fechar a snackbar antes de navegar
+      Get.closeCurrentSnackbar();
+
+      // Navegar diretamente para a tela "Meus Produtos"
+      // Usar Get.off() para substituir a página atual e evitar pilha de navegação
+      Get.off(() => const VendorProductListPage());
+
+      AppLogger.info(
+          '✅ [FORM] Navegação para "Meus Produtos" executada com sucesso');
       return true;
     } catch (e) {
-      AppLogger.error('Erro ao salvar produto', e);
+      AppLogger.error('💥 [FORM] Erro ao salvar produto', e);
+      AppLogger.error('💥 [FORM] Tipo de erro: ${e.runtimeType}');
+      AppLogger.error('💥 [FORM] Mensagem: ${e.toString()}');
 
       // Tratamento específico para diferentes tipos de erro
       String userMessage;
-      if (e.toString().contains('Serviço temporariamente indisponível')) {
+
+      // Erros específicos de upload de imagem
+      if (e.toString().contains('Imagem muito grande')) {
+        userMessage = 'Imagem muito grande. Máximo permitido: 5MB';
+        AppLogger.warning('⚠️ [FORM] Erro: Imagem muito grande');
+      } else if (e.toString().contains('Tipo de arquivo não suportado')) {
+        userMessage =
+            'Tipo de arquivo não suportado. Use JPG, PNG, GIF ou WebP';
+        AppLogger.warning('⚠️ [FORM] Erro: Tipo de arquivo não suportado');
+      } else if (e.toString().contains('Sessão expirada')) {
+        userMessage = 'Sessão expirada. Faça login novamente';
+        AppLogger.warning('⚠️ [FORM] Erro: Sessão expirada');
+      } else if (e
+          .toString()
+          .contains('Serviço temporariamente indisponível')) {
         userMessage =
             'Serviço temporariamente indisponível. Tente novamente em alguns minutos.';
+        AppLogger.warning('⚠️ [FORM] Erro: Serviço indisponível');
       } else if (e.toString().contains('Servidor retornou resposta vazia')) {
         userMessage =
             'Problema de conexão com o servidor. Verifique sua internet e tente novamente.';
+        AppLogger.warning('⚠️ [FORM] Erro: Resposta vazia do servidor');
       } else if (e.toString().contains('timeout')) {
         userMessage =
             'Tempo limite excedido. Verifique sua conexão e tente novamente.';
+        AppLogger.warning('⚠️ [FORM] Erro: Timeout');
+      } else if (e.toString().contains('Connection refused')) {
+        userMessage = 'Servidor não está acessível. Verifique sua conexão';
+        AppLogger.warning('⚠️ [FORM] Erro: Connection refused');
       } else {
         userMessage = 'Erro ao salvar produto: ${e.toString()}';
+        AppLogger.warning('⚠️ [FORM] Erro genérico: ${e.toString()}');
       }
 
       errorMessage.value = userMessage;
@@ -290,6 +371,7 @@ class VendorProductFormController extends GetxController {
       return false;
     } finally {
       isLoading.value = false;
+      AppLogger.info('🏁 [FORM] Salvamento finalizado');
     }
   }
 

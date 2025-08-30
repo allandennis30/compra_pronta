@@ -7,8 +7,8 @@ enum Environment {
 
 /// Configuração de ambiente para o app Compra Pronta
 ///
-/// Este arquivo permite alternar facilmente entre ambientes de desenvolvimento e produção
-/// sem precisar modificar o código principal.
+/// Este arquivo está configurado para usar sempre o servidor de produção (Render)
+/// para garantir funcionamento consistente em todos os dispositivos.
 class EnvironmentConfig {
   // ========================================
   // CONFIGURAÇÃO DE AMBIENTE
@@ -16,16 +16,13 @@ class EnvironmentConfig {
 
   /// Ambiente atual do app
   ///
-  /// Opções:
-  /// - development: Usa servidor local (localhost:3000)
-  /// - production: Usa servidor de produção (Render)
-  /// - auto: Detecta automaticamente baseado no dispositivo
-  static const Environment _currentEnvironment = Environment.development;
+  /// Configurado para sempre usar produção (Render)
+  /// para garantir funcionamento consistente
+  static const Environment _currentEnvironment = Environment.production;
 
   /// URLs dos servidores
   static const Map<Environment, String> _serverUrls = {
-    Environment.development:
-        'http://192.168.3.43:3000', // IP da máquina para dispositivos reais
+    Environment.development: 'http://localhost:3000', // Não usado
     Environment.production: 'https://backend-compra-pronta.onrender.com',
   };
 
@@ -35,46 +32,27 @@ class EnvironmentConfig {
 
   /// Retorna a URL base do servidor baseada no ambiente atual
   static String get baseUrl {
-    switch (_currentEnvironment) {
-      case Environment.development:
-        return _getDevelopmentUrl();
-      case Environment.production:
-        return _serverUrls[Environment.production]!;
-      case Environment.auto:
-        return _isEmulator()
-            ? _getDevelopmentUrl()
-            : _serverUrls[Environment.production]!;
-    }
+    // Sempre usar produção (Render) para garantir funcionamento
+    return _serverUrls[Environment.production]!;
   }
 
   /// Retorna a URL de desenvolvimento baseada na plataforma
   static String _getDevelopmentUrl() {
-    // Para emulador Android, usar 10.0.2.2
-    // Para iOS Simulator, usar localhost
-    // Para dispositivo real, usar IP da máquina
-
-    // Por enquanto, usar IP da máquina que funciona para ambos
-    // Em produção, implementar detecção automática
-    return 'http://192.168.3.43:3000';
+    // Não usado - sempre em produção
+    return 'http://localhost:3000';
   }
 
   /// Retorna o nome do ambiente atual
   static String get environmentName {
-    switch (_currentEnvironment) {
-      case Environment.development:
-        return 'Desenvolvimento Local';
-      case Environment.production:
-        return 'Produção (Render)';
-      case Environment.auto:
-        return _isEmulator() ? 'Auto (Local)' : 'Auto (Produção)';
-    }
+    // Sempre em produção (Render)
+    return 'Produção (Render)';
   }
 
   /// Retorna se está em modo de desenvolvimento
-  static bool get isDevelopment => baseUrl.contains('localhost');
+  static bool get isDevelopment => false; // Sempre em produção
 
   /// Retorna se está em modo de produção
-  static bool get isProduction => baseUrl.contains('onrender.com');
+  static bool get isProduction => true; // Sempre em produção
 
   // ========================================
   // MÉTODOS PRIVADOS
@@ -82,27 +60,19 @@ class EnvironmentConfig {
 
   /// Detecta se está rodando no emulador
   ///
-  /// Por enquanto, sempre retorna true para desenvolvimento
-  /// Em produção, você pode implementar uma detecção mais sofisticada
+  /// Não usado - sempre em produção
   static bool _isEmulator() {
-    // TODO: Implementar detecção real de emulador
-    // Por exemplo:
-    // - Verificar IP do dispositivo
-    // - Verificar Build.FINGERPRINT no Android
-    // - Verificar se está no simulador iOS
-
-    // Por enquanto, sempre assume emulador para desenvolvimento
-    return true;
+    return false; // Sempre em produção
   }
 
   // ========================================
   // CONFIGURAÇÃO RÁPIDA
   // ========================================
 
-  /// Para alternar rapidamente entre ambientes, mude a linha abaixo:
+  /// Configuração fixa para produção
   ///
-  /// Exemplos:
-  /// - static const Environment _currentEnvironment = Environment.development;  // Força local
-  /// - static const Environment _currentEnvironment = Environment.production; // Força produção
-  /// - static const Environment _currentEnvironment = Environment.auto;        // Detecção automática (padrão)
+  /// Para voltar ao desenvolvimento, mude a linha abaixo:
+  /// static const Environment _currentEnvironment = Environment.development;
+  ///
+  /// Mas lembre-se: produção garante funcionamento em todos os dispositivos!
 }

@@ -234,32 +234,22 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
     );
 
     if (result == true) {
-      // Recarregar produtos e mostrar mensagem de sucesso
+      // Recarregar produtos após sucesso
       await controller.loadProducts();
-      Get.snackbar(
-        'Sucesso',
-        product != null
-            ? 'Produto atualizado com sucesso!'
-            : 'Produto cadastrado com sucesso!',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
+
+      // Não mostrar snackbar aqui pois o controller já mostra
+      // Apenas recarregar a lista para mostrar as mudanças
     }
   }
 
-  void _toggleProductStatus(ProductModel product) {
-    // Implementar lógica para alternar status do produto
-    // Por enquanto, apenas mostra um snackbar
-    Get.snackbar(
-      'Status do Produto',
-      (product.isAvailable ?? false)
-          ? 'Produto ${product.name ?? 'Produto sem nome'} foi desativado'
-          : 'Produto ${product.name ?? 'Produto sem nome'} foi ativado',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-    );
+  void _toggleProductStatus(ProductModel product) async {
+    try {
+      // Chamar o método do controller para atualizar a disponibilidade
+      await controller.toggleProductAvailability(product);
+    } catch (e) {
+      // O controller já trata os erros e mostra snackbars
+      // Aqui apenas para garantir que não quebre a UI
+    }
   }
 
   void _showDeleteConfirmation(ProductModel product) {

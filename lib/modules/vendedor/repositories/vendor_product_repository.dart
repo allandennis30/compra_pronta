@@ -215,7 +215,9 @@ class VendedorProductRepositoryImpl implements VendedorProductRepository {
 
     await Future.delayed(Duration(milliseconds: 300));
     final random = Random().nextInt(1000);
-    return 'https://via.placeholder.com/500x500.png?text=Product+Image+$random';
+
+    // Usar uma URL de imagem real em vez de placeholder
+    return 'https://picsum.photos/500/500?random=$random';
   }
 
   // Método para limpar o cache (útil para testes ou quando necessário)

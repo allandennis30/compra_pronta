@@ -383,13 +383,126 @@ class VendedorProductApiRepository implements VendedorProductRepository {
 
   @override
   Future<String> saveProductImage(File imageFile) async {
-    // Em uma implementação real, você faria upload da imagem para um servidor
-    // e retornaria a URL da imagem
-    // Por enquanto, vamos simular esse processo
-    AppLogger.info('📸 [API] Simulando upload de imagem');
+    try {
+      AppLogger.info('📸 [API] Iniciando upload de imagem real');
+      AppLogger.info('📸 [API] Endpoint: ${AppConstants.uploadImageEndpoint}');
+      AppLogger.info('📸 [API] Arquivo: ${imageFile.path}');
 
-    await Future.delayed(const Duration(milliseconds: 500));
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    return 'https://via.placeholder.com/500x500.png?text=Product+Image+$timestamp';
+      // Verificar se o arquivo existe
+      if (!await imageFile.exists()) {
+        AppLogger.error('❌ [API] Arquivo de imagem não encontrado: ${imageFile.path}');
+        throw Exception('Arquivo de imagem não encontrado');
+      }
+
+      final fileSize = await imageFile.length();
+      AppLogger.info('📸 [API] Tamanho do arquivo: $fileSize bytes');
+
+      // Obter token de autenticação
+      final headers = await _getHeaders();
+      AppLogger.info('📸 [API] Headers preparados: ${headers.keys.join(', ')}');
+
+      // Criar requisição multipart
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse(AppConstants.uploadImageEndpoint),
+      );
+
+      // Adicionar headers de autorização
+      request.headers.addAll(headers);
+      AppLogger.info('📸 [API] Headers adicionados à requisição');
+
+      // Adicionar arquivo de imagem
+      final stream = http.ByteStream(imageFile.openRead());
+      final length = await imageFile.length();
+      final filename = imageFile.path.split('/').last;
+      
+      AppLogger.info('📸 [API] Preparando arquivo multipart:');
+      AppLogger.info('   - Nome: $filename');
+      AppLogger.info('   - Tamanho: $length bytes');
+      
+      final multipartFile = http.MultipartFile(
+        'image',
+        stream,
+        length,
+        filename: filename,
+      );
+      request.files.add(multipartFile);
+      AppLogger.info('📸 [API] Arquivo multipart adicionado à requisição');
+
+      AppLogger.info('📤 [API] Enviando imagem para o servidor...');
+      AppLogger.info('📤 [API] URL: ${request.url}');
+      AppLogger.info('📤 [API] Método: ${request.method}');
+      AppLogger.info('📤 [API] Headers finais: ${request.headers}');
+
+      // Fazer upload
+      final response = await request.send().timeout(const Duration(seconds: 60));
+      final responseData = await response.stream.bytesToString();
+
+      AppLogger.info('📥 [API] Resposta do servidor recebida');
+      AppLogger.info('📥 [API] Status: ${response.statusCode}');
+      AppLogger.info('📥 [API] Headers da resposta: ${response.headers}');
+      AppLogger.info('📥 [API] Tamanho da resposta: ${responseData.length} bytes');
+      
+      if (responseData.isNotEmpty) {
+        AppLogger.info('📥 [API] Corpo da resposta: $responseData');
+      }
+
+      if (response.statusCode == 201) {
+        final jsonData = json.decode(responseData);
+        final imageUrl = jsonData['imageUrl'] as String;
+
+        AppLogger.success('✅ [API] Imagem enviada com sucesso!');
+        AppLogger.info('✅ [API] URL da imagem: $imageUrl');
+        AppLogger.info('✅ [API] Resposta completa: ${json.encode(jsonData)}');
+        return imageUrl;
+      } else {
+        // Tratar erros específicos
+        String errorMessage;
+        try {
+          final errorData = json.decode(responseData);
+          errorMessage = errorData['message'] ?? 'Erro desconhecido no upload';
+          AppLogger.error('❌ [API] Erro detalhado: ${json.encode(errorData)}');
+        } catch (e) {
+          errorMessage = 'Erro ao processar resposta do servidor';
+          AppLogger.error('❌ [API] Erro ao decodificar resposta: $e');
+        }
+
+        AppLogger.error('❌ [API] Erro no upload: ${response.statusCode} - $errorMessage');
+
+        // Mensagens de erro amigáveis para o usuário
+        if (response.statusCode == 400) {
+          if (errorMessage.contains('tamanho')) {
+            throw Exception('Imagem muito grande. Máximo permitido: 5MB');
+          } else if (errorMessage.contains('tipo')) {
+            throw Exception(
+                'Tipo de arquivo não suportado. Use JPG, PNG, GIF ou WebP');
+          } else {
+            throw Exception('Dados inválidos: $errorMessage');
+          }
+        } else if (response.statusCode == 401) {
+          throw Exception('Sessão expirada. Faça login novamente');
+        } else if (response.statusCode == 413) {
+          throw Exception('Imagem muito grande. Máximo permitido: 5MB');
+        } else if (response.statusCode >= 500) {
+          throw Exception(
+              'Erro no servidor. Tente novamente em alguns minutos');
+        } else {
+          throw Exception('Erro no upload: $errorMessage');
+        }
+      }
+    } catch (e) {
+      AppLogger.error('💥 [API] Erro ao fazer upload da imagem', e);
+      AppLogger.error('💥 [API] Tipo de erro: ${e.runtimeType}');
+      AppLogger.error('💥 [API] Mensagem: ${e.toString()}');
+
+      // Re-throw com mensagem amigável
+      if (e.toString().contains('timeout')) {
+        throw Exception('Tempo limite excedido. Verifique sua conexão');
+      } else if (e.toString().contains('Connection refused')) {
+        throw Exception('Servidor não está acessível. Verifique sua conexão');
+      } else {
+        rethrow;
+      }
+    }
   }
 }

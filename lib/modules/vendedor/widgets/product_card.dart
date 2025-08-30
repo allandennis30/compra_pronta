@@ -138,42 +138,32 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildStatusIndicator() {
+    final isAvailable = product.isAvailable ?? false;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: (product.isAvailable ?? false)
-            ? Colors.green.shade50
-            : Colors.red.shade50,
+        color: isAvailable ? Colors.green.shade50 : Colors.red.shade50,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: (product.isAvailable ?? false)
-              ? Colors.green.shade200
-              : Colors.red.shade200,
+          color: isAvailable ? Colors.green.shade200 : Colors.red.shade200,
           width: 1,
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: (product.isAvailable ?? false)
-                  ? Colors.green.shade500
-                  : Colors.red.shade500,
-              shape: BoxShape.circle,
-            ),
+          Icon(
+            isAvailable ? Icons.check_circle : Icons.cancel,
+            size: 14,
+            color: isAvailable ? Colors.green.shade600 : Colors.red.shade600,
           ),
           const SizedBox(width: 4),
           Text(
-            (product.isAvailable ?? false) ? 'Ativo' : 'Inativo',
+            isAvailable ? 'Ativo' : 'Inativo',
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: (product.isAvailable ?? false)
-                  ? Colors.green.shade700
-                  : Colors.red.shade700,
+              color: isAvailable ? Colors.green.shade700 : Colors.red.shade700,
             ),
           ),
         ],

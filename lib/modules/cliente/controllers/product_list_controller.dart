@@ -244,6 +244,18 @@ class ProductListController extends GetxController {
     return _favorites.contains(productId);
   }
 
+  // Método de teste para debug
+  void debugCategories() {
+    AppLogger.info('Categorias disponíveis: ${_availableCategories}');
+    AppLogger.info('Categorias para exibição: ${categories}');
+    AppLogger.info('Categoria selecionada: ${_selectedCategory.value}');
+  }
+
+  // Método para verificar se uma categoria está selecionada
+  bool isCategorySelected(String category) {
+    return _selectedCategory.value == category;
+  }
+
   List<String> get categories {
     return ['', ..._availableCategories];
   }

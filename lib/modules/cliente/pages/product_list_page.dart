@@ -277,30 +277,51 @@ class ProductListPage extends StatelessWidget {
   }
 
   Widget _buildCategoryFilter() {
-    return SizedBox(
-      height: 50,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: controller.categories.length,
-        itemBuilder: (context, index) {
-          final category = controller.categories[index];
+    return Obx(() {
+      final categories = controller.categories;
 
-          return Obx(() {
-            final isSelected = category == controller.selectedCategory;
+      if (categories.isEmpty) {
+        return const SizedBox(
+          height: 50,
+          child: Center(
+            child: Text('Carregando categorias...'),
+          ),
+        );
+      }
+
+      return SizedBox(
+        height: 50,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: categories.length,
+          itemBuilder: (context, index) {
+            final category = categories[index];
 
             return Padding(
               padding: const EdgeInsets.only(right: 8),
-              child: FilterChip(
-                label: Text(category.isEmpty ? 'Todos' : category),
-                selected: isSelected,
-                onSelected: (_) => controller.setCategory(category),
-              ),
+              child: Obx(() {
+                final isSelected = controller.isCategorySelected(category);
+
+                return FilterChip(
+                  label: Text(category.isEmpty ? 'Todos' : category),
+                  selected: isSelected,
+                  onSelected: (_) => controller.setCategory(category),
+                  backgroundColor: Colors.grey[200],
+                  selectedColor: Colors.blue[100],
+                  checkmarkColor: Colors.blue[800],
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.blue[800] : Colors.grey[800],
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                );
+              }),
             );
-          });
-        },
-      ),
-    );
+          },
+        ),
+      );
+    });
   }
 
   Widget _buildProductList() {
@@ -381,12 +402,8 @@ class ProductListPage extends StatelessWidget {
           ],
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              'Página ${controller.currentPage} de ${controller.totalPages}',
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
             Text(
               '${controller.totalItems} produtos',
               style: TextStyle(
@@ -448,23 +465,27 @@ class ProductListPage extends StatelessWidget {
             Row(
               children: [
                 if (product.category != null)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade100,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      product.category!,
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.blue.shade700,
-                        fontWeight: FontWeight.w500,
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        product.category!,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.blue.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     ),
                   ),
-                const Spacer(),
+                const SizedBox(width: 8),
                 Text(
                   'R\$ ${(product.price ?? 0).toStringAsFixed(2)}',
                   style: const TextStyle(
@@ -477,29 +498,13 @@ class ProductListPage extends StatelessWidget {
             ),
           ],
         ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: Icon(
-                controller.isFavorite(product.id ?? '')
-                    ? Icons.favorite
-                    : Icons.favorite_border,
-                color: controller.isFavorite(product.id ?? '')
-                    ? Colors.red
-                    : Colors.grey,
-              ),
-              onPressed: () => controller.toggleFavorite(product.id ?? ''),
-            ),
-            IconButton(
-              icon: const Icon(Icons.add_shopping_cart),
-              onPressed: () {
-                // Adicionar ao carrinho
-                final cartController = Get.find<CartController>();
-                cartController.addItem(product, context: context);
-              },
-            ),
-          ],
+        trailing: IconButton(
+          icon: const Icon(Icons.add_shopping_cart),
+          onPressed: () {
+            // Adicionar ao carrinho
+            final cartController = Get.find<CartController>();
+            cartController.addItem(product, context: context);
+          },
         ),
       ),
     );

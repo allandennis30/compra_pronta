@@ -241,20 +241,20 @@ class ProductRepositoryImpl implements ProductRepository {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
-        // Converter as listas para List<String> de forma segura
+        // Converter corretamente List<dynamic> para List<String>
         List<String> categories = [];
         List<String> vendors = [];
 
         if (data['categories'] is List) {
           categories = (data['categories'] as List)
-              .where((item) => item is String)
+              .where((item) => item != null)
               .map((item) => item.toString())
               .toList();
         }
 
         if (data['vendors'] is List) {
           vendors = (data['vendors'] as List)
-              .where((item) => item is String)
+              .where((item) => item != null)
               .map((item) => item.toString())
               .toList();
         }
@@ -264,7 +264,6 @@ class ProductRepositoryImpl implements ProductRepository {
           'vendors': vendors,
         };
       } else {
-        // Se não houver endpoint específico, retornar listas vazias
         return {
           'categories': <String>[],
           'vendors': <String>[],
@@ -272,7 +271,6 @@ class ProductRepositoryImpl implements ProductRepository {
       }
     } catch (e) {
       AppLogger.error('Erro ao carregar filtros disponíveis', e);
-      // Retornar listas vazias em caso de erro
       return {
         'categories': <String>[],
         'vendors': <String>[],
