@@ -13,9 +13,9 @@ class ProductDetailPage extends GetView<ProductDetailController> {
     return Scaffold(
       appBar: AppBar(
         title: Obx(() => Text(
-          controller.product?.name ?? 'Detalhes do Produto',
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        )),
+              controller.product?.name ?? 'Detalhes do Produto',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            )),
       ),
       body: _body(context),
     );
@@ -62,8 +62,8 @@ class ProductDetailPage extends GetView<ProductDetailController> {
               Text(
                 'Produto não encontrado',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 8),
               Text(
@@ -101,18 +101,18 @@ class ProductDetailPage extends GetView<ProductDetailController> {
                 ],
               ),
               child: ProductImageWidget(
-                imageUrl: controller.product!.imageUrl,
-                productName: controller.product!.name,
+                imageUrl: controller.product!.imageUrl ?? '',
+                productName: controller.product!.name ?? 'Produto sem nome',
                 onShare: controller.shareProduct,
               ),
             ),
             // Compact Product Info Section
-             Padding(
-               padding: const EdgeInsets.symmetric(horizontal: 4),
-               child: ProductInfoWidget(
-                 product: controller.product!,
-               ),
-             ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: ProductInfoWidget(
+                product: controller.product!,
+              ),
+            ),
             // Compact Quantity Selector Section
             Container(
               margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
@@ -121,19 +121,20 @@ class ProductDetailPage extends GetView<ProductDetailController> {
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.15),
+                  color:
+                      Theme.of(context).colorScheme.outline.withOpacity(0.15),
                 ),
               ),
               child: Obx(() => QuantitySelectorWidget(
                     quantity: controller.quantity,
-                    maxQuantity: controller.product!.stock,
+                    maxQuantity: controller.product!.stock ?? 0,
                     onIncrement: controller.incrementQuantity,
                     onDecrement: controller.decrementQuantity,
                     totalPrice: controller.totalPrice,
                     canAddToCart: controller.canAddToCart,
                     onAddToCart: () => controller.addToCart(context),
                     onGoToCart: controller.goToCart,
-                    isSoldByWeight: controller.product!.isSoldByWeight,
+                    isSoldByWeight: controller.product!.isSoldByWeight ?? false,
                     weight: controller.weight,
                   )),
             ),
@@ -142,6 +143,4 @@ class ProductDetailPage extends GetView<ProductDetailController> {
           ],
         ),
       );
-
-
 }

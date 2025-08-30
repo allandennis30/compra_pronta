@@ -138,8 +138,10 @@ class VendedorProductRepositoryImpl implements VendedorProductRepository {
     final products = await getAll();
     return products
         .where((product) =>
-            product.name.toLowerCase().contains(query.toLowerCase()) ||
-            product.description.toLowerCase().contains(query.toLowerCase()))
+            (product.name?.toLowerCase().contains(query.toLowerCase()) ??
+                false) ||
+            (product.description?.toLowerCase().contains(query.toLowerCase()) ??
+                false))
         .toList();
   }
 

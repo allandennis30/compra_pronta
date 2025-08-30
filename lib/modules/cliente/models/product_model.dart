@@ -1,65 +1,65 @@
 class ProductModel {
-  final String id;
-  final String name;
-  final String description;
-  final double price;
-  final String imageUrl;
-  final String category;
-  final String barcode;
-  final int stock;
-  final bool isAvailable;
-  final double rating;
-  final int reviewCount;
-  final bool isSoldByWeight;
+  final String? id;
+  final String? name;
+  final String? description;
+  final double? price;
+  final String? imageUrl;
+  final String? category;
+  final String? barcode;
+  final int? stock;
+  final bool? isAvailable;
+  final double? rating;
+  final int? reviewCount;
+  final bool? isSoldByWeight;
   final double? pricePerKg;
 
   ProductModel({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.price,
-    required this.imageUrl,
-    required this.category,
-    required this.barcode,
-    required this.stock,
-    this.isAvailable = true,
-    this.rating = 0.0,
-    this.reviewCount = 0,
-    this.isSoldByWeight = false,
+    this.id,
+    this.name,
+    this.description,
+    this.price,
+    this.imageUrl,
+    this.category,
+    this.barcode,
+    this.stock,
+    this.isAvailable,
+    this.rating,
+    this.reviewCount,
+    this.isSoldByWeight,
     this.pricePerKg,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) => ProductModel(
-    id: json['id'],
-    name: json['name'],
-    description: json['description'],
-    price: json['price'].toDouble(),
-    imageUrl: json['imageUrl'],
-    category: json['category'],
-    barcode: json['barcode'],
-    stock: json['stock'],
-    isAvailable: json['isAvailable'] ?? true,
-    rating: json['rating']?.toDouble() ?? 0.0,
-    reviewCount: json['reviewCount'] ?? 0,
-    isSoldByWeight: json['isSoldByWeight'] ?? false,
-    pricePerKg: json['pricePerKg']?.toDouble(),
-  );
+        id: json['id']?.toString(),
+        name: json['name']?.toString(),
+        description: json['description']?.toString(),
+        price: json['price']?.toDouble(),
+        imageUrl: json['imageUrl']?.toString(),
+        category: json['category']?.toString(),
+        barcode: json['barcode']?.toString(),
+        stock: json['stock'],
+        isAvailable: json['isAvailable'],
+        rating: json['rating']?.toDouble(),
+        reviewCount: json['reviewCount'],
+        isSoldByWeight: json['isSoldByWeight'],
+        pricePerKg: json['pricePerKg']?.toDouble(),
+      );
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'description': description,
-    'price': price,
-    'imageUrl': imageUrl,
-    'category': category,
-    'barcode': barcode,
-    'stock': stock,
-    'isAvailable': isAvailable,
-    'rating': rating,
-    'reviewCount': reviewCount,
-    'isSoldByWeight': isSoldByWeight,
-    'pricePerKg': pricePerKg,
-  };
+        'id': id,
+        'name': name,
+        'description': description,
+        'price': price,
+        'imageUrl': imageUrl,
+        'category': category,
+        'barcode': barcode,
+        'stock': stock,
+        'isAvailable': isAvailable,
+        'rating': rating,
+        'reviewCount': reviewCount,
+        'isSoldByWeight': isSoldByWeight,
+        'pricePerKg': pricePerKg,
+      };
 
   ProductModel copyWith({
     String? id,

@@ -22,6 +22,7 @@ import '../modules/cliente/bindings/product_detail_binding.dart';
 import '../modules/vendedor/bindings/vendedor_settings_binding.dart';
 import '../modules/vendedor/bindings/vendedor_product_list_binding.dart';
 import '../modules/vendedor/bindings/vendedor_product_form_binding.dart';
+import '../core/middleware/auth_middleware.dart';
 
 class AuthBinding extends Bindings {
   @override

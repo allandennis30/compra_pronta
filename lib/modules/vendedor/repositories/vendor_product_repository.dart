@@ -13,6 +13,7 @@ abstract class VendedorProductRepository extends BaseRepository<ProductModel> {
 class VendedorProductRepositoryImpl implements VendedorProductRepository {
   final GetStorage _storage = GetStorage();
   List<ProductModel>? _cachedProducts;
+  bool _isInitialized = false;
 
   // Chave para armazenar os produtos do vendedor
   static const String _vendedorProductsKey = 'vendedor_products';
@@ -22,7 +23,19 @@ class VendedorProductRepositoryImpl implements VendedorProductRepository {
     try {
       final productsData = _storage.read(_vendedorProductsKey);
       if (productsData != null && productsData is List) {
-        return productsData.map((json) => ProductModel.fromJson(json)).toList();
+        final products = <ProductModel>[];
+        for (final item in productsData) {
+          try {
+            if (item is Map<String, dynamic>) {
+              final product = ProductModel.fromJson(item);
+              products.add(product);
+            }
+          } catch (e) {
+            AppLogger.error('Erro ao converter produto: $item', e);
+            // Continua para o próximo produto
+          }
+        }
+        return products;
       }
     } catch (e) {
       AppLogger.error('Erro ao carregar produtos do vendedor', e);
@@ -35,17 +48,29 @@ class VendedorProductRepositoryImpl implements VendedorProductRepository {
     try {
       final productsJson = products.map((product) => product.toJson()).toList();
       await _storage.write(_vendedorProductsKey, productsJson);
-      _cachedProducts = products;
+      _cachedProducts = List.from(
+          products); // Cria uma cópia para evitar referências compartilhadas
     } catch (e) {
       AppLogger.error('Erro ao salvar produtos do vendedor', e);
       rethrow;
     }
   }
 
+  // Inicializar o cache se necessário
+  Future<void> _ensureInitialized() async {
+    if (!_isInitialized) {
+      _cachedProducts = _loadVendedorProducts();
+      _isInitialized = true;
+    }
+  }
+
   @override
   Future<List<ProductModel>> getAll() async {
+    await _ensureInitialized();
+
     if (_cachedProducts != null) {
-      return _cachedProducts!;
+      return List.from(
+          _cachedProducts!); // Retorna uma cópia para evitar modificações externas
     }
 
     // Simular delay de rede
@@ -53,16 +78,15 @@ class VendedorProductRepositoryImpl implements VendedorProductRepository {
 
     // Carregar produtos salvos pelo vendedor
     final vendorProducts = _loadVendedorProducts();
-    if (vendorProducts.isNotEmpty) {
-      _cachedProducts = vendorProducts;
-      return _cachedProducts!;
-    }
+    _cachedProducts = vendorProducts;
 
-    return _cachedProducts!;
+    return List.from(_cachedProducts!);
   }
 
   @override
   Future<ProductModel?> getById(String id) async {
+    if (id.isEmpty) return null;
+
     final products = await getAll();
     try {
       return products.firstWhere((product) => product.id == id);
@@ -73,11 +97,22 @@ class VendedorProductRepositoryImpl implements VendedorProductRepository {
 
   @override
   Future<ProductModel> create(ProductModel item) async {
+    if (item.id?.isEmpty ?? true) {
+      throw ArgumentError('ID do produto não pode estar vazio');
+    }
+
     // Simular criação na API
     await Future.delayed(Duration(milliseconds: 300));
 
     // Carregar produtos atuais
     final products = await getAll();
+
+    // Verificar se já existe um produto com o mesmo ID
+    final existingIndex =
+        products.indexWhere((product) => product.id == item.id);
+    if (existingIndex >= 0) {
+      throw ArgumentError('Produto com ID ${item.id} já existe');
+    }
 
     // Adicionar o novo produto
     products.add(item);
@@ -90,6 +125,10 @@ class VendedorProductRepositoryImpl implements VendedorProductRepository {
 
   @override
   Future<ProductModel> update(ProductModel item) async {
+    if (item.id?.isEmpty ?? true) {
+      throw ArgumentError('ID do produto não pode estar vazio');
+    }
+
     // Simular atualização na API
     await Future.delayed(Duration(milliseconds: 300));
 
@@ -105,6 +144,8 @@ class VendedorProductRepositoryImpl implements VendedorProductRepository {
 
       // Salvar a lista atualizada
       await _saveVendedorProducts(products);
+    } else {
+      throw ArgumentError('Produto com ID ${item.id} não encontrado');
     }
 
     return item;
@@ -112,6 +153,8 @@ class VendedorProductRepositoryImpl implements VendedorProductRepository {
 
   @override
   Future<bool> delete(String id) async {
+    if (id.isEmpty) return false;
+
     // Simular exclusão na API
     await Future.delayed(Duration(milliseconds: 300));
 
@@ -133,19 +176,28 @@ class VendedorProductRepositoryImpl implements VendedorProductRepository {
 
   @override
   Future<List<ProductModel>> search(String query) async {
+    if (query.trim().isEmpty) {
+      return await getAll();
+    }
+
     final products = await getAll();
+    final lowerQuery = query.toLowerCase().trim();
+
     return products
         .where((product) =>
-            product.name.toLowerCase().contains(query.toLowerCase()) ||
-            product.description.toLowerCase().contains(query.toLowerCase()))
+            (product.name?.toLowerCase().contains(lowerQuery) ?? false) ||
+            (product.description?.toLowerCase().contains(lowerQuery) ?? false))
         .toList();
   }
 
   @override
   Future<ProductModel?> getProductByBarcode(String barcode) async {
+    if (barcode.trim().isEmpty) return null;
+
     final products = await getAll();
     try {
-      return products.firstWhere((product) => product.barcode == barcode);
+      return products
+          .firstWhere((product) => product.barcode?.trim() == barcode.trim());
     } catch (e) {
       return null;
     }
@@ -153,6 +205,10 @@ class VendedorProductRepositoryImpl implements VendedorProductRepository {
 
   @override
   Future<String> saveProductImage(File imageFile) async {
+    if (!await imageFile.exists()) {
+      throw FileSystemException('Arquivo de imagem não existe', imageFile.path);
+    }
+
     // Em uma implementação real, você faria upload da imagem para um servidor
     // e retornaria a URL da imagem
     // Aqui, vamos simular esse processo retornando uma URL fake
@@ -160,5 +216,17 @@ class VendedorProductRepositoryImpl implements VendedorProductRepository {
     await Future.delayed(Duration(milliseconds: 300));
     final random = Random().nextInt(1000);
     return 'https://via.placeholder.com/500x500.png?text=Product+Image+$random';
+  }
+
+  // Método para limpar o cache (útil para testes ou quando necessário)
+  void clearCache() {
+    _cachedProducts = null;
+    _isInitialized = false;
+  }
+
+  // Método para verificar se há produtos salvos
+  Future<bool> hasProducts() async {
+    await _ensureInitialized();
+    return _cachedProducts?.isNotEmpty ?? false;
   }
 }

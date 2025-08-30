@@ -225,13 +225,22 @@ class AuthController extends GetxController {
 
   Future<void> logout() async {
     try {
+      AppLogger.info('🚪 Iniciando logout...');
+
       await _authRepository.logout();
       _currentUser.value = null;
       _isLoggedIn.value = false;
 
+      AppLogger.success('✅ Logout realizado com sucesso');
+
+      // Redirecionar para tela de login
       Get.offAllNamed('/login');
     } catch (e) {
-      AppLogger.error('Erro ao fazer logout', e);
+      AppLogger.error('❌ Erro ao fazer logout', e);
+      // Mesmo com erro, limpar dados locais
+      _currentUser.value = null;
+      _isLoggedIn.value = false;
+      Get.offAllNamed('/login');
     }
   }
 

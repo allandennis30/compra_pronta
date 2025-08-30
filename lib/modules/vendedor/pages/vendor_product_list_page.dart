@@ -253,9 +253,9 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
     // Por enquanto, apenas mostra um snackbar
     Get.snackbar(
       'Status do Produto',
-      product.isAvailable
-          ? 'Produto ${product.name} foi desativado'
-          : 'Produto ${product.name} foi ativado',
+      (product.isAvailable ?? false)
+          ? 'Produto ${product.name ?? 'Produto sem nome'} foi desativado'
+          : 'Produto ${product.name ?? 'Produto sem nome'} foi ativado',
       snackPosition: SnackPosition.BOTTOM,
       duration: const Duration(seconds: 2),
     );

@@ -79,7 +79,7 @@ class VendedorProductListController extends GetxController {
   Future<void> toggleProductAvailability(ProductModel product) async {
     try {
       final updatedProduct = product.copyWith(
-        isAvailable: !product.isAvailable,
+        isAvailable: !(product.isAvailable ?? false),
       );
 
       await _repository.update(updatedProduct);
@@ -125,12 +125,14 @@ class VendedorProductListController extends GetxController {
     // Aplicar filtro de busca
     if (searchQuery.value.isNotEmpty) {
       filteredProducts = filteredProducts.where((product) {
-        return product.name
-                .toLowerCase()
-                .contains(searchQuery.value.toLowerCase()) ||
-            product.description
-                .toLowerCase()
-                .contains(searchQuery.value.toLowerCase());
+        return (product.name
+                    ?.toLowerCase()
+                    .contains(searchQuery.value.toLowerCase()) ??
+                false) ||
+            (product.description
+                    ?.toLowerCase()
+                    .contains(searchQuery.value.toLowerCase()) ??
+                false);
       }).toList();
     }
 
@@ -145,7 +147,11 @@ class VendedorProductListController extends GetxController {
   }
 
   List<String> get availableCategories {
-    return _allProducts.map((product) => product.category).toSet().toList()
+    return _allProducts
+        .map((product) => product.category ?? '')
+        .where((category) => category.isNotEmpty)
+        .toSet()
+        .toList()
       ..sort();
   }
 

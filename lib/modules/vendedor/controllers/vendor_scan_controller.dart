@@ -44,7 +44,7 @@ class VendorScanController extends GetxController {
       _addScannedItem(product);
       Get.snackbar(
         'Produto Encontrado',
-        '${product.name} - R\$ ${product.isSoldByWeight ? (product.pricePerKg ?? 0).toStringAsFixed(2) + "/kg" : product.price.toStringAsFixed(2)}',
+        '${product.name ?? 'Produto sem nome'} - R\$ ${(product.isSoldByWeight ?? false) ? (product.pricePerKg ?? 0).toStringAsFixed(2) + "/kg" : (product.price ?? 0).toStringAsFixed(2)}',
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.green,
         colorText: Colors.white,
@@ -80,11 +80,11 @@ class VendorScanController extends GetxController {
       _scannedItems[existingIndex].quantity++;
     } else {
       _scannedItems.add(ScannedItem(
-        barcode: product.barcode,
-        name: product.name,
-        price: product.isSoldByWeight
+        barcode: product.barcode ?? '',
+        name: product.name ?? 'Produto sem nome',
+        price: (product.isSoldByWeight ?? false)
             ? (product.pricePerKg ?? 0.0)
-            : product.price,
+            : (product.price ?? 0.0),
       ));
     }
   }

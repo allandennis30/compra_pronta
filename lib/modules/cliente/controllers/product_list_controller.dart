@@ -28,7 +28,7 @@ class ProductListController extends GetxController {
 
   void _loadProducts() async {
     _isLoading.value = true;
-    
+
     try {
       final products = await _productRepository.getAll();
       _products.value = products;
@@ -52,21 +52,29 @@ class ProductListController extends GetxController {
 
   void _applyFilters() {
     List<ProductModel> filtered = List.from(_products);
-    
+
     // Filtrar por categoria
     if (_selectedCategory.value.isNotEmpty) {
-      filtered = filtered.where((product) => 
-          product.category == _selectedCategory.value).toList();
+      filtered = filtered
+          .where((product) => product.category == _selectedCategory.value)
+          .toList();
     }
-    
+
     // Filtrar por busca
     if (_searchQuery.value.isNotEmpty) {
-      filtered = filtered.where((product) =>
-          product.name.toLowerCase().contains(_searchQuery.value.toLowerCase()) ||
-          product.description.toLowerCase().contains(_searchQuery.value.toLowerCase())
-      ).toList();
+      filtered = filtered
+          .where((product) =>
+              (product.name
+                      ?.toLowerCase()
+                      .contains(_searchQuery.value.toLowerCase()) ??
+                  false) ||
+              (product.description
+                      ?.toLowerCase()
+                      .contains(_searchQuery.value.toLowerCase()) ??
+                  false))
+          .toList();
     }
-    
+
     _filteredProducts.value = filtered;
   }
 
@@ -98,6 +106,13 @@ class ProductListController extends GetxController {
   }
 
   List<String> get categories {
-    return ['', 'Frutas e Verduras', 'Laticínios', 'Bebidas', 'Higiene', 'Limpeza'];
+    return [
+      '',
+      'Frutas e Verduras',
+      'Laticínios',
+      'Bebidas',
+      'Higiene',
+      'Limpeza'
+    ];
   }
 }

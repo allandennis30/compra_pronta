@@ -66,7 +66,7 @@ class ProductCard extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Image.network(
-          product.imageUrl,
+          product.imageUrl ?? '',
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
             return Container(
@@ -111,7 +111,7 @@ class ProductCard extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                product.name,
+                product.name ?? 'Produto sem nome',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -139,13 +139,13 @@ class ProductCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: product.isAvailable 
-            ? Colors.green.shade50 
+        color: (product.isAvailable ?? false)
+            ? Colors.green.shade50
             : Colors.red.shade50,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: product.isAvailable 
-              ? Colors.green.shade200 
+          color: (product.isAvailable ?? false)
+              ? Colors.green.shade200
               : Colors.red.shade200,
           width: 1,
         ),
@@ -157,20 +157,20 @@ class ProductCard extends StatelessWidget {
             width: 6,
             height: 6,
             decoration: BoxDecoration(
-              color: product.isAvailable 
-                  ? Colors.green.shade500 
+              color: (product.isAvailable ?? false)
+                  ? Colors.green.shade500
                   : Colors.red.shade500,
               shape: BoxShape.circle,
             ),
           ),
           const SizedBox(width: 4),
           Text(
-            product.isAvailable ? 'Ativo' : 'Inativo',
+            (product.isAvailable ?? false) ? 'Ativo' : 'Inativo',
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: product.isAvailable 
-                  ? Colors.green.shade700 
+              color: (product.isAvailable ?? false)
+                  ? Colors.green.shade700
                   : Colors.red.shade700,
             ),
           ),
@@ -183,15 +183,15 @@ class ProductCard extends StatelessWidget {
     return Row(
       children: [
         Icon(
-          product.isSoldByWeight ? Icons.scale : Icons.attach_money,
+          (product.isSoldByWeight ?? false) ? Icons.scale : Icons.attach_money,
           size: 16,
           color: Colors.green.shade600,
         ),
         const SizedBox(width: 4),
         Text(
-          product.isSoldByWeight
-              ? 'R\$ ${product.pricePerKg?.toStringAsFixed(2) ?? '0.00'}/kg'
-              : 'R\$ ${product.price.toStringAsFixed(2)}',
+          (product.isSoldByWeight ?? false)
+              ? 'R\$ ${(product.pricePerKg ?? 0.0).toStringAsFixed(2)}/kg'
+              : 'R\$ ${(product.price ?? 0.0).toStringAsFixed(2)}',
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w700,
@@ -214,7 +214,7 @@ class ProductCard extends StatelessWidget {
         ),
       ),
       child: Text(
-        product.category,
+        product.category ?? 'Sem categoria',
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w500,
@@ -225,7 +225,7 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildStockInfo() {
-    if (product.isSoldByWeight) {
+    if (product.isSoldByWeight ?? false) {
       return Row(
         children: [
           Icon(
@@ -246,15 +246,15 @@ class ProductCard extends StatelessWidget {
       );
     }
 
-    final stockColor = product.stock > 10 
+    final stockColor = (product.stock ?? 0) > 10
         ? Colors.green.shade600
-        : product.stock > 0 
+        : (product.stock ?? 0) > 0
             ? Colors.orange.shade600
             : Colors.red.shade600;
 
-    final stockIcon = product.stock > 10
+    final stockIcon = (product.stock ?? 0) > 10
         ? Icons.check_circle_outline
-        : product.stock > 0
+        : (product.stock ?? 0) > 0
             ? Icons.warning_amber_outlined
             : Icons.error_outline;
 
@@ -267,7 +267,7 @@ class ProductCard extends StatelessWidget {
         ),
         const SizedBox(width: 4),
         Text(
-          'Estoque: ${product.stock}',
+          'Estoque: ${product.stock ?? 0}',
           style: TextStyle(
             fontSize: 12,
             color: stockColor,
@@ -290,15 +290,15 @@ class ProductCard extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _buildActionButton(
-          icon: product.isAvailable 
-              ? Icons.visibility_off_outlined 
+          icon: (product.isAvailable ?? false)
+              ? Icons.visibility_off_outlined
               : Icons.visibility_outlined,
           onTap: onToggleStatus,
-          color: product.isAvailable 
-              ? Colors.orange.shade600 
+          color: (product.isAvailable ?? false)
+              ? Colors.orange.shade600
               : Colors.green.shade600,
-          tooltip: product.isAvailable 
-              ? 'Desativar produto' 
+          tooltip: (product.isAvailable ?? false)
+              ? 'Desativar produto'
               : 'Ativar produto',
         ),
       ],

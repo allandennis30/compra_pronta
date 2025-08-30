@@ -577,9 +577,9 @@ class OrderBuilderPage extends StatelessWidget {
 
     // Verificar se o produto tem código de barras
     if (itemStatus.product?.barcode != null &&
-        itemStatus.product!.barcode.isNotEmpty) {
+        (itemStatus.product!.barcode ?? '').isNotEmpty) {
       // Processar o código de barras do produto
-      orderController.processScannedBarcode(itemStatus.product!.barcode);
+      orderController.processScannedBarcode(itemStatus.product!.barcode ?? '');
     } else {
       // Se não tem código de barras, simular adição manual
       Get.snackbar(

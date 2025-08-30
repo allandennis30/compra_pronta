@@ -67,16 +67,16 @@ class VendorProductFormController extends GetxController {
     isEditing.value = true;
     editingProductId.value = product.id;
 
-    nameController.text = product.name;
-    descriptionController.text = product.description;
-    priceController.text = product.price.toString();
-    stockController.text = product.stock.toString();
-    barcodeController.text = product.barcode;
-    selectedCategory.value = product.category;
-    isAvailable.value = product.isAvailable;
-    isSoldByWeight.value = product.isSoldByWeight;
-    pricePerKgController.text = product.pricePerKg?.toString() ?? '';
-    imageUrl.value = product.imageUrl;
+    nameController.text = product.name ?? '';
+    descriptionController.text = product.description ?? '';
+    priceController.text = (product.price ?? 0.0).toString();
+    stockController.text = (product.stock ?? 0).toString();
+    barcodeController.text = product.barcode ?? '';
+    selectedCategory.value = product.category ?? '';
+    isAvailable.value = product.isAvailable ?? true;
+    isSoldByWeight.value = product.isSoldByWeight ?? false;
+    pricePerKgController.text = (product.pricePerKg ?? 0.0).toString();
+    imageUrl.value = product.imageUrl ?? '';
   }
 
   Future<void> pickImage(ImageSource source) async {
@@ -306,11 +306,11 @@ class VendorProductFormController extends GetxController {
               : true)) {
         Get.snackbar(
           'Código de barras duplicado',
-          'Este código de barras já está em uso por outro produto: ${existingProduct.name}',
+          'Este código de barras já está em uso por outro produto: ${existingProduct.name ?? 'Produto sem nome'}',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.orange,
           colorText: Colors.white,
-          duration: Duration(seconds: 5),
+          duration: const Duration(seconds: 5),
         );
       }
     } catch (e) {

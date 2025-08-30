@@ -121,11 +121,11 @@ class VendedorProductApiRepository implements VendedorProductRepository {
             'isAvailable': item.isAvailable,
           };
           // Somente enviar pricePerKg quando vendido por peso
-          if (item.isSoldByWeight && item.pricePerKg != null) {
+          if ((item.isSoldByWeight ?? false) && item.pricePerKg != null) {
             body['pricePerKg'] = item.pricePerKg;
           }
           // Enviar imageUrl apenas se não for vazia
-          if ((item.imageUrl).trim().isNotEmpty) {
+          if ((item.imageUrl ?? '').trim().isNotEmpty) {
             body['imageUrl'] = item.imageUrl;
           }
           return body;
@@ -218,11 +218,11 @@ class VendedorProductApiRepository implements VendedorProductRepository {
             'isAvailable': item.isAvailable,
           };
           // Somente enviar pricePerKg quando vendido por peso
-          if (item.isSoldByWeight && item.pricePerKg != null) {
+          if ((item.isSoldByWeight ?? false) && item.pricePerKg != null) {
             body['pricePerKg'] = item.pricePerKg;
           }
           // Enviar imageUrl apenas se não for vazia
-          if ((item.imageUrl).trim().isNotEmpty) {
+          if ((item.imageUrl ?? '').trim().isNotEmpty) {
             body['imageUrl'] = item.imageUrl;
           }
           return body;
@@ -330,8 +330,12 @@ class VendedorProductApiRepository implements VendedorProductRepository {
       final allProducts = await getAll();
       return allProducts
           .where((product) =>
-              product.name.toLowerCase().contains(query.toLowerCase()) ||
-              product.description.toLowerCase().contains(query.toLowerCase()))
+              (product.name?.toLowerCase().contains(query.toLowerCase()) ??
+                  false) ||
+              (product.description
+                      ?.toLowerCase()
+                      .contains(query.toLowerCase()) ??
+                  false))
           .toList();
     } catch (e) {
       AppLogger.error('💥 [API] Erro ao buscar produtos', e);
@@ -361,7 +365,7 @@ class VendedorProductApiRepository implements VendedorProductRepository {
           final productData = responseData['product'];
           final product = ProductModel.fromJson(productData);
           AppLogger.warning(
-              '❌ [API] Código de barras já existe: ${product.name}');
+              '❌ [API] Código de barras já existe: ${product.name ?? 'Produto sem nome'}');
           return product;
         }
       } else {

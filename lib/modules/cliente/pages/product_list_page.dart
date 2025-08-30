@@ -114,7 +114,7 @@ class ProductListPage extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Image.network(
-                  product.imageUrl,
+                  product.imageUrl ?? '',
                   width: 80,
                   height: 80,
                   fit: BoxFit.cover,
@@ -134,7 +134,7 @@ class ProductListPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      product.name,
+                      product.name ?? 'Produto sem nome',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -142,7 +142,7 @@ class ProductListPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      product.description,
+                      product.description ?? 'Sem descrição',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],
@@ -154,9 +154,9 @@ class ProductListPage extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          product.isSoldByWeight
-                              ? 'R\$ ${product.pricePerKg?.toStringAsFixed(2) ?? '0.00'}/kg'
-                              : 'R\$ ${product.price.toStringAsFixed(2)}',
+                          (product.isSoldByWeight ?? false)
+                              ? 'R\$ ${(product.pricePerKg ?? 0.0).toStringAsFixed(2)}/kg'
+                              : 'R\$ ${(product.price ?? 0.0).toStringAsFixed(2)}',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -166,9 +166,10 @@ class ProductListPage extends StatelessWidget {
                         const Spacer(),
                         Row(
                           children: [
-                            const Icon(Icons.star, size: 16, color: Colors.amber),
+                            const Icon(Icons.star,
+                                size: 16, color: Colors.amber),
                             Text(
-                              ' ${product.rating.toStringAsFixed(1)}',
+                              ' ${(product.rating ?? 0.0).toStringAsFixed(1)}',
                               style: const TextStyle(fontSize: 12),
                             ),
                           ],

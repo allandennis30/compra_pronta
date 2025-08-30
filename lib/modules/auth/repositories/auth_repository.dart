@@ -24,6 +24,8 @@ abstract class AuthRepository {
   Future<String?> getToken();
   Future<bool> isAuthenticated();
   Future<void> saveToken(String token);
+  Future<DateTime?> getLastLoginTime();
+  Future<bool> shouldRefreshToken();
 }
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -288,6 +290,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   /// Obtém o token JWT salvo no storage
+  @override
   Future<String?> getToken() async {
     try {
       return _storage.read(AppConstants.tokenKey);
@@ -298,9 +301,13 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   /// Salva o token JWT no storage
+  @override
   Future<void> saveToken(String token) async {
     try {
       await _storage.write(AppConstants.tokenKey, token);
+      // Salvar timestamp do login
+      await _storage.write(
+          'auth_timestamp', DateTime.now().millisecondsSinceEpoch);
       AppLogger.info('💾 Token salvo no storage');
     } catch (e) {
       AppLogger.error('Erro ao salvar token', e);
@@ -309,6 +316,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   /// Verifica se o usuário está autenticado (tem token válido)
+  @override
   Future<bool> isAuthenticated() async {
     final token = await getToken();
     return token != null && token.isNotEmpty;
@@ -317,5 +325,40 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> updateUser(UserModel user) async {
     await saveUser(user);
+  }
+
+  /// Obtém o timestamp do último login
+  @override
+  Future<DateTime?> getLastLoginTime() async {
+    try {
+      final timestamp = _storage.read('auth_timestamp');
+      if (timestamp != null) {
+        return DateTime.fromMillisecondsSinceEpoch(timestamp);
+      }
+      return null;
+    } catch (e) {
+      AppLogger.error('❌ Erro ao obter timestamp do login', e);
+      return null;
+    }
+  }
+
+  /// Verifica se o token precisa ser renovado
+  @override
+  Future<bool> shouldRefreshToken() async {
+    try {
+      final timestamp = _storage.read('auth_timestamp');
+      if (timestamp != null) {
+        final loginTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+        final now = DateTime.now();
+        final difference = now.difference(loginTime);
+
+        // Renovar se passou mais de 7 dias
+        return difference.inDays > 7;
+      }
+      return false;
+    } catch (e) {
+      AppLogger.error('❌ Erro ao verificar necessidade de renovação', e);
+      return false;
+    }
   }
 }

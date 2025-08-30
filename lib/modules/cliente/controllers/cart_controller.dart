@@ -12,11 +12,12 @@ class CartItem {
 
   CartItem({required this.product, this.quantity = 1});
 
-  double get total => product.isSoldByWeight 
-      ? (product.pricePerKg ?? 0.0) * (quantity / 10.0) // Para produtos por peso, quantity é peso * 10
-      : product.price * quantity;
+  double get total => (product.isSoldByWeight ?? false)
+      ? (product.pricePerKg ?? 0.0) *
+          (quantity / 10.0) // Para produtos por peso, quantity é peso * 10
+      : (product.price ?? 0.0) * quantity;
 
-  double get displayQuantity => product.isSoldByWeight 
+  double get displayQuantity => (product.isSoldByWeight ?? false)
       ? quantity / 10.0 // Converte de volta para kg
       : quantity.toDouble();
 }
@@ -39,7 +40,7 @@ class CartController extends GetxController {
 
   int get itemCount {
     return cartItems.fold(0, (sum, item) {
-      if (item.product.isSoldByWeight) {
+      if (item.product.isSoldByWeight ?? false) {
         // Para produtos por peso, conta como 1 item independente do peso
         return sum + 1;
       } else {
@@ -80,7 +81,8 @@ class CartController extends GetxController {
     }
   }
 
-  void addItem(ProductModel product, {int quantity = 1, BuildContext? context}) {
+  void addItem(ProductModel product,
+      {int quantity = 1, BuildContext? context}) {
     final existingIndex =
         cartItems.indexWhere((item) => item.product.id == product.id);
 
@@ -92,10 +94,10 @@ class CartController extends GetxController {
 
     _calculateTotals();
     _saveCart();
-    
+
     // Evitar múltiplas chamadas de snackbar em sequência rápida
     final now = DateTime.now();
-    if (_lastSnackbarTime == null || 
+    if (_lastSnackbarTime == null ||
         now.difference(_lastSnackbarTime!).inMilliseconds > 1000) {
       _lastSnackbarTime = now;
       if (context != null) {

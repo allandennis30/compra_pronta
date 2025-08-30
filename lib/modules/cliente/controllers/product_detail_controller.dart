@@ -88,15 +88,17 @@ class ProductDetailController extends GetxController {
 
     try {
       final cartController = Get.find<CartController>();
-      
-      if (product!.isSoldByWeight) {
+
+      if (product!.isSoldByWeight == true) {
         // Para produtos vendidos por peso, usar o peso como quantidade
-        cartController.addItem(product!, quantity: (_weight.value * 10).round(), context: context);
+        cartController.addItem(product!,
+            quantity: (_weight.value * 10).round(), context: context);
         // Reset weight after adding to cart
         _weight.value = 0.5;
       } else {
         // Adicionar todos os itens de uma vez para evitar múltiplas notificações
-        cartController.addItem(product!, quantity: _quantity.value, context: context);
+        cartController.addItem(product!,
+            quantity: _quantity.value, context: context);
         // Reset quantity after adding to cart
         _quantity.value = 1;
       }
@@ -121,12 +123,14 @@ class ProductDetailController extends GetxController {
     );
   }
 
-  double get totalPrice => product?.isSoldByWeight == true
+  double get totalPrice => (product?.isSoldByWeight == true)
       ? (product?.pricePerKg ?? 0.0) * _weight.value
       : (product?.price ?? 0.0) * _quantity.value;
 
-  bool get canAddToCart => 
-      product != null && 
-      product!.isAvailable && 
-      (product!.isSoldByWeight || (product!.stock > 0 && _quantity.value <= product!.stock));
+  bool get canAddToCart =>
+      product != null &&
+      (product!.isAvailable ?? false) &&
+      ((product!.isSoldByWeight ?? false) ||
+          ((product!.stock ?? 0) > 0 &&
+              _quantity.value <= (product!.stock ?? 0)));
 }
