@@ -2,7 +2,6 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:get_storage/get_storage.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/utils/snackbar_utils.dart';
@@ -26,10 +25,41 @@ class AuthController extends GetxController {
     _autoAuthenticate();
   }
 
+  /// Método de teste para verificar o estado do storage
+  Future<void> debugStorage() async {
+    try {
+      AppLogger.info('🔍 [DEBUG] Verificando estado do storage...');
+
+      final token = await _authRepository.getToken();
+      final user = await _authRepository.getCurrentUser();
+      final hasCredentials = await _authRepository.hasSavedCredentials();
+      final credentials = await _authRepository.getSavedCredentials();
+
+      AppLogger.info(
+          '🔍 [DEBUG] Token: ${token != null ? 'presente' : 'null'}');
+      AppLogger.info(
+          '🔍 [DEBUG] Usuário: ${user != null ? user.name : 'null'}');
+      AppLogger.info('🔍 [DEBUG] Tem credenciais: $hasCredentials');
+      AppLogger.info(
+          '🔍 [DEBUG] Credenciais: ${credentials != null ? 'presentes' : 'null'}');
+
+      if (credentials != null) {
+        AppLogger.info('🔍 [DEBUG] Email salvo: ${credentials['email']}');
+        AppLogger.info(
+            '🔍 [DEBUG] Senha salva: ${credentials['password']?.isNotEmpty == true ? 'presente' : 'vazia'}');
+      }
+    } catch (e) {
+      AppLogger.error('❌ [DEBUG] Erro ao verificar storage', e);
+    }
+  }
+
   /// Autenticação automática na inicialização do app
   void _autoAuthenticate() async {
     try {
       AppLogger.info('🔄 Iniciando autenticação automática...');
+
+      // Debug do storage
+      await debugStorage();
 
       final isAuthenticated = await _authRepository.isAuthenticated();
       if (isAuthenticated) {
@@ -45,7 +75,10 @@ class AuthController extends GetxController {
           _refreshToken();
         }
       } else {
-        AppLogger.info('ℹ️ Nenhum token encontrado, usuário não autenticado');
+        // Tentar login automático com credenciais salvas
+        AppLogger.info(
+            'ℹ️ Nenhum token encontrado, tentando login automático...');
+        await _tryAutoLogin();
       }
     } catch (e) {
       AppLogger.error('❌ Erro na autenticação automática', e);
@@ -137,8 +170,42 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<bool> login(
-      String email, String password, BuildContext context) async {
+  /// Tenta fazer login automático com credenciais salvas
+  Future<void> _tryAutoLogin() async {
+    try {
+      final hasCredentials = await _authRepository.hasSavedCredentials();
+      if (!hasCredentials) {
+        AppLogger.info('ℹ️ Nenhuma credencial salva encontrada');
+        return;
+      }
+
+      AppLogger.info('🔐 Tentando login automático com credenciais salvas...');
+
+      final credentials = await _authRepository.getSavedCredentials();
+      if (credentials != null) {
+        final email = credentials['email']!;
+        final password = credentials['password']!;
+
+        // Fazer login com as credenciais salvas
+        final success = await login(email, password, Get.context!);
+        if (success) {
+          AppLogger.success('✅ Login automático realizado com sucesso!');
+        } else {
+          AppLogger.warning(
+              '⚠️ Login automático falhou, credenciais podem estar incorretas');
+          // Limpar credenciais incorretas
+          await _authRepository.clearSavedCredentials();
+        }
+      }
+    } catch (e) {
+      AppLogger.error('❌ Erro no login automático', e);
+      // Em caso de erro, limpar credenciais corrompidas
+      await _authRepository.clearSavedCredentials();
+    }
+  }
+
+  Future<bool> login(String email, String password, BuildContext context,
+      {bool saveCredentials = true}) async {
     _isLoading.value = true;
 
     try {
@@ -155,6 +222,11 @@ class AuthController extends GetxController {
         if (isTokenValid) {
           AppLogger.success(
               '✅ Login realizado com sucesso: ${user.name} - Token válido');
+
+          // Salvar credenciais se o usuário escolheu
+          if (saveCredentials) {
+            await _authRepository.saveCredentials(email, password);
+          }
         } else {
           AppLogger.warning('⚠️ Login realizado mas token inválido');
         }

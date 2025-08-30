@@ -26,10 +26,13 @@ class ProductListPage extends StatelessWidget {
       body: Column(
         children: [
           _buildSearchBar(),
+          _buildActiveFiltersIndicator(),
+          _buildFiltersPanel(),
           _buildCategoryFilter(),
           Expanded(
             child: _buildProductList(),
           ),
+          _buildPaginationInfo(),
         ],
       ),
       bottomNavigationBar: const ClientBottomNav(currentIndex: 0),
@@ -39,16 +42,237 @@ class ProductListPage extends StatelessWidget {
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: 'Buscar produtos...',
-          prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Buscar produtos...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onChanged: controller.setSearchQuery,
+            ),
           ),
-        ),
-        onChanged: controller.setSearchQuery,
+          const SizedBox(width: 8),
+          Obx(() => IconButton(
+                icon: Icon(
+                  controller.showFilters
+                      ? Icons.filter_alt
+                      : Icons.filter_alt_outlined,
+                  color: controller.hasActiveFilters ? Colors.blue : null,
+                ),
+                onPressed: controller.toggleFilters,
+                tooltip: 'Filtros Avançados',
+              )),
+        ],
       ),
+    );
+  }
+
+  Widget _buildActiveFiltersIndicator() {
+    return Obx(() {
+      if (!controller.hasActiveFilters) return const SizedBox.shrink();
+
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        color: Colors.blue.shade50,
+        child: Row(
+          children: [
+            Icon(Icons.filter_alt, size: 16, color: Colors.blue.shade700),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '${controller.filteredProductsCount} produto(s) encontrado(s)',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.blue.shade700,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: controller.clearAllFilters,
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                minimumSize: const Size(0, 32),
+              ),
+              child:
+                  const Text('Limpar Filtros', style: TextStyle(fontSize: 12)),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildFiltersPanel() {
+    return Obx(() {
+      if (!controller.showFilters) return const SizedBox.shrink();
+
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Filtros Avançados',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: controller.toggleFilters,
+                  iconSize: 20,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Filtro por Vendedor
+            _buildVendorFilter(),
+            const SizedBox(height: 16),
+
+            // Filtro por Preço
+            _buildPriceFilter(),
+            const SizedBox(height: 16),
+
+            // Filtro por Ordenação
+            _buildSortingFilter(),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildVendorFilter() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Vendedor',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        Obx(() => DropdownButtonFormField<String>(
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+              value: controller.selectedVendor.isEmpty
+                  ? null
+                  : controller.selectedVendor,
+              items: [
+                const DropdownMenuItem<String>(
+                  value: null,
+                  child: Text('Todos os vendedores'),
+                ),
+                ...controller.vendors.where((v) => v.isNotEmpty).map((vendor) {
+                  return DropdownMenuItem<String>(
+                    value: vendor,
+                    child: Text(vendor),
+                  );
+                }),
+              ],
+              onChanged: (value) {
+                controller.setVendor(value ?? '');
+              },
+            )),
+      ],
+    );
+  }
+
+  Widget _buildPriceFilter() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Faixa de Preço',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Mín',
+                  border: OutlineInputBorder(),
+                  prefixText: 'R\$ ',
+                ),
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  final price = double.tryParse(value) ?? 0.0;
+                  controller.setPriceRange(price, controller.maxPrice);
+                },
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Máx',
+                  border: OutlineInputBorder(),
+                  prefixText: 'R\$ ',
+                ),
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  final price = double.tryParse(value) ?? 1000.0;
+                  controller.setPriceRange(controller.minPrice, price);
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSortingFilter() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Ordenar por',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        Obx(() => DropdownButtonFormField<String>(
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+              value: controller.sortBy,
+              items: controller.sortOptions.map((option) {
+                return DropdownMenuItem<String>(
+                  value: option['value'],
+                  child: Text(option['label']),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  final ascending = value == 'name' || value == 'price';
+                  controller.setSorting(value, ascending: ascending);
+                }
+              },
+            )),
+      ],
     );
   }
 
@@ -81,23 +305,97 @@ class ProductListPage extends StatelessWidget {
 
   Widget _buildProductList() {
     return Obx(() {
-      if (controller.isLoading) {
+      if (controller.isLoading && !controller.isInitialized) {
         return const Center(child: CircularProgressIndicator());
       }
 
-      if (controller.products.isEmpty) {
+      if (controller.products.isEmpty && controller.isInitialized) {
         return const Center(
           child: Text('Nenhum produto encontrado'),
         );
       }
 
-      return ListView.builder(
+      return RefreshIndicator(
+        onRefresh: controller.refreshProducts,
+        child: NotificationListener<ScrollNotification>(
+          onNotification: (ScrollNotification scrollInfo) {
+            // Carregar mais produtos quando chegar próximo ao fim
+            if (scrollInfo.metrics.pixels >=
+                    scrollInfo.metrics.maxScrollExtent - 200 &&
+                controller.hasNextPage &&
+                !controller.isLoadingMore &&
+                !controller.hasReachedEnd) {
+              controller.loadNextPage();
+            }
+            return false;
+          },
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount:
+                controller.products.length + (controller.isLoadingMore ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index == controller.products.length) {
+                // Indicador de carregamento no fim da lista
+                return _buildLoadingIndicator();
+              }
+
+              final product = controller.products[index];
+              return _buildProductCard(product, context);
+            },
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildLoadingIndicator() {
+    return const Padding(
+      padding: EdgeInsets.all(16.0),
+      child: Center(
+        child: Column(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 8),
+            Text('Carregando mais produtos...'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPaginationInfo() {
+    return Obx(() {
+      if (controller.totalPages <= 1) return const SizedBox.shrink();
+
+      return Container(
         padding: const EdgeInsets.all(16),
-        itemCount: controller.products.length,
-        itemBuilder: (context, index) {
-          final product = controller.products[index];
-          return _buildProductCard(product, context);
-        },
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              spreadRadius: 1,
+              blurRadius: 3,
+              offset: const Offset(0, -1),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Página ${controller.currentPage} de ${controller.totalPages}',
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+            Text(
+              '${controller.totalItems} produtos',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
       );
     });
   }
@@ -105,93 +403,103 @@ class ProductListPage extends StatelessWidget {
   Widget _buildProductCard(ProductModel product, BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      child: InkWell(
-        onTap: () => Get.toNamed('/cliente/produto', arguments: product),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  product.imageUrl ?? '',
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 80,
-                      height: 80,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.image, color: Colors.grey),
-                    );
-                  },
+      elevation: 2,
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Colors.grey.shade200,
+          child: product.imageUrl != null
+              ? ClipOval(
+                  child: Image.network(
+                    product.imageUrl!,
+                    width: 40,
+                    height: 40,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(
+                        Icons.shopping_bag,
+                        color: Colors.grey.shade600,
+                      );
+                    },
+                  ),
+                )
+              : Icon(
+                  Icons.shopping_bag,
+                  color: Colors.grey.shade600,
+                ),
+        ),
+        title: Text(
+          product.name ?? 'Produto sem nome',
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (product.description != null)
+              Text(
+                product.description!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 12,
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      product.name ?? 'Produto sem nome',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                if (product.category != null)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade100,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      product.description ?? 'Sem descrição',
+                    child: Text(
+                      product.category!,
                       style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
+                        fontSize: 10,
+                        color: Colors.blue.shade700,
+                        fontWeight: FontWeight.w500,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Text(
-                          (product.isSoldByWeight ?? false)
-                              ? 'R\$ ${(product.pricePerKg ?? 0.0).toStringAsFixed(2)}/kg'
-                              : 'R\$ ${(product.price ?? 0.0).toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
-                          ),
-                        ),
-                        const Spacer(),
-                        Row(
-                          children: [
-                            const Icon(Icons.star,
-                                size: 16, color: Colors.amber),
-                            Text(
-                              ' ${(product.rating ?? 0.0).toStringAsFixed(1)}',
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
+                const Spacer(),
+                Text(
+                  'R\$ ${(product.price ?? 0).toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.green,
+                  ),
                 ),
+              ],
+            ),
+          ],
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(
+                controller.isFavorite(product.id ?? '')
+                    ? Icons.favorite
+                    : Icons.favorite_border,
+                color: controller.isFavorite(product.id ?? '')
+                    ? Colors.red
+                    : Colors.grey,
               ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.all(8),
-                  minimumSize: const Size(40, 40),
-                ),
-                onPressed: () {
-                  final cartController = Get.find<CartController>();
-                  cartController.addItem(product, context: context);
-                },
-                child: const Text('+'),
-              ),
-            ],
-          ),
+              onPressed: () => controller.toggleFavorite(product.id ?? ''),
+            ),
+            IconButton(
+              icon: const Icon(Icons.add_shopping_cart),
+              onPressed: () {
+                // Adicionar ao carrinho
+                final cartController = Get.find<CartController>();
+                cartController.addItem(product, context: context);
+              },
+            ),
+          ],
         ),
       ),
     );

@@ -13,6 +13,14 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
   await Hive.initFlutter();
+
+  // Teste simples do GetStorage
+  final testStorage = GetStorage();
+  testStorage.write('test_key', 'test_value');
+  final testValue = testStorage.read('test_key');
+  print('🧪 [TESTE STORAGE] Valor de teste: $testValue');
+  testStorage.remove('test_key');
+
   runApp(const MyApp());
 }
 

@@ -293,6 +293,75 @@ class VendorProductFormController extends GetxController {
     }
   }
 
+  /// Exclui o produto atual
+  Future<void> deleteProduct() async {
+    if (editingProductId.value == null) {
+      Get.snackbar(
+        'Erro',
+        'Produto não pode ser excluído',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    // Mostrar diálogo de confirmação
+    final confirmed = await Get.dialog<bool>(
+      AlertDialog(
+        title: const Text('Confirmar Exclusão'),
+        content: Text(
+          'Tem certeza que deseja excluir o produto "${nameController.text.trim()}"?\n\n'
+          'Esta ação não pode ser desfeita.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Get.back(result: true),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    isLoading.value = true;
+    hasError.value = false;
+
+    try {
+      final success = await _repository.delete(editingProductId.value!);
+
+      if (success) {
+        Get.snackbar(
+          'Sucesso',
+          'Produto excluído com sucesso!',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+
+        // Voltar para a lista de produtos
+        Get.back();
+      } else {
+        hasError.value = true;
+        errorMessage.value = 'Produto não encontrado para exclusão';
+      }
+    } catch (e) {
+      hasError.value = true;
+      errorMessage.value = 'Erro ao excluir produto: $e';
+      AppLogger.error('Erro ao excluir produto', e);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<void> checkExistingBarcode() async {
     final barcode = barcodeController.text.trim();
     if (barcode.isEmpty) return;

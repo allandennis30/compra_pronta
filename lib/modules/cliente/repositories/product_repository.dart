@@ -5,12 +5,27 @@ import '../../../constants/app_constants.dart';
 import '../../../core/utils/logger.dart';
 import '../../auth/controllers/auth_controller.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 abstract class ProductRepository extends BaseRepository<ProductModel> {
   Future<List<ProductModel>> getProductsByCategory(String category);
   Future<List<String>> getFavorites();
   Future<void> toggleFavorite(String productId);
   Future<ProductModel?> getProductByBarcode(String barcode);
+  Future<Map<String, dynamic>> getPublicProducts({
+    int page = 1,
+    int limit = 10,
+    String? category,
+    String? search,
+    String? vendor,
+    double? minPrice,
+    double? maxPrice,
+    String? sortBy,
+    bool? sortAscending,
+  });
+
+  Future<Map<String, dynamic>> getAvailableFilters();
 }
 
 class ProductRepositoryImpl implements ProductRepository {
@@ -27,13 +42,13 @@ class ProductRepositoryImpl implements ProductRepository {
 
   @override
   Future<List<ProductModel>> getAll() async {
-    if (_cachedProducts != null) {
-      return _cachedProducts!;
+    try {
+      final result = await getPublicProducts(page: 1, limit: 1000);
+      return result['products'] ?? [];
+    } catch (e) {
+      AppLogger.error('Erro ao carregar produtos', e);
+      return [];
     }
-
-    // TODO: Implementar consumo da API real (ProductApiRepository)
-    _cachedProducts = [];
-    return _cachedProducts!;
   }
 
   @override
@@ -142,6 +157,126 @@ class ProductRepositoryImpl implements ProductRepository {
       return products.firstWhere((product) => product.barcode == barcode);
     } catch (e) {
       return null;
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getPublicProducts({
+    int page = 1,
+    int limit = 10,
+    String? category,
+    String? search,
+    String? vendor,
+    double? minPrice,
+    double? maxPrice,
+    String? sortBy,
+    bool? sortAscending,
+  }) async {
+    try {
+      final queryParams = <String, String>{
+        'page': page.toString(),
+        'limit': limit.toString(),
+      };
+
+      if (category != null && category.isNotEmpty) {
+        queryParams['category'] = category;
+      }
+
+      if (search != null && search.isNotEmpty) {
+        queryParams['search'] = search;
+      }
+
+      if (vendor != null && vendor.isNotEmpty) {
+        queryParams['vendor'] = vendor;
+      }
+
+      if (minPrice != null && minPrice > 0) {
+        queryParams['minPrice'] = minPrice.toString();
+      }
+
+      if (maxPrice != null && maxPrice < 1000) {
+        queryParams['maxPrice'] = maxPrice.toString();
+      }
+
+      if (sortBy != null && sortBy.isNotEmpty) {
+        queryParams['sortBy'] = sortBy;
+      }
+
+      if (sortAscending != null) {
+        queryParams['sortAscending'] = sortAscending.toString();
+      }
+
+      final uri = Uri.parse('${AppConstants.publicProductsEndpoint}')
+          .replace(queryParameters: queryParams);
+
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final products = (data['products'] as List)
+            .map((json) => ProductModel.fromJson(json))
+            .toList();
+
+        return {
+          'products': products,
+          'pagination': data['pagination'],
+        };
+      } else {
+        throw Exception('Falha ao carregar produtos: ${response.statusCode}');
+      }
+    } catch (e) {
+      AppLogger.error('Erro ao carregar produtos públicos', e);
+      rethrow;
+    }
+  }
+
+  /// Obter filtros disponíveis (categorias e vendedores)
+  @override
+  Future<Map<String, dynamic>> getAvailableFilters() async {
+    try {
+      final uri = Uri.parse(AppConstants.publicProductsFiltersEndpoint);
+
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        // Converter as listas para List<String> de forma segura
+        List<String> categories = [];
+        List<String> vendors = [];
+
+        if (data['categories'] is List) {
+          categories = (data['categories'] as List)
+              .where((item) => item is String)
+              .map((item) => item.toString())
+              .toList();
+        }
+
+        if (data['vendors'] is List) {
+          vendors = (data['vendors'] as List)
+              .where((item) => item is String)
+              .map((item) => item.toString())
+              .toList();
+        }
+
+        return {
+          'categories': categories,
+          'vendors': vendors,
+        };
+      } else {
+        // Se não houver endpoint específico, retornar listas vazias
+        return {
+          'categories': <String>[],
+          'vendors': <String>[],
+        };
+      }
+    } catch (e) {
+      AppLogger.error('Erro ao carregar filtros disponíveis', e);
+      // Retornar listas vazias em caso de erro
+      return {
+        'categories': <String>[],
+        'vendors': <String>[],
+      };
     }
   }
 }

@@ -20,12 +20,12 @@ class EnvironmentConfig {
   /// - development: Usa servidor local (localhost:3000)
   /// - production: Usa servidor de produção (Render)
   /// - auto: Detecta automaticamente baseado no dispositivo
-  static const Environment _currentEnvironment = Environment.production;
+  static const Environment _currentEnvironment = Environment.development;
 
   /// URLs dos servidores
   static const Map<Environment, String> _serverUrls = {
     Environment.development:
-        'http://10.0.2.2:3000', // IP especial para emulador Android
+        'http://192.168.3.43:3000', // IP da máquina para dispositivos reais
     Environment.production: 'https://backend-compra-pronta.onrender.com',
   };
 
@@ -52,7 +52,10 @@ class EnvironmentConfig {
     // Para emulador Android, usar 10.0.2.2
     // Para iOS Simulator, usar localhost
     // Para dispositivo real, usar IP da máquina
-    return 'http://10.0.2.2:3000'; // IP especial para emulador Android
+
+    // Por enquanto, usar IP da máquina que funciona para ambos
+    // Em produção, implementar detecção automática
+    return 'http://192.168.3.43:3000';
   }
 
   /// Retorna o nome do ambiente atual

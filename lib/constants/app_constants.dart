@@ -85,6 +85,10 @@ class AppConstants {
   static String get deleteProductEndpoint => '$baseUrl$apiVersion/products';
   static String get checkBarcodeEndpoint =>
       '$baseUrl$apiVersion/products/barcode';
+  static String get publicProductsEndpoint =>
+      '$baseUrl$apiVersion/products/public';
+  static String get publicProductsFiltersEndpoint =>
+      '$baseUrl$apiVersion/products/public/filters';
 
   // Credenciais de teste para o backend
   // Cliente: teste@teste.com / teste123

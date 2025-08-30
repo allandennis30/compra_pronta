@@ -6,6 +6,7 @@ class ProductCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onToggleStatus;
+  final VoidCallback? onDelete;
 
   const ProductCard({
     super.key,
@@ -13,6 +14,7 @@ class ProductCard extends StatelessWidget {
     this.onTap,
     this.onEdit,
     this.onToggleStatus,
+    this.onDelete,
   });
 
   @override
@@ -301,6 +303,15 @@ class ProductCard extends StatelessWidget {
               ? 'Desativar produto'
               : 'Ativar produto',
         ),
+        if (onDelete != null) ...[
+          const SizedBox(height: 8),
+          _buildActionButton(
+            icon: Icons.delete_outline,
+            onTap: onDelete,
+            color: Colors.red.shade600,
+            tooltip: 'Excluir produto',
+          ),
+        ],
       ],
     );
   }

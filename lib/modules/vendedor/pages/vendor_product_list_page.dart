@@ -220,6 +220,7 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
           onTap: () => _navigateToProductForm(product: product),
           onEdit: () => _navigateToProductForm(product: product),
           onToggleStatus: () => _toggleProductStatus(product),
+          onDelete: () => _showDeleteConfirmation(product),
         );
       },
     );
@@ -258,6 +259,34 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
           : 'Produto ${product.name ?? 'Produto sem nome'} foi ativado',
       snackPosition: SnackPosition.BOTTOM,
       duration: const Duration(seconds: 2),
+    );
+  }
+
+  void _showDeleteConfirmation(ProductModel product) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Confirmar Exclusão'),
+        content: Text(
+          'Tem certeza que deseja excluir o produto "${product.name ?? 'Produto sem nome'}"?\n\n'
+          'Esta ação não pode ser desfeita.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Get.back();
+              await controller.deleteProduct(product.id ?? '');
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
     );
   }
 }

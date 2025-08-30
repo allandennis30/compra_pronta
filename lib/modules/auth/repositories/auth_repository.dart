@@ -26,6 +26,12 @@ abstract class AuthRepository {
   Future<void> saveToken(String token);
   Future<DateTime?> getLastLoginTime();
   Future<bool> shouldRefreshToken();
+
+  // Métodos para credenciais salvas
+  Future<void> saveCredentials(String email, String password);
+  Future<Map<String, String>?> getSavedCredentials();
+  Future<void> clearSavedCredentials();
+  Future<bool> hasSavedCredentials();
 }
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -73,6 +79,9 @@ class AuthRepositoryImpl implements AuthRepository {
           await _storage.write(AppConstants.tokenKey, token);
           AppLogger.info('💾 Token JWT salvo no storage');
         }
+
+        // Salvar credenciais para login automático futuro
+        await saveCredentials(email, password);
 
         // Criar modelo do usuário a partir da resposta
         final userData = responseData['user'];
@@ -283,6 +292,8 @@ class AuthRepositoryImpl implements AuthRepository {
       await _storage.remove(AppConstants.userKey);
       await _storage.remove(AppConstants.tokenKey);
       await _storage.remove(AppConstants.cartKey);
+      // Limpar credenciais salvas também
+      await clearSavedCredentials();
     } catch (e) {
       AppLogger.error('Erro ao fazer logout', e);
       rethrow;
@@ -358,6 +369,97 @@ class AuthRepositoryImpl implements AuthRepository {
       return false;
     } catch (e) {
       AppLogger.error('❌ Erro ao verificar necessidade de renovação', e);
+      return false;
+    }
+  }
+
+  /// Salva as credenciais de login para uso futuro
+  @override
+  Future<void> saveCredentials(String email, String password) async {
+    try {
+      AppLogger.info('💾 [STORAGE] Salvando credenciais para: $email');
+
+      // Criptografar a senha antes de salvar (usando base64 como exemplo simples)
+      final encodedPassword = base64.encode(utf8.encode(password));
+
+      await _storage.write('saved_email', email);
+      await _storage.write('saved_password', encodedPassword);
+      await _storage.write(
+          'credentials_timestamp', DateTime.now().millisecondsSinceEpoch);
+
+      // Verificar se foi salvo corretamente
+      final savedEmail = _storage.read('saved_email');
+      final savedPassword = _storage.read('saved_password');
+
+      AppLogger.info(
+          '💾 [STORAGE] Email salvo: ${savedEmail != null ? savedEmail : 'ERRO'}');
+      AppLogger.info(
+          '💾 [STORAGE] Password salvo: ${savedPassword != null ? 'presente' : 'ERRO'}');
+      AppLogger.info('💾 Credenciais salvas para login automático');
+    } catch (e) {
+      AppLogger.error('❌ [STORAGE] Erro ao salvar credenciais', e);
+      rethrow;
+    }
+  }
+
+  /// Obtém as credenciais salvas
+  @override
+  Future<Map<String, String>?> getSavedCredentials() async {
+    try {
+      final email = _storage.read('saved_email');
+      final encodedPassword = _storage.read('saved_password');
+
+      if (email != null && encodedPassword != null) {
+        // Descriptografar a senha
+        final password = utf8.decode(base64.decode(encodedPassword));
+
+        return {
+          'email': email,
+          'password': password,
+        };
+      }
+      return null;
+    } catch (e) {
+      AppLogger.error('❌ Erro ao obter credenciais salvas', e);
+      return null;
+    }
+  }
+
+  /// Limpa as credenciais salvas
+  @override
+  Future<void> clearSavedCredentials() async {
+    try {
+      await _storage.remove('saved_email');
+      await _storage.remove('saved_password');
+      await _storage.remove('credentials_timestamp');
+
+      AppLogger.info('🗑️ Credenciais salvas removidas');
+    } catch (e) {
+      AppLogger.error('❌ Erro ao limpar credenciais salvas', e);
+      rethrow;
+    }
+  }
+
+  /// Verifica se existem credenciais salvas
+  @override
+  Future<bool> hasSavedCredentials() async {
+    try {
+      AppLogger.info('🔍 [STORAGE] Verificando credenciais salvas...');
+
+      final email = _storage.read('saved_email');
+      final password = _storage.read('saved_password');
+
+      AppLogger.info(
+          '🔍 [STORAGE] Email lido: ${email != null ? email : 'null'}');
+      AppLogger.info(
+          '🔍 [STORAGE] Password lido: ${password != null ? 'presente' : 'null'}');
+
+      final hasCredentials = email != null && password != null;
+      AppLogger.info('🔍 [STORAGE] Tem credenciais: $hasCredentials');
+
+      return hasCredentials;
+    } catch (e) {
+      AppLogger.error('❌ [STORAGE] Erro ao verificar credenciais salvas', e);
       return false;
     }
   }

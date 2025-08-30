@@ -7,6 +7,7 @@ class LoginPage extends StatelessWidget {
   final _passwordController = TextEditingController();
   final AuthController _authController = Get.put(AuthController());
   final RxBool _obscurePassword = true.obs;
+  final RxBool _saveCredentials = true.obs;
 
   LoginPage({super.key});
 
@@ -44,6 +45,23 @@ class LoginPage extends StatelessWidget {
                     obscureText: _obscurePassword.value,
                   )),
               const SizedBox(height: 24),
+              // Checkbox para salvar credenciais
+              Obx(() => Row(
+                    children: [
+                      Checkbox(
+                        value: _saveCredentials.value,
+                        onChanged: (value) =>
+                            _saveCredentials.value = value ?? true,
+                      ),
+                      const Expanded(
+                        child: Text(
+                          'Salvar credenciais para login automático',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    ],
+                  )),
+              const SizedBox(height: 16),
               Obx(() => SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -55,6 +73,7 @@ class LoginPage extends StatelessWidget {
                                 _emailController.text.trim(),
                                 _passwordController.text.trim(),
                                 context,
+                                saveCredentials: _saveCredentials.value,
                               );
                               if (_authController.isLoggedIn) {
                                 if (_authController.isVendor) {

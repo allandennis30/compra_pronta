@@ -12,6 +12,13 @@ class ProductModel {
   final int? reviewCount;
   final bool? isSoldByWeight;
   final double? pricePerKg;
+  // Campos do vendedor
+  final String? sellerId;
+  final String? sellerName;
+  final String? sellerEmail;
+  final String? sellerPhone;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   ProductModel({
     this.id,
@@ -27,6 +34,12 @@ class ProductModel {
     this.reviewCount,
     this.isSoldByWeight,
     this.pricePerKg,
+    this.sellerId,
+    this.sellerName,
+    this.sellerEmail,
+    this.sellerPhone,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) => ProductModel(
@@ -43,6 +56,16 @@ class ProductModel {
         reviewCount: json['reviewCount'],
         isSoldByWeight: json['isSoldByWeight'],
         pricePerKg: json['pricePerKg']?.toDouble(),
+        sellerId: json['sellerId']?.toString(),
+        sellerName: json['sellerName']?.toString(),
+        sellerEmail: json['sellerEmail']?.toString(),
+        sellerPhone: json['sellerPhone']?.toString(),
+        createdAt: json['createdAt'] != null
+            ? DateTime.parse(json['createdAt'])
+            : null,
+        updatedAt: json['updatedAt'] != null
+            ? DateTime.parse(json['updatedAt'])
+            : null,
       );
 
   Map<String, dynamic> toJson() => {
@@ -59,6 +82,12 @@ class ProductModel {
         'reviewCount': reviewCount,
         'isSoldByWeight': isSoldByWeight,
         'pricePerKg': pricePerKg,
+        'sellerId': sellerId,
+        'sellerName': sellerName,
+        'sellerEmail': sellerEmail,
+        'sellerPhone': sellerPhone,
+        'createdAt': createdAt?.toIso8601String(),
+        'updatedAt': updatedAt?.toIso8601String(),
       };
 
   ProductModel copyWith({
@@ -75,6 +104,12 @@ class ProductModel {
     int? reviewCount,
     bool? isSoldByWeight,
     double? pricePerKg,
+    String? sellerId,
+    String? sellerName,
+    String? sellerEmail,
+    String? sellerPhone,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return ProductModel(
       id: id ?? this.id,
@@ -90,6 +125,57 @@ class ProductModel {
       reviewCount: reviewCount ?? this.reviewCount,
       isSoldByWeight: isSoldByWeight ?? this.isSoldByWeight,
       pricePerKg: pricePerKg ?? this.pricePerKg,
+      sellerId: sellerId ?? this.sellerId,
+      sellerName: sellerName ?? this.sellerName,
+      sellerEmail: sellerEmail ?? this.sellerEmail,
+      sellerPhone: sellerPhone ?? this.sellerPhone,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
+}
+
+// Modelo para paginação
+class PaginationInfo {
+  final int currentPage;
+  final int totalPages;
+  final int totalItems;
+  final int itemsPerPage;
+  final bool hasNextPage;
+  final bool hasPrevPage;
+  final int? nextPage;
+  final int? prevPage;
+
+  PaginationInfo({
+    required this.currentPage,
+    required this.totalPages,
+    required this.totalItems,
+    required this.itemsPerPage,
+    required this.hasNextPage,
+    required this.hasPrevPage,
+    this.nextPage,
+    this.prevPage,
+  });
+
+  factory PaginationInfo.fromJson(Map<String, dynamic> json) => PaginationInfo(
+        currentPage: json['currentPage'] ?? 1,
+        totalPages: json['totalPages'] ?? 1,
+        totalItems: json['totalItems'] ?? 0,
+        itemsPerPage: json['itemsPerPage'] ?? 10,
+        hasNextPage: json['hasNextPage'] ?? false,
+        hasPrevPage: json['hasPrevPage'] ?? false,
+        nextPage: json['nextPage'],
+        prevPage: json['prevPage'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'currentPage': currentPage,
+        'totalPages': totalPages,
+        'totalItems': totalItems,
+        'itemsPerPage': itemsPerPage,
+        'hasNextPage': hasNextPage,
+        'hasPrevPage': hasPrevPage,
+        'nextPage': nextPage,
+        'prevPage': prevPage,
+      };
 }

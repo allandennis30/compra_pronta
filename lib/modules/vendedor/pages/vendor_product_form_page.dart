@@ -15,6 +15,7 @@ class VendorProductFormPage extends GetView<VendorProductFormController> {
             ? 'Editar Produto'
             : 'Cadastrar Produto')),
         actions: [
+          const SizedBox(width: 8),
           IconButton(
             icon: const Icon(Icons.check),
             onPressed: () {
@@ -394,6 +395,34 @@ class VendorProductFormPage extends GetView<VendorProductFormController> {
               ],
             ),
           ),
+        );
+      },
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmar Exclusão'),
+          content: const Text(
+              'Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Get.back();
+              },
+            ),
+            TextButton(
+              child: const Text('Excluir'),
+              onPressed: () {
+                controller.deleteProduct();
+                Get.back();
+              },
+            ),
+          ],
         );
       },
     );

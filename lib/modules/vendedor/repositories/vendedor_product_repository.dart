@@ -114,23 +114,32 @@ class VendedorProductRepositoryImpl implements VendedorProductRepository {
 
   @override
   Future<bool> delete(String id) async {
-    // Simular exclusão na API
-    await Future.delayed(Duration(milliseconds: 300));
+    try {
+      AppLogger.info('🗑️ Iniciando exclusão do produto: $id');
 
-    // Carregar produtos atuais
-    final products = await getAll();
+      // Simular exclusão na API
+      await Future.delayed(Duration(milliseconds: 300));
 
-    // Remover o produto
-    final initialLength = products.length;
-    products.removeWhere((product) => product.id == id);
+      // Carregar produtos atuais
+      final products = await getAll();
 
-    // Salvar a lista atualizada se houve remoção
-    if (products.length < initialLength) {
-      await _saveVendedorProducts(products);
-      return true;
+      // Remover o produto pelo ID
+      final initialLength = products.length;
+      products.removeWhere((product) => product.id == id);
+
+      // Salvar a lista atualizada se houve remoção
+      if (products.length < initialLength) {
+        await _saveVendedorProducts(products);
+        AppLogger.success('✅ Produto excluído com sucesso: $id');
+        return true;
+      }
+
+      AppLogger.warning('⚠️ Produto não encontrado para exclusão: $id');
+      return false;
+    } catch (e) {
+      AppLogger.error('❌ Erro ao excluir produto: $id', e);
+      rethrow;
     }
-
-    return false;
   }
 
   @override
