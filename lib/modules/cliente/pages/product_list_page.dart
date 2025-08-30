@@ -4,6 +4,7 @@ import '../controllers/product_list_controller.dart';
 import '../controllers/cart_controller.dart';
 import '../models/product_model.dart';
 import '../widgets/client_bottom_nav.dart';
+import '../../../core/widgets/product_image_display.dart';
 
 class ProductListPage extends StatelessWidget {
   final ProductListController controller = Get.put(ProductListController());
@@ -422,27 +423,9 @@ class ProductListPage extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Colors.grey.shade200,
-          child: product.imageUrl != null
-              ? ClipOval(
-                  child: Image.network(
-                    product.imageUrl!,
-                    width: 40,
-                    height: 40,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Icon(
-                        Icons.shopping_bag,
-                        color: Colors.grey.shade600,
-                      );
-                    },
-                  ),
-                )
-              : Icon(
-                  Icons.shopping_bag,
-                  color: Colors.grey.shade600,
-                ),
+        leading: ProductAvatarDisplay(
+          imageUrl: product.imageUrl,
+          size: 40,
         ),
         title: Text(
           product.name ?? 'Produto sem nome',

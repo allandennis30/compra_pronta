@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/cart_controller.dart';
 import '../../../constants/app_constants.dart';
+import '../../../core/widgets/product_image_display.dart';
 
 class CartItemWidget extends GetView<CartController> {
   final dynamic item;
@@ -39,40 +40,11 @@ class CartItemWidget extends GetView<CartController> {
     );
   }
 
-  Widget get _productImage => ClipRRect(
+  Widget get _productImage => ProductImageDisplay(
+        imageUrl: item.product.imageUrl,
+        width: isDesktop ? 80 : (isTablet ? 70 : 60),
+        height: isDesktop ? 80 : (isTablet ? 70 : 60),
         borderRadius: BorderRadius.circular(8),
-        child: Image.network(
-          item.product.imageUrl,
-          width: isDesktop ? 80 : (isTablet ? 70 : 60),
-          height: isDesktop ? 80 : (isTablet ? 70 : 60),
-          fit: BoxFit.cover,
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return Container(
-              width: isDesktop ? 80 : (isTablet ? 70 : 60),
-              height: isDesktop ? 80 : (isTablet ? 70 : 60),
-              color: Colors.grey[200],
-              child: const Center(
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            );
-          },
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              width: isDesktop ? 80 : (isTablet ? 70 : 60),
-              height: isDesktop ? 80 : (isTablet ? 70 : 60),
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.image_not_supported_outlined,
-                color: Colors.grey[600],
-                size: isDesktop ? 30 : 24,
-              ),
-            );
-          },
-        ),
       );
 
   Widget get _productInfo => Expanded(
@@ -152,15 +124,15 @@ class CartItemWidget extends GetView<CartController> {
             _buildQuantityButton(
               icon: Icons.remove,
               onPressed: () => controller.updateQuantity(
-                  item.product.id, 
-                  item.product.isSoldByWeight 
+                  item.product.id,
+                  item.product.isSoldByWeight
                       ? cartItem.quantity - 1 // Decrementa 0.1kg
                       : cartItem.quantity - 1),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                item.product.isSoldByWeight 
+                item.product.isSoldByWeight
                     ? '${cartItem.displayQuantity.toStringAsFixed(1)}kg'
                     : '${cartItem.quantity}',
                 style: const TextStyle(
@@ -172,8 +144,8 @@ class CartItemWidget extends GetView<CartController> {
             _buildQuantityButton(
               icon: Icons.add,
               onPressed: () => controller.updateQuantity(
-                  item.product.id, 
-                  item.product.isSoldByWeight 
+                  item.product.id,
+                  item.product.isSoldByWeight
                       ? cartItem.quantity + 1 // Incrementa 0.1kg
                       : cartItem.quantity + 1),
             ),
@@ -186,15 +158,15 @@ class CartItemWidget extends GetView<CartController> {
             _buildQuantityButton(
               icon: Icons.remove,
               onPressed: () => controller.updateQuantity(
-                  item.product.id, 
-                  item.product.isSoldByWeight 
+                  item.product.id,
+                  item.product.isSoldByWeight
                       ? cartItem.quantity - 1 // Decrementa 0.1kg
                       : cartItem.quantity - 1),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Text(
-                item.product.isSoldByWeight 
+                item.product.isSoldByWeight
                     ? '${cartItem.displayQuantity.toStringAsFixed(1)}kg'
                     : '${cartItem.quantity}',
                 style: const TextStyle(
@@ -206,8 +178,8 @@ class CartItemWidget extends GetView<CartController> {
             _buildQuantityButton(
               icon: Icons.add,
               onPressed: () => controller.updateQuantity(
-                  item.product.id, 
-                  item.product.isSoldByWeight 
+                  item.product.id,
+                  item.product.isSoldByWeight
                       ? cartItem.quantity + 1 // Incrementa 0.1kg
                       : cartItem.quantity + 1),
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import '../../../core/widgets/product_image_display.dart';
 
 class ImagePickerWidget extends StatelessWidget {
   final File? selectedImage;
@@ -54,34 +55,12 @@ class ImagePickerWidget extends StatelessWidget {
         height: double.infinity,
       );
     } else if (imageUrl != null && imageUrl!.isNotEmpty) {
-      imageWidget = Image.network(
-        imageUrl!,
+      imageWidget = ProductImageDisplay(
+        imageUrl: imageUrl,
         fit: BoxFit.cover,
         width: double.infinity,
         height: double.infinity,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Center(
-            child: CircularProgressIndicator(
-              value: loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded /
-                      loadingProgress.expectedTotalBytes!
-                  : null,
-            ),
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.error, color: Colors.red, size: 48),
-                SizedBox(height: 8),
-                Text('Erro ao carregar imagem'),
-              ],
-            ),
-          );
-        },
+        showLoadingIndicator: true,
       );
     } else {
       imageWidget = const SizedBox();

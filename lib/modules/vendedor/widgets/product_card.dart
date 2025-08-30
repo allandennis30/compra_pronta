@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../cliente/models/product_model.dart';
+import '../../../core/widgets/product_image_display.dart';
 
 class ProductCard extends StatelessWidget {
   final ProductModel product;
@@ -58,50 +59,10 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildProductImage() {
-    return Container(
+    return ProductCardImageDisplay(
+      imageUrl: product.imageUrl,
       width: 80,
       height: 80,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.grey[100],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Image.network(
-          product.imageUrl ?? '',
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.image_outlined,
-                color: Colors.grey[400],
-                size: 32,
-              ),
-            );
-          },
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return Container(
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    Colors.blue.shade400,
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      ),
     );
   }
 
