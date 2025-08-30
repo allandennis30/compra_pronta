@@ -23,6 +23,7 @@ abstract class AuthRepository {
   Future<void> updateUser(UserModel user);
   Future<String?> getToken();
   Future<bool> isAuthenticated();
+  Future<void> saveToken(String token);
 }
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -293,6 +294,17 @@ class AuthRepositoryImpl implements AuthRepository {
     } catch (e) {
       AppLogger.error('Erro ao obter token', e);
       return null;
+    }
+  }
+
+  /// Salva o token JWT no storage
+  Future<void> saveToken(String token) async {
+    try {
+      await _storage.write(AppConstants.tokenKey, token);
+      AppLogger.info('💾 Token salvo no storage');
+    } catch (e) {
+      AppLogger.error('Erro ao salvar token', e);
+      rethrow;
     }
   }
 

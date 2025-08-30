@@ -25,8 +25,11 @@ class VendedorProductApiRepository implements VendedorProductRepository {
   Future<List<ProductModel>> getAll() async {
     try {
       AppLogger.info('📋 [API] Buscando produtos do vendedor');
+      AppLogger.info('🔗 [API] URL: ${AppConstants.listProductsEndpoint}');
 
       final headers = await _getHeaders();
+      AppLogger.info('🔑 [API] Headers: $headers');
+
       final response = await http
           .get(
             Uri.parse(AppConstants.listProductsEndpoint),
@@ -36,6 +39,7 @@ class VendedorProductApiRepository implements VendedorProductRepository {
 
       AppLogger.info(
           '📡 [API] Resposta recebida - Status: ${response.statusCode}');
+      AppLogger.info('📄 [API] Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
@@ -102,24 +106,31 @@ class VendedorProductApiRepository implements VendedorProductRepository {
       AppLogger.info('📦 [API] Criando produto: ${item.name}');
 
       final headers = await _getHeaders();
-      final response = await http
-          .post(
-            Uri.parse(AppConstants.createProductEndpoint),
-            headers: headers,
-            body: json.encode({
-              'name': item.name,
-              'description': item.description,
-              'price': item.price,
-              'category': item.category,
-              'barcode': item.barcode,
-              'stock': item.stock,
-              'isSoldByWeight': item.isSoldByWeight,
-              'pricePerKg': item.pricePerKg,
-              'imageUrl': item.imageUrl,
-              'isAvailable': item.isAvailable,
-            }),
-          )
-          .timeout(const Duration(seconds: 30));
+      final response = await http.post(
+        Uri.parse(AppConstants.createProductEndpoint),
+        headers: headers,
+        body: json.encode(() {
+          final Map<String, dynamic> body = {
+            'name': item.name,
+            'description': item.description,
+            'price': item.price,
+            'category': item.category,
+            'barcode': item.barcode,
+            'stock': item.stock,
+            'isSoldByWeight': item.isSoldByWeight,
+            'isAvailable': item.isAvailable,
+          };
+          // Somente enviar pricePerKg quando vendido por peso
+          if (item.isSoldByWeight && item.pricePerKg != null) {
+            body['pricePerKg'] = item.pricePerKg;
+          }
+          // Enviar imageUrl apenas se não for vazia
+          if ((item.imageUrl).trim().isNotEmpty) {
+            body['imageUrl'] = item.imageUrl;
+          }
+          return body;
+        }()),
+      ).timeout(const Duration(seconds: 30));
 
       AppLogger.info(
           '📡 [API] Resposta recebida - Status: ${response.statusCode}');
@@ -140,11 +151,45 @@ class VendedorProductApiRepository implements VendedorProductRepository {
         AppLogger.warning('❌ [API] Dados inválidos: ${errorData['details']}');
         throw Exception(
             'Dados inválidos: ${errorData['details']?.first?['msg'] ?? 'Verifique os campos'}');
-      } else {
+      } else if (response.statusCode == 500) {
         final errorData = json.decode(response.body);
         AppLogger.error(
-            '❌ [API] Erro ao criar produto: ${errorData['message']}');
-        throw Exception(errorData['message'] ?? 'Erro ao criar produto');
+            '❌ [API] Erro interno do servidor: ${errorData['message']}');
+
+        // Verificar se é erro de RLS (Row Level Security)
+        if (errorData['code'] == '42501' ||
+            (errorData['message'] as String)
+                .contains('row-level security policy')) {
+          throw Exception(
+              'Erro de permissão no servidor. Verifique a configuração do banco de dados.');
+        }
+
+        throw Exception(errorData['message'] ?? 'Erro interno do servidor');
+      } else if (response.statusCode == 503) {
+        // Tratamento específico para erro 503 (Service Unavailable)
+        AppLogger.error(
+            '❌ [API] Serviço indisponível (503) - Servidor em manutenção ou offline');
+        throw Exception(
+            'Serviço temporariamente indisponível. Tente novamente em alguns minutos ou entre em contato com o suporte.');
+      } else {
+        // Verificar se a resposta tem conteúdo antes de tentar fazer decode
+        if (response.body.isNotEmpty) {
+          try {
+            final errorData = json.decode(response.body);
+            AppLogger.error(
+                '❌ [API] Erro ao criar produto: ${errorData['message']}');
+            throw Exception(errorData['message'] ?? 'Erro ao criar produto');
+          } catch (decodeError) {
+            AppLogger.error(
+                '❌ [API] Erro ao decodificar resposta: $decodeError');
+            throw Exception('Erro inesperado na resposta do servidor');
+          }
+        } else {
+          AppLogger.error(
+              '❌ [API] Resposta vazia do servidor - Status: ${response.statusCode}');
+          throw Exception(
+              'Servidor retornou resposta vazia. Tente novamente ou entre em contato com o suporte.');
+        }
       }
     } catch (e) {
       AppLogger.error('💥 [API] Erro ao criar produto', e);
@@ -158,24 +203,31 @@ class VendedorProductApiRepository implements VendedorProductRepository {
       AppLogger.info('🔄 [API] Atualizando produto: ${item.name}');
 
       final headers = await _getHeaders();
-      final response = await http
-          .put(
-            Uri.parse('${AppConstants.updateProductEndpoint}/${item.id}'),
-            headers: headers,
-            body: json.encode({
-              'name': item.name,
-              'description': item.description,
-              'price': item.price,
-              'category': item.category,
-              'barcode': item.barcode,
-              'stock': item.stock,
-              'isSoldByWeight': item.isSoldByWeight,
-              'pricePerKg': item.pricePerKg,
-              'imageUrl': item.imageUrl,
-              'isAvailable': item.isAvailable,
-            }),
-          )
-          .timeout(const Duration(seconds: 30));
+      final response = await http.put(
+        Uri.parse('${AppConstants.updateProductEndpoint}/${item.id}'),
+        headers: headers,
+        body: json.encode(() {
+          final Map<String, dynamic> body = {
+            'name': item.name,
+            'description': item.description,
+            'price': item.price,
+            'category': item.category,
+            'barcode': item.barcode,
+            'stock': item.stock,
+            'isSoldByWeight': item.isSoldByWeight,
+            'isAvailable': item.isAvailable,
+          };
+          // Somente enviar pricePerKg quando vendido por peso
+          if (item.isSoldByWeight && item.pricePerKg != null) {
+            body['pricePerKg'] = item.pricePerKg;
+          }
+          // Enviar imageUrl apenas se não for vazia
+          if ((item.imageUrl).trim().isNotEmpty) {
+            body['imageUrl'] = item.imageUrl;
+          }
+          return body;
+        }()),
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
@@ -191,11 +243,27 @@ class VendedorProductApiRepository implements VendedorProductRepository {
         AppLogger.warning(
             '❌ [API] Código de barras duplicado: ${errorData['message']}');
         throw Exception(errorData['message']);
-      } else {
+      } else if (response.statusCode == 400) {
         final errorData = json.decode(response.body);
+        AppLogger.warning('❌ [API] Dados inválidos: ${errorData['details']}');
+        final String message = errorData['details']?.first?['msg'] ??
+            errorData['error'] ??
+            'Dados inválidos';
+        throw Exception(message);
+      } else {
+        dynamic errorData;
+        try {
+          errorData = json.decode(response.body);
+        } catch (_) {
+          errorData = {'raw': response.body};
+        }
         AppLogger.error(
-            '❌ [API] Erro ao atualizar produto: ${errorData['message']}');
-        throw Exception(errorData['message'] ?? 'Erro ao atualizar produto');
+            '❌ [API] Erro ao atualizar produto: status=${response.statusCode} body=${response.body}');
+        final String message = errorData['message'] ??
+            errorData['error'] ??
+            errorData['raw'] ??
+            'Erro ao atualizar produto';
+        throw Exception(message);
       }
     } catch (e) {
       AppLogger.error('💥 [API] Erro ao atualizar produto', e);
@@ -222,11 +290,31 @@ class VendedorProductApiRepository implements VendedorProductRepository {
       } else if (response.statusCode == 404) {
         AppLogger.warning('❌ [API] Produto não encontrado: $id');
         return false;
-      } else {
-        final errorData = json.decode(response.body);
+      } else if (response.statusCode == 503) {
+        // Tratamento específico para erro 503 (Service Unavailable)
         AppLogger.error(
-            '❌ [API] Erro ao deletar produto: ${errorData['message']}');
-        throw Exception(errorData['message'] ?? 'Erro ao deletar produto');
+            '❌ [API] Serviço indisponível (503) - Servidor em manutenção ou offline');
+        throw Exception(
+            'Serviço temporariamente indisponível. Tente novamente em alguns minutos ou entre em contato com o suporte.');
+      } else {
+        // Verificar se a resposta tem conteúdo antes de tentar fazer decode
+        if (response.body.isNotEmpty) {
+          try {
+            final errorData = json.decode(response.body);
+            AppLogger.error(
+                '❌ [API] Erro ao deletar produto: ${errorData['message']}');
+            throw Exception(errorData['message'] ?? 'Erro ao deletar produto');
+          } catch (decodeError) {
+            AppLogger.error(
+                '❌ [API] Erro ao decodificar resposta: $decodeError');
+            throw Exception('Erro inesperado na resposta do servidor');
+          }
+        } else {
+          AppLogger.error(
+              '❌ [API] Resposta vazia do servidor - Status: ${response.statusCode}');
+          throw Exception(
+              'Servidor retornou resposta vazia. Tente novamente ou entre em contato com o suporte.');
+        }
       }
     } catch (e) {
       AppLogger.error('💥 [API] Erro ao deletar produto', e);

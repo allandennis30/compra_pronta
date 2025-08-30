@@ -255,16 +255,36 @@ class VendorProductFormController extends GetxController {
       return true;
     } catch (e) {
       AppLogger.error('Erro ao salvar produto', e);
-      errorMessage.value = 'Erro ao salvar produto: ${e.toString()}';
+
+      // Tratamento específico para diferentes tipos de erro
+      String userMessage;
+      if (e.toString().contains('Serviço temporariamente indisponível')) {
+        userMessage =
+            'Serviço temporariamente indisponível. Tente novamente em alguns minutos.';
+      } else if (e.toString().contains('Servidor retornou resposta vazia')) {
+        userMessage =
+            'Problema de conexão com o servidor. Verifique sua internet e tente novamente.';
+      } else if (e.toString().contains('timeout')) {
+        userMessage =
+            'Tempo limite excedido. Verifique sua conexão e tente novamente.';
+      } else {
+        userMessage = 'Erro ao salvar produto: ${e.toString()}';
+      }
+
+      errorMessage.value = userMessage;
       hasError.value = true;
 
       Get.snackbar(
-        'Erro',
-        'Erro ao salvar produto: ${e.toString()}',
+        'Erro de Conexão',
+        userMessage,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
-        duration: const Duration(seconds: 4),
+        duration: const Duration(seconds: 6),
+        mainButton: TextButton(
+          onPressed: () => Get.back(),
+          child: const Text('OK', style: TextStyle(color: Colors.white)),
+        ),
       );
 
       return false;

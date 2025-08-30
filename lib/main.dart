@@ -50,7 +50,24 @@ class _InitialRouteDecider extends StatelessWidget {
     return Obx(() {
       if (authController.isLoading) {
         return const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text(
+                  'Verificando autenticação...',
+                  style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Carregando dados do usuário',
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
         );
       }
       if (authController.isLoggedIn) {

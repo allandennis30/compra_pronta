@@ -1,7 +1,6 @@
 import 'package:get_storage/get_storage.dart';
 import '../../../core/repositories/base_repository.dart';
 import '../../cliente/models/product_model.dart';
-import '../../../constants/app_constants.dart';
 import '../../../core/utils/logger.dart';
 import 'dart:io';
 import 'dart:math';
@@ -59,11 +58,8 @@ class VendedorProductRepositoryImpl implements VendedorProductRepository {
       return _cachedProducts!;
     }
 
-    // Se não houver produtos salvos, retornar os produtos mock
-    _cachedProducts = AppConstants.mockProducts
-        .map((json) => ProductModel.fromJson(json))
-        .toList();
-
+    // Sem mock: retornar lista vazia até que produtos sejam criados
+    _cachedProducts = [];
     return _cachedProducts!;
   }
 

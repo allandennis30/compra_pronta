@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../../cliente/models/product_model.dart';
 import '../repositories/vendedor_product_repository.dart';
+import '../../../core/utils/logger.dart';
 
 class VendedorProductListController extends GetxController {
   final VendedorProductRepository _repository;
@@ -24,13 +25,20 @@ class VendedorProductListController extends GetxController {
 
   Future<void> loadProducts() async {
     try {
+      AppLogger.info('🔄 [CONTROLLER] Iniciando carregamento de produtos');
       isLoading.value = true;
       hasError.value = false;
 
+      AppLogger.info('📡 [CONTROLLER] Chamando repository.getAll()');
       final productList = await _repository.getAll();
+      AppLogger.info(
+          '✅ [CONTROLLER] Produtos recebidos: ${productList.length}');
+
       _allProducts.assignAll(productList);
       _applyFilters();
+      AppLogger.info('✅ [CONTROLLER] Produtos carregados com sucesso');
     } catch (e) {
+      AppLogger.error('💥 [CONTROLLER] Erro ao carregar produtos', e);
       hasError.value = true;
       errorMessage.value = 'Erro ao carregar produtos: $e';
     } finally {

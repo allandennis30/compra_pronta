@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import '../../../constants/app_constants.dart';
+import '../../cliente/models/product_model.dart';
+import '../repositories/vendedor_product_repository.dart';
 
 class ScannedItem {
   final String barcode;
@@ -19,6 +20,10 @@ class ScannedItem {
 }
 
 class VendorScanController extends GetxController {
+  final VendedorProductRepository? _repository =
+      Get.isRegistered<VendedorProductRepository>()
+          ? Get.find<VendedorProductRepository>()
+          : null;
   final RxList<ScannedItem> _scannedItems = <ScannedItem>[].obs;
   final RxBool _isScanning = false.obs;
   final RxString _lastScannedCode = ''.obs;
@@ -39,7 +44,7 @@ class VendorScanController extends GetxController {
       _addScannedItem(product);
       Get.snackbar(
         'Produto Encontrado',
-        '${product['name']} - R\$ ${product['price'].toStringAsFixed(2)}',
+        '${product.name} - R\$ ${product.isSoldByWeight ? (product.pricePerKg ?? 0).toStringAsFixed(2) + "/kg" : product.price.toStringAsFixed(2)}',
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.green,
         colorText: Colors.white,
@@ -55,34 +60,31 @@ class VendorScanController extends GetxController {
     }
   }
 
-  Map<String, dynamic>? _findProductByBarcode(String barcode) {
-    // Buscar nos produtos mock
-    try {
-      return AppConstants.mockProducts.firstWhere(
-        (product) => product['barcode'] == barcode,
-      );
-    } catch (e) {
-      return null;
-    }
+  ProductModel? _findProductByBarcode(String barcode) {
+    if (_repository == null) return null;
+    // TODO: adaptar para busca assíncrona via repository.getAll()
+    return null;
   }
 
   // Método público para buscar produto por código de barras
-  Map<String, dynamic>? findProductByBarcode(String barcode) {
+  ProductModel? findProductByBarcode(String barcode) {
     return _findProductByBarcode(barcode);
   }
 
-  void _addScannedItem(Map<String, dynamic> product) {
+  void _addScannedItem(ProductModel product) {
     final existingIndex = _scannedItems.indexWhere(
-      (item) => item.barcode == product['barcode'],
+      (item) => item.barcode == product.barcode,
     );
 
     if (existingIndex >= 0) {
       _scannedItems[existingIndex].quantity++;
     } else {
       _scannedItems.add(ScannedItem(
-        barcode: product['barcode'],
-        name: product['name'],
-        price: product['price'].toDouble(),
+        barcode: product.barcode,
+        name: product.name,
+        price: product.isSoldByWeight
+            ? (product.pricePerKg ?? 0.0)
+            : product.price,
       ));
     }
   }

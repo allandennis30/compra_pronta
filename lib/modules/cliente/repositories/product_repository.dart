@@ -31,13 +31,8 @@ class ProductRepositoryImpl implements ProductRepository {
       return _cachedProducts!;
     }
 
-    // Simular delay de rede
-    await Future.delayed(Duration(milliseconds: 500));
-
-    _cachedProducts = AppConstants.mockProducts
-        .map((json) => ProductModel.fromJson(json))
-        .toList();
-
+    // TODO: Implementar consumo da API real (ProductApiRepository)
+    _cachedProducts = [];
     return _cachedProducts!;
   }
 

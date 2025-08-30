@@ -1,8 +1,12 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:get_storage/get_storage.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/utils/snackbar_utils.dart';
+import '../../../constants/app_constants.dart';
 import '../repositories/auth_repository.dart';
 
 class AuthController extends GetxController {
@@ -19,28 +23,117 @@ class AuthController extends GetxController {
   void onInit() {
     super.onInit();
     _isLoading.value = true;
-    _loadUserFromStorage();
+    _autoAuthenticate();
+  }
+
+  /// Autenticação automática na inicialização do app
+  void _autoAuthenticate() async {
+    try {
+      AppLogger.info('🔄 Iniciando autenticação automática...');
+
+      final isAuthenticated = await _authRepository.isAuthenticated();
+      if (isAuthenticated) {
+        AppLogger.info('🔑 Token encontrado, verificando validade...');
+
+        // Verificar se o token ainda é válido
+        final isValid = await _verifyTokenValidity();
+        if (isValid) {
+          AppLogger.success('✅ Token válido, carregando usuário...');
+          _loadUserFromStorage();
+        } else {
+          AppLogger.warning('⚠️ Token expirado, tentando renovar...');
+          _refreshToken();
+        }
+      } else {
+        AppLogger.info('ℹ️ Nenhum token encontrado, usuário não autenticado');
+      }
+    } catch (e) {
+      AppLogger.error('❌ Erro na autenticação automática', e);
+      // Em caso de erro, limpar dados corrompidos
+      await _authRepository.logout();
+    } finally {
+      _isLoading.value = false;
+    }
+  }
+
+  /// Verifica se o token atual é válido
+  Future<bool> _verifyTokenValidity() async {
+    try {
+      final token = await _authRepository.getToken();
+      if (token == null) return false;
+
+      // Fazer requisição para verificar token
+      final response = await http.post(
+        Uri.parse(AppConstants.verifyTokenEndpoint),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      return response.statusCode == 200;
+    } catch (e) {
+      AppLogger.error('❌ Erro ao verificar token', e);
+      return false;
+    }
+  }
+
+  /// Tenta renovar o token atual
+  Future<void> _refreshToken() async {
+    try {
+      final token = await _authRepository.getToken();
+      if (token == null) {
+        await _authRepository.logout();
+        return;
+      }
+
+      AppLogger.info('🔄 Tentando renovar token...');
+
+      final response = await http.post(
+        Uri.parse(AppConstants.refreshTokenEndpoint),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        final newToken = responseData['token'];
+
+        if (newToken != null) {
+          await _authRepository.saveToken(newToken);
+          AppLogger.success('✅ Token renovado com sucesso');
+
+          // Carregar usuário com o novo token
+          _loadUserFromStorage();
+          return;
+        }
+      }
+
+      // Se não conseguiu renovar, fazer logout
+      AppLogger.warning('⚠️ Não foi possível renovar o token');
+      await _authRepository.logout();
+    } catch (e) {
+      AppLogger.error('❌ Erro ao renovar token', e);
+      await _authRepository.logout();
+    }
   }
 
   void _loadUserFromStorage() async {
     try {
-      final isAuthenticated = await _authRepository.isAuthenticated();
-      if (isAuthenticated) {
-        final user = await _authRepository.getCurrentUser();
-        if (user != null) {
-          _currentUser.value = user;
-          _isLoggedIn.value = true;
-        } else {
-          // Token existe mas usuário não, limpar dados
-          await _authRepository.logout();
-        }
+      final user = await _authRepository.getCurrentUser();
+      if (user != null) {
+        _currentUser.value = user;
+        _isLoggedIn.value = true;
+        AppLogger.success('✅ Usuário carregado: ${user.name}');
+      } else {
+        AppLogger.warning('⚠️ Usuário não encontrado no storage');
+        await _authRepository.logout();
       }
     } catch (e) {
-      AppLogger.error('Erro ao carregar usuário do storage', e);
-      // Em caso de erro, fazer logout para limpar dados corrompidos
+      AppLogger.error('❌ Erro ao carregar usuário do storage', e);
       await _authRepository.logout();
-    } finally {
-      _isLoading.value = false;
     }
   }
 
@@ -49,11 +142,23 @@ class AuthController extends GetxController {
     _isLoading.value = true;
 
     try {
+      AppLogger.info('🔐 Iniciando login para: $email');
+
       final user = await _authRepository.login(email, password);
 
       if (user != null) {
         _currentUser.value = user;
         _isLoggedIn.value = true;
+
+        // Verificar se o token é válido após o login
+        final isTokenValid = await _verifyTokenValidity();
+        if (isTokenValid) {
+          AppLogger.success(
+              '✅ Login realizado com sucesso: ${user.name} - Token válido');
+        } else {
+          AppLogger.warning('⚠️ Login realizado mas token inválido');
+        }
+
         return true;
       } else {
         // Verificar se o contexto ainda é válido antes de mostrar SnackBar
@@ -150,5 +255,37 @@ class AuthController extends GetxController {
   /// Verifica se o usuário está autenticado
   Future<bool> checkAuthentication() async {
     return await _authRepository.isAuthenticated();
+  }
+
+  /// Verifica e renova o token automaticamente
+  Future<bool> verifyAndRefreshToken() async {
+    try {
+      AppLogger.info('🔄 Verificando e renovando token...');
+
+      final isAuthenticated = await _authRepository.isAuthenticated();
+      if (!isAuthenticated) {
+        AppLogger.warning('⚠️ Usuário não autenticado');
+        return false;
+      }
+
+      final isValid = await _verifyTokenValidity();
+      if (isValid) {
+        AppLogger.success('✅ Token válido');
+        return true;
+      }
+
+      AppLogger.warning('⚠️ Token inválido, tentando renovar...');
+      _refreshToken();
+      return false;
+    } catch (e) {
+      AppLogger.error('❌ Erro ao verificar token', e);
+      return false;
+    }
+  }
+
+  /// Força a renovação do token
+  Future<void> forceTokenRefresh() async {
+    AppLogger.info('🔄 Forçando renovação do token...');
+    _refreshToken();
   }
 }

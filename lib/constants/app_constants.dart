@@ -1,3 +1,5 @@
+import 'environment_config.dart';
+
 class AppConstants {
   // Cores
   static const int primaryColor = 0xFF2E7D32;
@@ -49,129 +51,44 @@ class AppConstants {
   static const String favoritesKey = 'favorites';
   static const String tokenKey = 'auth_token';
 
-  // API Configuration
-  static const String baseUrl = 'https://backend-compra-pronta.onrender.com';
+  // API Configuration - Usando EnvironmentConfig para detecção automática
+  static String get baseUrl => EnvironmentConfig.baseUrl;
   static const String apiVersion = '/api';
   static const String authEndpoint = '/auth';
 
-  // Configuração para desenvolvimento local (descomente se necessário)
-  // static const String baseUrl = 'http://localhost:3000';
+  // Informações do ambiente atual
+  static String get environmentName => EnvironmentConfig.environmentName;
+  static bool get isDevelopment => EnvironmentConfig.isDevelopment;
+  static bool get isProduction => EnvironmentConfig.isProduction;
 
-  // API Endpoints
-  static const String loginEndpoint = '$baseUrl$apiVersion$authEndpoint/login';
-  static const String registerEndpoint =
+  // API Endpoints - Usando getters para detecção automática de ambiente
+  static String get loginEndpoint => '$baseUrl$apiVersion$authEndpoint/login';
+  static String get registerEndpoint =>
       '$baseUrl$apiVersion$authEndpoint/register/client';
-  static const String registerSellerEndpoint =
+  static String get registerSellerEndpoint =>
       '$baseUrl$apiVersion$authEndpoint/register/seller';
-  static const String verifyTokenEndpoint =
+  static String get verifyTokenEndpoint =>
       '$baseUrl$apiVersion$authEndpoint/verify';
-  static const String refreshTokenEndpoint =
+  static String get refreshTokenEndpoint =>
       '$baseUrl$apiVersion$authEndpoint/refresh';
-  static const String profileEndpoint =
+  static String get profileEndpoint =>
       '$baseUrl$apiVersion$authEndpoint/profile';
-  static const String logoutEndpoint =
-      '$baseUrl$apiVersion$authEndpoint/logout';
-  static const String usersEndpoint = '$baseUrl$apiVersion$authEndpoint/users';
+  static String get logoutEndpoint => '$baseUrl$apiVersion$authEndpoint/logout';
+  static String get usersEndpoint => '$baseUrl$apiVersion$authEndpoint/users';
 
   // Products endpoints
-  static const String productsEndpoint = '$baseUrl$apiVersion/products';
-  static const String createProductEndpoint = '$baseUrl$apiVersion/products';
-  static const String listProductsEndpoint = '$baseUrl$apiVersion/products';
-  static const String getProductEndpoint = '$baseUrl$apiVersion/products';
-  static const String updateProductEndpoint = '$baseUrl$apiVersion/products';
-  static const String deleteProductEndpoint = '$baseUrl$apiVersion/products';
-  static const String checkBarcodeEndpoint =
+  static String get productsEndpoint => '$baseUrl$apiVersion/products';
+  static String get createProductEndpoint => '$baseUrl$apiVersion/products';
+  static String get listProductsEndpoint => '$baseUrl$apiVersion/products';
+  static String get getProductEndpoint => '$baseUrl$apiVersion/products';
+  static String get updateProductEndpoint => '$baseUrl$apiVersion/products';
+  static String get deleteProductEndpoint => '$baseUrl$apiVersion/products';
+  static String get checkBarcodeEndpoint =>
       '$baseUrl$apiVersion/products/barcode';
 
-  // Credenciais de teste para o backend real
-  // Cliente: testecliente@teste.com / Senha@123
-  // Vendedor: testevendedor@teste.com / Venda@123
+  // Credenciais de teste para o backend
+  // Cliente: teste@teste.com / teste123
+  // Vendedor: teste@teste.com / teste123
 
-  // Mock produtos
-  static const List<Map<String, dynamic>> mockProducts = [
-    {
-      "id": "prod_001",
-      "name": "Maçã Fuji",
-      "description": "Maçãs frescas e doces, ideais para consumo in natura",
-      "price": 8.90,
-      "imageUrl":
-          "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400",
-      "category": "Frutas e Verduras",
-      "barcode": "7891234567890",
-      "stock": 50,
-      "isAvailable": true,
-      "rating": 4.5,
-      "reviewCount": 12
-    },
-    {
-      "id": "prod_002",
-      "name": "Banana Prata",
-      "description": "Bananas prata maduras e saborosas",
-      "price": 4.50,
-      "imageUrl":
-          "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400",
-      "category": "Frutas e Verduras",
-      "barcode": "7891234567891",
-      "stock": 30,
-      "isAvailable": true,
-      "rating": 4.2,
-      "reviewCount": 8
-    },
-    {
-      "id": "prod_003",
-      "name": "Leite Integral",
-      "description": "Leite integral fresco, 1L",
-      "price": 6.90,
-      "imageUrl":
-          "https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400",
-      "category": "Laticínios",
-      "barcode": "7891234567892",
-      "stock": 25,
-      "isAvailable": true,
-      "rating": 4.7,
-      "reviewCount": 15
-    },
-    {
-      "id": "prod_004",
-      "name": "Pão Francês",
-      "description": "Pão francês fresco, 500g",
-      "price": 3.50,
-      "imageUrl":
-          "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400",
-      "category": "Pães e Massas",
-      "barcode": "7891234567893",
-      "stock": 40,
-      "isAvailable": true,
-      "rating": 4.3,
-      "reviewCount": 20
-    },
-    {
-      "id": "prod_005",
-      "name": "Coca-Cola",
-      "description": "Refrigerante Coca-Cola, 2L",
-      "price": 8.50,
-      "imageUrl":
-          "https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=400",
-      "category": "Bebidas",
-      "barcode": "7891234567894",
-      "stock": 35,
-      "isAvailable": true,
-      "rating": 4.1,
-      "reviewCount": 18
-    },
-    {
-      "id": "prod_006",
-      "name": "Detergente Líquido",
-      "description": "Detergente líquido para louças, 500ml",
-      "price": 5.90,
-      "imageUrl":
-          "https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400",
-      "category": "Limpeza",
-      "barcode": "7891234567895",
-      "stock": 20,
-      "isAvailable": true,
-      "rating": 4.4,
-      "reviewCount": 10
-    }
-  ];
+  // Removido: mockProducts (usar sempre backend)
 }
