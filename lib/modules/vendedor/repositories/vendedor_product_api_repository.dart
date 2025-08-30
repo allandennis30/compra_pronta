@@ -390,7 +390,8 @@ class VendedorProductApiRepository implements VendedorProductRepository {
 
       // Verificar se o arquivo existe
       if (!await imageFile.exists()) {
-        AppLogger.error('❌ [API] Arquivo de imagem não encontrado: ${imageFile.path}');
+        AppLogger.error(
+            '❌ [API] Arquivo de imagem não encontrado: ${imageFile.path}');
         throw Exception('Arquivo de imagem não encontrado');
       }
 
@@ -415,11 +416,11 @@ class VendedorProductApiRepository implements VendedorProductRepository {
       final stream = http.ByteStream(imageFile.openRead());
       final length = await imageFile.length();
       final filename = imageFile.path.split('/').last;
-      
+
       AppLogger.info('📸 [API] Preparando arquivo multipart:');
       AppLogger.info('   - Nome: $filename');
       AppLogger.info('   - Tamanho: $length bytes');
-      
+
       final multipartFile = http.MultipartFile(
         'image',
         stream,
@@ -435,14 +436,16 @@ class VendedorProductApiRepository implements VendedorProductRepository {
       AppLogger.info('📤 [API] Headers finais: ${request.headers}');
 
       // Fazer upload
-      final response = await request.send().timeout(const Duration(seconds: 60));
+      final response =
+          await request.send().timeout(const Duration(seconds: 60));
       final responseData = await response.stream.bytesToString();
 
       AppLogger.info('📥 [API] Resposta do servidor recebida');
       AppLogger.info('📥 [API] Status: ${response.statusCode}');
       AppLogger.info('📥 [API] Headers da resposta: ${response.headers}');
-      AppLogger.info('📥 [API] Tamanho da resposta: ${responseData.length} bytes');
-      
+      AppLogger.info(
+          '📥 [API] Tamanho da resposta: ${responseData.length} bytes');
+
       if (responseData.isNotEmpty) {
         AppLogger.info('📥 [API] Corpo da resposta: $responseData');
       }
@@ -467,7 +470,8 @@ class VendedorProductApiRepository implements VendedorProductRepository {
           AppLogger.error('❌ [API] Erro ao decodificar resposta: $e');
         }
 
-        AppLogger.error('❌ [API] Erro no upload: ${response.statusCode} - $errorMessage');
+        AppLogger.error(
+            '❌ [API] Erro no upload: ${response.statusCode} - $errorMessage');
 
         // Mensagens de erro amigáveis para o usuário
         if (response.statusCode == 400) {

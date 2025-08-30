@@ -16,13 +16,13 @@ class EnvironmentConfig {
 
   /// Ambiente atual do app
   ///
-  /// Configurado para sempre usar produção (Render)
-  /// para garantir funcionamento consistente
-  static const Environment _currentEnvironment = Environment.production;
+  /// Configurado para usar desenvolvimento local
+  /// para conectar ao servidor local na porta 3000
+  static const Environment _currentEnvironment = Environment.development;
 
   /// URLs dos servidores
   static const Map<Environment, String> _serverUrls = {
-    Environment.development: 'http://localhost:3000', // Não usado
+    Environment.development: 'http://10.0.2.2:3000', // Emulador Android
     Environment.production: 'https://backend-compra-pronta.onrender.com',
   };
 
@@ -32,8 +32,8 @@ class EnvironmentConfig {
 
   /// Retorna a URL base do servidor baseada no ambiente atual
   static String get baseUrl {
-    // Sempre usar produção (Render) para garantir funcionamento
-    return _serverUrls[Environment.production]!;
+    // Usar desenvolvimento local (localhost:3000)
+    return _serverUrls[Environment.development]!;
   }
 
   /// Retorna a URL de desenvolvimento baseada na plataforma
@@ -44,15 +44,15 @@ class EnvironmentConfig {
 
   /// Retorna o nome do ambiente atual
   static String get environmentName {
-    // Sempre em produção (Render)
-    return 'Produção (Render)';
+    // Desenvolvimento local
+    return 'Desenvolvimento Local';
   }
 
   /// Retorna se está em modo de desenvolvimento
-  static bool get isDevelopment => false; // Sempre em produção
+  static bool get isDevelopment => true; // Desenvolvimento local
 
   /// Retorna se está em modo de produção
-  static bool get isProduction => true; // Sempre em produção
+  static bool get isProduction => false; // Desenvolvimento local
 
   // ========================================
   // MÉTODOS PRIVADOS
@@ -60,19 +60,19 @@ class EnvironmentConfig {
 
   /// Detecta se está rodando no emulador
   ///
-  /// Não usado - sempre em produção
+  /// Para desenvolvimento local
   static bool _isEmulator() {
-    return false; // Sempre em produção
+    return true; // Desenvolvimento local
   }
 
   // ========================================
   // CONFIGURAÇÃO RÁPIDA
   // ========================================
 
-  /// Configuração fixa para produção
+  /// Configuração para desenvolvimento local
   ///
-  /// Para voltar ao desenvolvimento, mude a linha abaixo:
-  /// static const Environment _currentEnvironment = Environment.development;
+  /// Para voltar à produção, mude a linha abaixo:
+  /// static const Environment _currentEnvironment = Environment.production;
   ///
-  /// Mas lembre-se: produção garante funcionamento em todos os dispositivos!
+  /// Desenvolvimento local: http://localhost:3000
 }

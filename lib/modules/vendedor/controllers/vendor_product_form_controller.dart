@@ -5,11 +5,14 @@ import 'package:image_picker/image_picker.dart';
 import '../../cliente/models/product_model.dart';
 import '../repositories/vendedor_product_repository.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/services/supabase_image_service.dart';
+import '../../auth/controllers/auth_controller.dart';
 import 'package:uuid/uuid.dart';
 import '../pages/vendor_product_list_page.dart';
 
 class VendorProductFormController extends GetxController {
   final VendedorProductRepository _repository;
+  final AuthController _authController = Get.find<AuthController>();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
@@ -217,7 +220,8 @@ class VendorProductFormController extends GetxController {
       AppLogger.info('   - Vendido por peso: ${isSoldByWeight.value}');
       AppLogger.info('   - Preço por kg: ${pricePerKgController.text}');
       AppLogger.info('   - Imagem atual: ${imageUrl.value}');
-      AppLogger.info('   - Nova imagem: ${productImage.value != null ? "Sim" : "Não"}');
+      AppLogger.info(
+          '   - Nova imagem: ${productImage.value != null ? "Sim" : "Não"}');
 
       isLoading.value = true;
       hasError.value = false;
@@ -228,11 +232,21 @@ class VendorProductFormController extends GetxController {
         try {
           AppLogger.info('📸 [FORM] Iniciando upload de imagem...');
           AppLogger.info('📸 [FORM] Arquivo: ${productImage.value!.path}');
-          AppLogger.info('📸 [FORM] Tamanho: ${await productImage.value!.length()} bytes');
-          
+          AppLogger.info(
+              '📸 [FORM] Tamanho: ${await productImage.value!.length()} bytes');
+
           isUploadingImage.value = true;
-          finalImageUrl = await _repository.saveProductImage(productImage.value!);
-          
+
+          // Upload direto para o Supabase
+          final imageService = SupabaseImageService();
+          final currentUser = _authController.currentUser;
+          if (currentUser?.id != null) {
+            finalImageUrl = await imageService.uploadImage(
+                productImage.value!, currentUser!.id);
+          } else {
+            throw Exception('Usuário não autenticado');
+          }
+
           AppLogger.info('✅ [FORM] Upload de imagem concluído com sucesso!');
           AppLogger.info('✅ [FORM] URL da imagem: $finalImageUrl');
         } catch (e) {
@@ -263,7 +277,8 @@ class VendorProductFormController extends GetxController {
       );
 
       AppLogger.info('📤 [FORM] Enviando produto para o backend...');
-      AppLogger.info('📤 [FORM] Modo: ${isEditing.value ? "Edição" : "Criação"}');
+      AppLogger.info(
+          '📤 [FORM] Modo: ${isEditing.value ? "Edição" : "Criação"}');
       AppLogger.info('📤 [FORM] ID do produto: ${product.id}');
 
       if (isEditing.value) {
