@@ -5,6 +5,7 @@ import 'vendor_product_form_page.dart';
 import '../bindings/vendedor_product_form_binding.dart';
 import '../widgets/product_card.dart';
 import '../../cliente/models/product_model.dart';
+import '../../../core/utils/logger.dart';
 
 class VendorProductListPage extends GetView<VendedorProductListController> {
   const VendorProductListPage({super.key});
@@ -233,12 +234,35 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
       arguments: product,
     );
 
-    if (result == true) {
-      // Recarregar produtos após sucesso
-      await controller.loadProducts();
+    if (result != null) {
+      if (result is ProductModel) {
+        // Produto foi editado - recarregar lista para mostrar a nova imagem
+        AppLogger.info(
+            '🔄 [LIST] Produto editado retornado, recarregando lista...');
+        await controller.loadProducts();
 
-      // Não mostrar snackbar aqui pois o controller já mostra
-      // Apenas recarregar a lista para mostrar as mudanças
+        Get.snackbar(
+          'Sucesso',
+          'Produto atualizado com sucesso!',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      } else if (result == true) {
+        // Produto foi criado - recarregar lista completa
+        AppLogger.info('🆕 [LIST] Novo produto criado, recarregando lista...');
+        await controller.loadProducts();
+
+        Get.snackbar(
+          'Sucesso',
+          'Produto criado com sucesso!',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      }
     }
   }
 

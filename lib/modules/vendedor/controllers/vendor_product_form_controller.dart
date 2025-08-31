@@ -369,9 +369,14 @@ class VendorProductFormController extends GetxController {
       // Fechar a snackbar antes de navegar
       Get.closeCurrentSnackbar();
 
-      // Usar Get.back() simples para voltar à tela anterior
-      // Isso evita problemas de múltiplas instâncias
-      Get.back(result: true);
+      // Retornar o produto atualizado para que a lista possa ser atualizada
+      if (isEditing.value) {
+        // Para edição, retornar o produto atualizado
+        Get.back(result: product);
+      } else {
+        // Para criação, retornar true (comportamento padrão)
+        Get.back(result: true);
+      }
 
       AppLogger.info(
           '✅ [FORM] Retorno para tela anterior executado com sucesso');

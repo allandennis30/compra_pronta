@@ -339,7 +339,7 @@ class SupabaseImageService {
   Future<File> compressImageIfNeeded(File imageFile) async {
     try {
       final fileSize = await imageFile.length();
-      final targetSize = 200 * 1024; // 200KB
+      const targetSize = 200 * 1024; // 200KB
 
       AppLogger.info(
           '📸 [SUPABASE] Tamanho original: ${(fileSize / 1024).toStringAsFixed(1)}KB');

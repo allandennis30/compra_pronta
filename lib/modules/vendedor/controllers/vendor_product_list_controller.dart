@@ -58,6 +58,9 @@ class VendedorProductListController extends GetxController {
         // Remover da lista filtrada
         products.removeWhere((product) => product.id == productId);
 
+        // Aplicar filtros para garantir que a lista filtrada esteja correta
+        _applyFilters();
+
         Get.snackbar(
           'Produto removido',
           'Produto removido com sucesso',
