@@ -14,20 +14,20 @@ class PreferenciasOperacaoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Preferências de Operação',
-            style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 8),
+    return Obx(() => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Preferências de Operação',
+                style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 8),
 
-        // Horários por dia da semana
-        Text('Horários de Funcionamento:',
-            style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 8),
+            // Horários por dia da semana
+            Text('Horários de Funcionamento:',
+                style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
 
-        // Dias da semana
-        Obx(() => ListView.builder(
+            // Dias da semana
+            ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: controller.horariosFuncionamento.length,
@@ -45,40 +45,40 @@ class PreferenciasOperacaoSection extends StatelessWidget {
                   () => controller.toggleDiaAtivo(index),
                 );
               },
-            )),
+            ),
 
-        const SizedBox(height: 12),
-        ElevatedButton.icon(
-          onPressed: controller.copiarHorarioParaTodosDias,
-          icon: const Icon(Icons.copy),
-          label: const Text('Aplicar horário para todos os dias'),
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size.fromHeight(40),
-          ),
-        ),
-        const SizedBox(height: 16),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: controller.copiarHorarioParaTodosDias,
+              icon: const Icon(Icons.copy),
+              label: const Text('Aplicar horário para todos os dias'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(40),
+              ),
+            ),
+            const SizedBox(height: 16),
 
-        // Outros campos existentes
-        SwitchListTile(
-          title: const Text('Aceita pedidos fora do horário?'),
-          value: controller.aceitaForaHorario.value,
-          onChanged: (v) => controller.aceitaForaHorario.value = v,
-        ),
-        CampoEditavel(
-          label: 'Tempo médio de preparo (min)',
-          valor: controller.tempoPreparo.value.toString(),
-          onChanged: (v) =>
-              controller.tempoPreparo.value = int.tryParse(v) ?? 0,
-          keyboardType: TextInputType.number,
-        ),
-        CampoEditavel(
-          label: 'Mensagem de boas-vindas',
-          valor: controller.mensagemBoasVindas.value,
-          onChanged: (v) => controller.mensagemBoasVindas.value = v,
-        ),
-        const SizedBox(height: 16),
-      ],
-    );
+            // Outros campos existentes
+            SwitchListTile(
+              title: const Text('Aceita pedidos fora do horário?'),
+              value: controller.aceitaForaHorario.value,
+              onChanged: (v) => controller.aceitaForaHorario.value = v,
+            ),
+            CampoEditavel(
+              label: 'Tempo médio de preparo (min)',
+              valor: controller.tempoPreparo.value.toString(),
+              onChanged: (v) =>
+                  controller.tempoPreparo.value = int.tryParse(v) ?? 0,
+              keyboardType: TextInputType.number,
+            ),
+            CampoEditavel(
+              label: 'Mensagem de boas-vindas',
+              valor: controller.mensagemBoasVindas.value,
+              onChanged: (v) => controller.mensagemBoasVindas.value = v,
+            ),
+            const SizedBox(height: 16),
+          ],
+        ));
   }
 
   String _getDiaSemana(int index) {

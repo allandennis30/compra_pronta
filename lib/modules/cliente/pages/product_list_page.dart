@@ -17,11 +17,7 @@ class ProductListPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Produtos'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart),
-            onPressed: () => Get.toNamed('/cliente/carrinho'),
-            tooltip: 'Carrinho',
-          ),
+          _buildCartIcon(),
         ],
       ),
       body: Column(
@@ -31,7 +27,7 @@ class ProductListPage extends StatelessWidget {
           _buildFiltersPanel(),
           _buildCategoryFilter(),
           Expanded(
-            child: _buildProductList(),
+            child: _buildProductGrid(),
           ),
           _buildPaginationInfo(),
         ],
@@ -325,16 +321,159 @@ class ProductListPage extends StatelessWidget {
     });
   }
 
-  Widget _buildProductList() {
+  Widget _buildProductCard(ProductModel product, BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      elevation: 2,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Get.toNamed('/cliente/produto', arguments: product);
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Imagem do produto
+              Expanded(
+                flex: 5,
+                child: Container(
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(12),
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(12),
+                    ),
+                    child: Stack(
+                      children: [
+                        ProductCardImageDisplay(
+                          imageUrl: product.imageUrl,
+                          width: double.infinity,
+                          height: double.infinity,
+                        ),
+                        // Categoria no canto superior direito
+                        if (product.category != null)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.7),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                product.category!,
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // Informações do produto
+              Expanded(
+                flex: 6,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Nome do produto
+                      Text(
+                        product.name ?? 'Produto sem nome',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      const Spacer(),
+
+                      const SizedBox(height: 6),
+
+                      // Preço
+                      Text(
+                        'R\$ ${(product.price ?? 0).toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+
+                      const SizedBox(height: 2),
+
+                      // Botão de adicionar ao carrinho
+                      SizedBox(
+                        width: double.infinity,
+                        height: 36,
+                        child: FilledButton.icon(
+                          onPressed: () {
+                            final cartController = Get.find<CartController>();
+                            cartController.addItem(product, context: context);
+                          },
+                          icon: const Icon(
+                            Icons.add_shopping_cart,
+                            size: 16,
+                          ),
+                          label: const Text(
+                            'Adicionar',
+                            style: TextStyle(fontSize: 15),
+                          ),
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProductGrid() {
     return Obx(() {
       if (controller.isLoading && !controller.isInitialized) {
         return const Center(child: CircularProgressIndicator());
       }
 
       if (controller.products.isEmpty && controller.isInitialized) {
-        return const Center(
-          child: Text('Nenhum produto encontrado'),
-        );
+        return _buildEmptyState();
       }
 
       return RefreshIndicator(
@@ -351,18 +490,60 @@ class ProductListPage extends StatelessWidget {
             }
             return false;
           },
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount:
-                controller.products.length + (controller.isLoadingMore ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index == controller.products.length) {
-                // Indicador de carregamento no fim da lista
-                return _buildLoadingIndicator();
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // Determinar o número de colunas baseado na largura da tela
+              int crossAxisCount = 3; // Padrão: 3 itens
+              double childAspectRatio = 0.55; // Cards mais compactos
+              double spacing = 8.0;
+
+              if (constraints.maxWidth > 1200) {
+                // Desktop grande: 5 colunas
+                crossAxisCount = 5;
+                childAspectRatio = 0.6;
+                spacing = 12.0;
+              } else if (constraints.maxWidth > 900) {
+                // Desktop médio: 4 colunas
+                crossAxisCount = 4;
+                childAspectRatio = 0.55;
+                spacing = 10.0;
+              } else if (constraints.maxWidth > 600) {
+                // Tablet: 3 colunas
+                crossAxisCount = 3;
+                childAspectRatio = 0.55;
+                spacing = 8.0;
+              } else if (constraints.maxWidth > 400) {
+                // Mobile grande: 3 colunas
+                crossAxisCount = 3;
+                childAspectRatio = 0.5;
+                spacing = 6.0;
+              } else {
+                // Mobile pequeno: 2 colunas
+                crossAxisCount = 2;
+                childAspectRatio = 0.55;
+                spacing = 6.0;
               }
 
-              final product = controller.products[index];
-              return _buildProductCard(product, context);
+              return GridView.builder(
+                padding: EdgeInsets.all(spacing + 4),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  childAspectRatio: childAspectRatio,
+                  crossAxisSpacing: spacing,
+                  mainAxisSpacing: spacing,
+                ),
+                itemCount: controller.products.length +
+                    (controller.isLoadingMore ? crossAxisCount : 0),
+                itemBuilder: (context, index) {
+                  if (index >= controller.products.length) {
+                    // Indicador de carregamento no fim da lista
+                    return _buildLoadingCard();
+                  }
+
+                  final product = controller.products[index];
+                  return _buildProductCard(product, context);
+                },
+              );
             },
           ),
         ),
@@ -418,76 +599,88 @@ class ProductListPage extends StatelessWidget {
     });
   }
 
-  Widget _buildProductCard(ProductModel product, BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      child: ListTile(
-        leading: ProductAvatarDisplay(
-          imageUrl: product.imageUrl,
-          size: 40,
-        ),
-        title: Text(
-          product.name ?? 'Produto sem nome',
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (product.description != null)
-              Text(
-                product.description!,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 12,
+  Widget _buildCartIcon() {
+    return Obx(() {
+      final cartController = Get.find<CartController>();
+      final itemCount = cartController.itemCount;
+
+      return Stack(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.shopping_cart),
+            onPressed: () => Get.toNamed('/cliente/carrinho'),
+            tooltip: 'Carrinho',
+          ),
+          if (itemCount > 0)
+            Positioned(
+              right: 8,
+              top: 8,
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                constraints: const BoxConstraints(
+                  minWidth: 16,
+                  minHeight: 16,
+                ),
+                child: Text(
+                  itemCount > 99 ? '99+' : itemCount.toString(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                if (product.category != null)
-                  Flexible(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        product.category!,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.blue.shade700,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                    ),
-                  ),
-                const SizedBox(width: 8),
-                Text(
-                  'R\$ ${(product.price ?? 0).toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.green,
-                  ),
-                ),
-              ],
             ),
+        ],
+      );
+    });
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.search_off, size: 60, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            'Nenhum produto encontrado',
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Tente ajustar seus filtros ou palavras-chave.',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[500],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingCard() {
+    return const Padding(
+      padding: EdgeInsets.all(16.0),
+      child: Center(
+        child: Column(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 8),
+            Text('Carregando mais produtos...'),
           ],
-        ),
-        trailing: IconButton(
-          icon: const Icon(Icons.add_shopping_cart),
-          onPressed: () {
-            // Adicionar ao carrinho
-            final cartController = Get.find<CartController>();
-            cartController.addItem(product, context: context);
-          },
         ),
       ),
     );

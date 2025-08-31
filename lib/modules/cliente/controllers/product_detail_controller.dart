@@ -102,6 +102,9 @@ class ProductDetailController extends GetxController {
         // Reset quantity after adding to cart
         _quantity.value = 1;
       }
+
+      // Voltar para a tela de produtos após adicionar ao carrinho
+      Get.back();
     } catch (e) {
       SnackBarUtils.showError(
         context,

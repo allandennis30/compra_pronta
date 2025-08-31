@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../cliente/models/product_model.dart';
 import '../repositories/vendedor_product_repository.dart';
-import '../../../core/utils/logger.dart';
 
 class VendedorProductListController extends GetxController {
   final VendedorProductRepository _repository;
@@ -26,20 +25,14 @@ class VendedorProductListController extends GetxController {
 
   Future<void> loadProducts() async {
     try {
-      AppLogger.info('🔄 [CONTROLLER] Iniciando carregamento de produtos');
       isLoading.value = true;
       hasError.value = false;
 
-      AppLogger.info('📡 [CONTROLLER] Chamando repository.getAll()');
       final productList = await _repository.getAll();
-      AppLogger.info(
-          '✅ [CONTROLLER] Produtos recebidos: ${productList.length}');
 
       _allProducts.assignAll(productList);
       _applyFilters();
-      AppLogger.info('✅ [CONTROLLER] Produtos carregados com sucesso');
     } catch (e) {
-      AppLogger.error('💥 [CONTROLLER] Erro ao carregar produtos', e);
       hasError.value = true;
       errorMessage.value = 'Erro ao carregar produtos: $e';
     } finally {
@@ -48,20 +41,20 @@ class VendedorProductListController extends GetxController {
   }
 
   void updateProductInList(ProductModel updatedProduct) {
-    AppLogger.info(
-        '🔄 [CONTROLLER] Atualizando produto na lista: ${updatedProduct.name}');
-
+    // Atualizar na lista principal (_allProducts)
     final allProductsIndex =
         _allProducts.indexWhere((p) => p.id == updatedProduct.id);
     if (allProductsIndex >= 0) {
       _allProducts[allProductsIndex] = updatedProduct;
     }
 
+    // Atualizar na lista filtrada (products)
     final filteredIndex = products.indexWhere((p) => p.id == updatedProduct.id);
     if (filteredIndex >= 0) {
       products[filteredIndex] = updatedProduct;
     }
 
+    // Aplicar filtros para garantir que a lista filtrada esteja correta
     _applyFilters();
   }
 
@@ -185,9 +178,6 @@ class VendedorProductListController extends GetxController {
 
     // Usar assignAll para garantir reatividade
     products.assignAll(filteredProducts);
-
-    AppLogger.info(
-        '🔍 [CONTROLLER] Filtros aplicados: ${products.length} produtos');
   }
 
   List<String> get availableCategories {

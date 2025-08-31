@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../models/horario_funcionamento.dart';
+import '../../../repositories/store_settings_repository.dart';
 
 class VendedorSettingsController extends GetxController {
   // Informações da loja
@@ -39,14 +40,114 @@ class VendedorSettingsController extends GetxController {
   var vendasMes = 0.0.obs;
   var totalAcumulado = 0.0.obs;
 
+  final StoreSettingsRepository _storeSettingsRepository =
+      StoreSettingsRepository();
   bool get isVendor => Get.find<AuthController>().isVendor;
 
   Future<void> carregarDadosLoja() async {
-    // TODO: Buscar dados do backend e popular os campos acima
+    try {
+      print('🔍 [VENDOR_SETTINGS] Iniciando carregamento de dados...');
+      final settings = await _storeSettingsRepository.getStoreSettings();
+      print('🔍 [VENDOR_SETTINGS] Dados recebidos: $settings');
 
-    // Inicializar horários de funcionamento para cada dia da semana
-    if (horariosFuncionamento.isEmpty) {
-      _inicializarHorariosFuncionamento();
+      if (settings != null) {
+        print('🔍 [VENDOR_SETTINGS] Atribuindo dados aos observables...');
+
+        // Carregar dados da loja
+        nomeLoja.value = settings['nomeLoja'] ?? '';
+        cnpjCpf.value = settings['cnpjCpf'] ?? '';
+        descricao.value = settings['descricao'] ?? '';
+        endereco.value = settings['endereco']?.toString() ?? '';
+        telefone.value = settings['telefone'] ?? '';
+        logoUrl.value = settings['logoUrl'] ?? '';
+        latitude.value = (settings['latitude'] ?? 0.0).toDouble();
+        longitude.value = (settings['longitude'] ?? 0.0).toDouble();
+
+        print('🔍 [VENDOR_SETTINGS] Dados básicos atribuídos:');
+        print('   Nome: ${nomeLoja.value}');
+        print('   CNPJ: ${cnpjCpf.value}');
+        print('   Telefone: ${telefone.value}');
+        print('   Descrição: ${descricao.value}');
+        print('   Endereço: ${endereco.value}');
+        print('   Logo URL: ${logoUrl.value}');
+
+        // Carregar preferências de operação
+        if (settings['horarioInicio'] != null) {
+          final horarioInicioStr = settings['horarioInicio'];
+          final parts = horarioInicioStr.split(':');
+          if (parts.length == 2) {
+            horarioInicio.value = TimeOfDay(
+              hour: int.parse(parts[0]),
+              minute: int.parse(parts[1]),
+            );
+          }
+        }
+
+        if (settings['horarioFim'] != null) {
+          final horarioFimStr = settings['horarioFim'];
+          final parts = horarioFimStr.split(':');
+          if (parts.length == 2) {
+            horarioFim.value = TimeOfDay(
+              hour: int.parse(parts[0]),
+              minute: int.parse(parts[1]),
+            );
+          }
+        }
+
+        aceitaForaHorario.value = settings['aceitaForaHorario'] ?? false;
+        tempoPreparo.value = settings['tempoPreparo'] ?? 30;
+        mensagemBoasVindas.value = settings['mensagemBoasVindas'] ?? '';
+
+        print('🔍 [VENDOR_SETTINGS] Dados de operação atribuídos:');
+        print('   Aceita fora horário: ${aceitaForaHorario.value}');
+        print('   Tempo preparo: ${tempoPreparo.value}');
+        print('   Mensagem boas-vindas: ${mensagemBoasVindas.value}');
+
+        // Carregar horários de funcionamento
+        if (settings['horariosFuncionamento'] != null) {
+          final horariosData = settings['horariosFuncionamento'] as List;
+          horariosFuncionamento.clear();
+          for (final horarioData in horariosData) {
+            horariosFuncionamento
+                .add(HorarioFuncionamento.fromJson(horarioData));
+          }
+          print(
+              '🔍 [VENDOR_SETTINGS] Horários de funcionamento carregados: ${horariosFuncionamento.length} dias');
+        }
+
+        // Carregar política de entrega
+        taxaEntrega.value = (settings['taxaEntrega'] ?? 0.0).toDouble();
+        raioEntrega.value = (settings['raioEntrega'] ?? 5.0).toDouble();
+        limiteEntregaGratis.value =
+            (settings['limiteEntregaGratis'] ?? 100.0).toDouble();
+
+        // Carregar estado da loja
+        lojaOffline.value = settings['lojaOffline'] ?? false;
+
+        print('🔍 [VENDOR_SETTINGS] Dados de entrega atribuídos:');
+        print('   Taxa: ${taxaEntrega.value}');
+        print('   Raio: ${raioEntrega.value}');
+        print('   Limite Grátis: ${limiteEntregaGratis.value}');
+        print(
+            '🔍 [VENDOR_SETTINGS] Todos os dados foram atribuídos com sucesso!');
+      }
+
+      // Inicializar horários de funcionamento se estiver vazio
+      if (horariosFuncionamento.isEmpty) {
+        _inicializarHorariosFuncionamento();
+      }
+    } catch (e) {
+      print('Erro ao carregar dados da loja: $e');
+      Get.snackbar(
+        'Erro',
+        'Não foi possível carregar as configurações da loja',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+
+      // Inicializar horários de funcionamento padrão
+      if (horariosFuncionamento.isEmpty) {
+        _inicializarHorariosFuncionamento();
+      }
     }
   }
 
@@ -154,7 +255,51 @@ class VendedorSettingsController extends GetxController {
   }
 
   Future<void> salvarDadosLoja() async {
-    // TODO: Enviar dados editados para o backend
+    try {
+      // Preparar dados para enviar ao backend
+      final settingsData = {
+        'nomeLoja': nomeLoja.value,
+        'cnpjCpf': cnpjCpf.value,
+        'descricao': descricao.value,
+        'endereco': endereco.value,
+        'telefone': telefone.value,
+        'logoUrl': logoUrl.value,
+        'latitude': latitude.value,
+        'longitude': longitude.value,
+        'horarioInicio':
+            '${horarioInicio.value.hour.toString().padLeft(2, '0')}:${horarioInicio.value.minute.toString().padLeft(2, '0')}',
+        'horarioFim':
+            '${horarioFim.value.hour.toString().padLeft(2, '0')}:${horarioFim.value.minute.toString().padLeft(2, '0')}',
+        'aceitaForaHorario': aceitaForaHorario.value,
+        'tempoPreparo': tempoPreparo.value,
+        'mensagemBoasVindas': mensagemBoasVindas.value,
+        'horariosFuncionamento':
+            horariosFuncionamento.map((h) => h.toJson()).toList(),
+        'taxaEntrega': taxaEntrega.value,
+        'raioEntrega': raioEntrega.value,
+        'limiteEntregaGratis': limiteEntregaGratis.value,
+        'lojaOffline': lojaOffline.value,
+      };
+
+      await _storeSettingsRepository.saveStoreSettings(settingsData);
+
+      Get.snackbar(
+        'Sucesso',
+        'Configurações da loja salvas com sucesso!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      print('Erro ao salvar dados da loja: $e');
+      Get.snackbar(
+        'Erro',
+        'Não foi possível salvar as configurações da loja',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
 
   Future<void> atualizarLocalizacao() async {
@@ -179,7 +324,26 @@ class VendedorSettingsController extends GetxController {
   }
 
   Future<void> sincronizarComServidor() async {
-    // TODO: Recarregar dados da loja, produtos e pedidos do backend
+    try {
+      await carregarDadosLoja();
+
+      Get.snackbar(
+        'Sincronização',
+        'Dados sincronizados com sucesso!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.blue,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      print('Erro ao sincronizar com servidor: $e');
+      Get.snackbar(
+        'Erro',
+        'Não foi possível sincronizar com o servidor',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
 
   Future<void> backupManual() async {

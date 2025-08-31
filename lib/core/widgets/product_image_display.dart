@@ -31,8 +31,20 @@ class ProductImageDisplay extends StatelessWidget {
       return _buildPlaceholder(context);
     }
 
+    // Verificar se é uma URL de placeholder que pode não estar acessível
+    if (_isPlaceholderUrl(imageUrl!)) {
+      return _buildPlaceholder(context);
+    }
+
     // Se há URL, tentar carregar a imagem
     return _buildImageWithUrl(context);
+  }
+
+  /// Verifica se a URL é um placeholder que pode não estar acessível
+  bool _isPlaceholderUrl(String url) {
+    return url.contains('via.placeholder.com') ||
+        url.contains('placeholder.com') ||
+        url.contains('picsum.photos') && url.contains('random=');
   }
 
   Widget _buildPlaceholder(BuildContext context) {
@@ -48,7 +60,7 @@ class ProductImageDisplay extends StatelessWidget {
         borderRadius: borderRadius,
       ),
       child: Icon(
-        Icons.image_outlined,
+        Icons.shopping_bag_outlined,
         color: Colors.grey[400],
         size: _getIconSize(),
       ),
@@ -220,7 +232,7 @@ class ProductCardImageDisplay extends StatelessWidget {
         borderRadius: borderRadius ?? BorderRadius.circular(12),
       ),
       child: Icon(
-        Icons.image_outlined,
+        Icons.shopping_bag_outlined,
         color: Colors.grey[400],
         size: 32,
       ),

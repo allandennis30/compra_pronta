@@ -72,6 +72,36 @@ class VendorSettingsPage extends GetView<VendedorSettingsController> {
           tooltip: 'Salvar Configurações',
           child: const Icon(Icons.save),
         ),
+        bottomNavigationBar: BottomAppBar(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: controller.carregarDadosLoja,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Recarregar Dados'),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      print('🔍 [TESTE] Valores atuais dos observables:');
+                      print('   Nome: ${controller.nomeLoja.value}');
+                      print('   CNPJ: ${controller.cnpjCpf.value}');
+                      print('   Telefone: ${controller.telefone.value}');
+                      print('   Taxa: ${controller.taxaEntrega.value}');
+                    },
+                    icon: const Icon(Icons.bug_report),
+                    label: const Text('Debug'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     });
   }
