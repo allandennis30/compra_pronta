@@ -8,7 +8,6 @@ import '../../../core/utils/logger.dart';
 import '../../../core/services/supabase_image_service.dart';
 import '../../auth/controllers/auth_controller.dart';
 import 'package:uuid/uuid.dart';
-import '../pages/vendor_product_list_page.dart';
 
 class VendorProductFormController extends GetxController {
   final VendedorProductRepository _repository;
@@ -51,14 +50,22 @@ class VendorProductFormController extends GetxController {
   void onInit() {
     super.onInit();
 
+    AppLogger.info(
+        '🚀 [FORM] Controller inicializado - ID: ${hashCode} - Stack: ${StackTrace.current}');
+
     // Verificar se estamos editando um produto existente
     if (Get.arguments != null && Get.arguments is ProductModel) {
+      AppLogger.info('✏️ [FORM] Modo edição detectado');
       _loadProductForEditing(Get.arguments);
+    } else {
+      AppLogger.info('🆕 [FORM] Modo criação detectado');
     }
   }
 
   @override
   void onClose() {
+    AppLogger.info('🔒 [FORM] Controller sendo fechado - ID: ${hashCode}');
+
     nameController.dispose();
     descriptionController.dispose();
     priceController.dispose();
@@ -90,7 +97,8 @@ class VendorProductFormController extends GetxController {
 
       if (pickedFile != null) {
         productImage.value = File(pickedFile.path);
-        imageUrl.value = '';
+        // Não limpar imageUrl.value aqui para preservar a URL da imagem antiga em modo de edição
+        // imageUrl.value = ''; // ← REMOVIDO: Preserva a imagem antiga para deleção
       }
     } catch (e) {
       AppLogger.error('Erro ao selecionar imagem', e);
@@ -130,6 +138,15 @@ class VendorProductFormController extends GetxController {
   }
 
   bool validateForm() {
+    // Logs de debug para validação
+    AppLogger.info(
+        '🔍 [VALIDATION] Debug - productImage.value: ${productImage.value != null ? "Sim" : "Não"}');
+    AppLogger.info(
+        '🔍 [VALIDATION] Debug - imageUrl.value: "${imageUrl.value}"');
+    AppLogger.info(
+        '🔍 [VALIDATION] Debug - imageUrl.value.isEmpty: ${imageUrl.value.isEmpty}');
+    AppLogger.info('🔍 [VALIDATION] Debug - isEditing: ${isEditing.value}');
+
     // Campos obrigatórios básicos
     if (nameController.text.isEmpty ||
         descriptionController.text.isEmpty ||
@@ -228,6 +245,8 @@ class VendorProductFormController extends GetxController {
 
       // Processar a imagem primeiro, se houver uma nova
       String finalImageUrl = imageUrl.value;
+      String? oldImageUrl; // Para deletar a imagem anterior
+
       if (productImage.value != null) {
         try {
           AppLogger.info('📸 [FORM] Iniciando upload de imagem...');
@@ -235,14 +254,42 @@ class VendorProductFormController extends GetxController {
           AppLogger.info(
               '📸 [FORM] Tamanho: ${await productImage.value!.length()} bytes');
 
+          // Salvar URL da imagem antiga para deletar depois
+          AppLogger.info('🔍 [FORM] Debug - isEditing: ${isEditing.value}');
+          AppLogger.info(
+              '🔍 [FORM] Debug - imageUrl.value: "${imageUrl.value}"');
+          AppLogger.info(
+              '🔍 [FORM] Debug - imageUrl.value.isEmpty: ${imageUrl.value.isEmpty}');
+
+          if (isEditing.value && imageUrl.value.isNotEmpty) {
+            oldImageUrl = imageUrl.value;
+            AppLogger.info(
+                '🗑️ [FORM] Imagem anterior será deletada: $oldImageUrl');
+          } else {
+            AppLogger.info(
+                '⚠️ [FORM] Não foi possível obter URL da imagem anterior');
+            if (!isEditing.value) {
+              AppLogger.info('   - Motivo: Não está em modo de edição');
+            } else if (imageUrl.value.isEmpty) {
+              AppLogger.info('   - Motivo: imageUrl.value está vazio');
+            }
+          }
+
           isUploadingImage.value = true;
 
           // Upload direto para o Supabase
           final imageService = SupabaseImageService();
           final currentUser = _authController.currentUser;
           if (currentUser?.id != null) {
-            finalImageUrl = await imageService.uploadImage(
-                productImage.value!, currentUser!.id);
+            // Se for edição, passar a URL da imagem antiga para remoção automática
+            if (isEditing.value && imageUrl.value.isNotEmpty) {
+              finalImageUrl = await imageService.uploadImage(
+                  productImage.value!, currentUser!.id,
+                  oldImageUrl: imageUrl.value);
+            } else {
+              finalImageUrl = await imageService.uploadImage(
+                  productImage.value!, currentUser!.id);
+            }
           } else {
             throw Exception('Usuário não autenticado');
           }
@@ -287,6 +334,9 @@ class VendorProductFormController extends GetxController {
         AppLogger.info('✅ [FORM] Produto atualizado com sucesso no backend');
         AppLogger.info('✅ [FORM] Resposta do backend: ${updatedProduct.name}');
 
+        // A imagem anterior foi removida automaticamente pelo uploadImage
+        AppLogger.info('✅ [FORM] Imagem anterior removida automaticamente');
+
         Get.snackbar(
           'Sucesso',
           'Produto atualizado com sucesso!',
@@ -319,12 +369,12 @@ class VendorProductFormController extends GetxController {
       // Fechar a snackbar antes de navegar
       Get.closeCurrentSnackbar();
 
-      // Navegar diretamente para a tela "Meus Produtos"
-      // Usar Get.off() para substituir a página atual e evitar pilha de navegação
-      Get.off(() => const VendorProductListPage());
+      // Usar Get.back() simples para voltar à tela anterior
+      // Isso evita problemas de múltiplas instâncias
+      Get.back(result: true);
 
       AppLogger.info(
-          '✅ [FORM] Navegação para "Meus Produtos" executada com sucesso');
+          '✅ [FORM] Retorno para tela anterior executado com sucesso');
       return true;
     } catch (e) {
       AppLogger.error('💥 [FORM] Erro ao salvar produto', e);
@@ -445,7 +495,7 @@ class VendorProductFormController extends GetxController {
         );
 
         // Voltar para a lista de produtos
-        Get.back();
+        Get.back(result: true);
       } else {
         hasError.value = true;
         errorMessage.value = 'Produto não encontrado para exclusão';

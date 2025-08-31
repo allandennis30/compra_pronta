@@ -227,9 +227,9 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
   }
 
   void _navigateToProductForm({dynamic product}) async {
-    final result = await Get.to(
-      () => const VendorProductFormPage(),
-      binding: VendedorProductFormBinding(),
+    // Usar rota nomeada para evitar múltiplas instâncias
+    final result = await Get.toNamed(
+      '/vendor/produto_form',
       arguments: product,
     );
 

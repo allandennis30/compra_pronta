@@ -28,6 +28,29 @@ class SupabaseImageServiceExample {
     }
   }
 
+  /// Exemplo: Upload de imagem com remoção automática da anterior (atualização)
+  Future<String> uploadImageWithReplacementExample(String oldImageUrl) async {
+    try {
+      // 1. Selecionar nova imagem
+      final newImageFile = await _imageService.pickImage(ImageSource.gallery);
+      if (newImageFile == null) {
+        throw Exception('Nenhuma nova imagem selecionada');
+      }
+
+      // 2. Fazer upload da nova imagem (a anterior será removida automaticamente)
+      final userId = 'user123';
+      final newImageUrl = await _imageService.uploadImage(newImageFile, userId,
+          oldImageUrl: oldImageUrl);
+
+      print('✅ Nova imagem enviada e imagem anterior removida automaticamente');
+      print('✅ Nova URL: $newImageUrl');
+      return newImageUrl;
+    } catch (e) {
+      print('❌ Erro ao fazer upload com substituição: $e');
+      rethrow;
+    }
+  }
+
   /// Exemplo: Atualizar imagem de um produto
   Future<String> updateProductImageExample(String oldImageUrl) async {
     try {

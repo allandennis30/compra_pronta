@@ -1,10 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../constants/app_constants.dart';
+import 'package:image/image.dart' as img;
 import '../../core/utils/logger.dart';
 
 /// Serviço para gerenciar imagens diretamente com o Supabase Storage
@@ -15,6 +14,10 @@ class SupabaseImageService {
   static const String _anonKey =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbGpvYW5ub2dobnBicWhyc3V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MjY3ODUsImV4cCI6MjA3MDIwMjc4NX0.uIrk_RMpPaaR2EXSU2YZ-nHvj2Ez5_Wl-3sETF9Tupg';
 
+  // Chave service_role para operações administrativas (deleção)
+  static const String _serviceRoleKey =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbGpvYW5ub2dobnBicWhyc3V2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDYyNjc4NSwiZXhwIjoyMDcwMjAyNzg1fQ.aHaBE-oyRxAqzYryqvuluwOpReWx5PWtGsaC4FRt6ac';
+
   /// Headers padrão para requisições ao Supabase
   Map<String, String> get _headers => {
         'apikey': _anonKey,
@@ -24,15 +27,29 @@ class SupabaseImageService {
 
   /// Upload de imagem para o Supabase Storage
   /// Retorna a URL pública da imagem
-  Future<String> uploadImage(File imageFile, String userId) async {
+  /// Se oldImageUrl for fornecido, remove a imagem antiga automaticamente
+  Future<String> uploadImage(File imageFile, String userId,
+      {String? oldImageUrl}) async {
     try {
       AppLogger.info('📸 [SUPABASE] Iniciando upload de imagem...');
       AppLogger.info('📸 [SUPABASE] Arquivo: ${imageFile.path}');
       AppLogger.info('📸 [SUPABASE] Usuário: $userId');
 
-      // 1. Ler o arquivo como bytes
-      final bytes = await imageFile.readAsBytes();
-      AppLogger.info('📸 [SUPABASE] Tamanho: ${bytes.length} bytes');
+      // Verificar se é uma atualização de imagem
+      if (oldImageUrl != null && oldImageUrl.isNotEmpty) {
+        AppLogger.info('🔄 [SUPABASE] Detectado: Atualização de imagem');
+        AppLogger.info(
+            '🗑️ [SUPABASE] Imagem anterior será removida: $oldImageUrl');
+      } else {
+        AppLogger.info('🆕 [SUPABASE] Detectado: Nova imagem');
+      }
+
+      // 1. Comprimir imagem se necessário
+      final compressedFile = await compressImageIfNeeded(imageFile);
+
+      // 2. Ler o arquivo comprimido como bytes
+      final bytes = await compressedFile.readAsBytes();
+      AppLogger.info('📸 [SUPABASE] Tamanho final: ${bytes.length} bytes');
 
       // 2. Gerar nome único para o arquivo
       final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -76,6 +93,25 @@ class SupabaseImageService {
         // 6. Gerar URL pública
         final publicUrl = '$_storageUrl/object/public/$_bucketName/$filePath';
         AppLogger.success('✅ [SUPABASE] Upload concluído: $publicUrl');
+
+        // 7. Se for uma atualização, remover a imagem antiga
+        if (oldImageUrl != null && oldImageUrl.isNotEmpty) {
+          try {
+            AppLogger.info('🗑️ [SUPABASE] Removendo imagem anterior...');
+            final deleteSuccess = await deleteImage(oldImageUrl);
+            if (deleteSuccess) {
+              AppLogger.success(
+                  '✅ [SUPABASE] Imagem anterior removida com sucesso');
+            } else {
+              AppLogger.warning(
+                  '⚠️ [SUPABASE] Não foi possível remover a imagem anterior');
+            }
+          } catch (e) {
+            AppLogger.error('💥 [SUPABASE] Erro ao remover imagem anterior', e);
+            // Não falhar o processo por erro na deleção da imagem antiga
+          }
+        }
+
         return publicUrl;
       } else {
         throw Exception(
@@ -104,10 +140,16 @@ class SupabaseImageService {
       final deleteUrl = '$_storageUrl/object/$_bucketName/$filePath';
       AppLogger.info('🗑️ [SUPABASE] URL de remoção: $deleteUrl');
 
-      // Fazer requisição DELETE
+      // Headers específicos para deleção usando service_role
+      final deleteHeaders = {
+        'apikey': _serviceRoleKey,
+        'Authorization': 'Bearer $_serviceRoleKey',
+      };
+
+      // Fazer requisição DELETE com service_role
       final response = await http.delete(
         Uri.parse(deleteUrl),
-        headers: _headers,
+        headers: deleteHeaders,
       );
 
       AppLogger.info('🗑️ [SUPABASE] Resposta: ${response.statusCode}');
@@ -132,15 +174,9 @@ class SupabaseImageService {
     try {
       AppLogger.info('🔄 [SUPABASE] Atualizando imagem...');
 
-      // 1. Remover imagem antiga se existir
-      if (oldImageUrl != null && oldImageUrl.isNotEmpty) {
-        AppLogger.info('🗑️ [SUPABASE] Removendo imagem antiga...');
-        await deleteImage(oldImageUrl);
-      }
-
-      // 2. Fazer upload da nova imagem
-      AppLogger.info('📸 [SUPABASE] Fazendo upload da nova imagem...');
-      final newImageUrl = await uploadImage(newImage, userId);
+      // Usar o método uploadImage que agora detecta automaticamente se é uma atualização
+      final newImageUrl =
+          await uploadImage(newImage, userId, oldImageUrl: oldImageUrl);
 
       AppLogger.success('✅ [SUPABASE] Imagem atualizada com sucesso');
       return newImageUrl;
@@ -246,16 +282,28 @@ class SupabaseImageService {
       final uri = Uri.parse(imageUrl);
       final pathSegments = uri.pathSegments;
 
-      // Procurar por 'object' e 'public' na URL
+      AppLogger.info('🔍 [SUPABASE] Debug - pathSegments: $pathSegments');
+
+      // Procurar por 'object' na URL
       final objectIndex = pathSegments.indexOf('object');
-      if (objectIndex != -1 && objectIndex + 2 < pathSegments.length) {
-        // Pular 'object' e 'public' ou 'bucket'
-        final startIndex = objectIndex + 2;
-        return pathSegments.sublist(startIndex).join('/');
+      if (objectIndex != -1 && objectIndex + 3 < pathSegments.length) {
+        // Pular 'object', 'public' e 'bucket' (product-images)
+        // Estrutura: /storage/v1/object/public/product-images/products/userId/filename
+        final startIndex = objectIndex + 3;
+        final extractedPath = pathSegments.sublist(startIndex).join('/');
+
+        AppLogger.info('🔍 [SUPABASE] Debug - objectIndex: $objectIndex');
+        AppLogger.info('🔍 [SUPABASE] Debug - startIndex: $startIndex');
+        AppLogger.info('🔍 [SUPABASE] Debug - extractedPath: $extractedPath');
+
+        return extractedPath;
       }
 
+      AppLogger.warning(
+          '⚠️ [SUPABASE] Não foi possível extrair caminho da URL: $imageUrl');
       return null;
     } catch (e) {
+      AppLogger.error('💥 [SUPABASE] Erro ao extrair caminho da URL', e);
       return null;
     }
   }
@@ -266,13 +314,19 @@ class SupabaseImageService {
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(
         source: source,
-        maxWidth: 1024,
-        maxHeight: 1024,
+        maxWidth: 1200,
+        maxHeight: 1200,
         imageQuality: 85,
       );
 
       if (pickedFile != null) {
-        return File(pickedFile.path);
+        final file = File(pickedFile.path);
+
+        // Comprimir automaticamente para 200KB
+        final compressedFile = await compressImageIfNeeded(file);
+
+        AppLogger.info('📸 [SUPABASE] Imagem selecionada e comprimida');
+        return compressedFile;
       }
       return null;
     } catch (e) {
@@ -281,24 +335,101 @@ class SupabaseImageService {
     }
   }
 
-  /// Comprimir imagem se necessário
+  /// Comprimir imagem para 200KB ou menos
   Future<File> compressImageIfNeeded(File imageFile) async {
     try {
       final fileSize = await imageFile.length();
-      final maxSize = 2 * 1024 * 1024; // 2MB
+      final targetSize = 200 * 1024; // 200KB
 
-      if (fileSize <= maxSize) {
-        AppLogger.info('📸 [SUPABASE] Imagem não precisa de compressão');
+      AppLogger.info(
+          '📸 [SUPABASE] Tamanho original: ${(fileSize / 1024).toStringAsFixed(1)}KB');
+
+      if (fileSize <= targetSize) {
+        AppLogger.info(
+            '📸 [SUPABASE] Imagem já está no tamanho ideal (≤200KB)');
         return imageFile;
       }
 
-      AppLogger.info('📸 [SUPABASE] Comprimindo imagem...');
+      AppLogger.info('📸 [SUPABASE] Iniciando compressão para 200KB...');
 
-      // Para simplicidade, retornamos o arquivo original
-      // Em produção, você pode implementar compressão real
-      AppLogger.warning(
-          '⚠️ [SUPABASE] Compressão não implementada, usando arquivo original');
-      return imageFile;
+      // Ler a imagem
+      final bytes = await imageFile.readAsBytes();
+      final image = img.decodeImage(bytes);
+
+      if (image == null) {
+        AppLogger.error('💥 [SUPABASE] Não foi possível decodificar a imagem');
+        return imageFile;
+      }
+
+      // Calcular nova resolução mantendo proporção
+      final aspectRatio = image.width / image.height;
+      int newWidth = image.width;
+      int newHeight = image.height;
+
+      // Redimensionar se a imagem for muito grande
+      if (image.width > 1200 || image.height > 1200) {
+        if (aspectRatio > 1) {
+          newWidth = 1200;
+          newHeight = (1200 / aspectRatio).round();
+        } else {
+          newHeight = 1200;
+          newWidth = (1200 * aspectRatio).round();
+        }
+      }
+
+      // Redimensionar a imagem
+      var resizedImage = img.copyResize(
+        image,
+        width: newWidth,
+        height: newHeight,
+        interpolation: img.Interpolation.linear,
+      );
+
+      AppLogger.info(
+          '📸 [SUPABASE] Imagem redimensionada: ${newWidth}x${newHeight}');
+
+      // Comprimir com qualidade progressiva
+      int quality = 85;
+      List<int> compressedBytes = [];
+
+      do {
+        compressedBytes = img.encodeJpg(resizedImage, quality: quality);
+        AppLogger.info(
+            '📸 [SUPABASE] Tentativa com qualidade $quality%: ${(compressedBytes.length / 1024).toStringAsFixed(1)}KB');
+
+        if (compressedBytes.length <= targetSize) {
+          break;
+        }
+
+        quality -= 10;
+        if (quality < 10) {
+          // Se ainda não conseguiu, reduzir mais a resolução
+          newWidth = (newWidth * 0.8).round();
+          newHeight = (newHeight * 0.8).round();
+          resizedImage = img.copyResize(
+            image,
+            width: newWidth,
+            height: newHeight,
+            interpolation: img.Interpolation.linear,
+          );
+          quality = 85;
+          AppLogger.info(
+              '📸 [SUPABASE] Reduzindo resolução para: ${newWidth}x${newHeight}');
+        }
+      } while (compressedBytes.length > targetSize &&
+          (newWidth > 300 || newHeight > 300));
+
+      // Criar arquivo temporário com a imagem comprimida
+      final tempDir = Directory.systemTemp;
+      final tempFile = File(
+          '${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await tempFile.writeAsBytes(compressedBytes);
+
+      final finalSize = await tempFile.length();
+      AppLogger.success(
+          '✅ [SUPABASE] Compressão concluída: ${(finalSize / 1024).toStringAsFixed(1)}KB (${((fileSize - finalSize) / fileSize * 100).toStringAsFixed(1)}% de redução)');
+
+      return tempFile;
     } catch (e) {
       AppLogger.error('💥 [SUPABASE] Erro ao comprimir imagem', e);
       return imageFile;

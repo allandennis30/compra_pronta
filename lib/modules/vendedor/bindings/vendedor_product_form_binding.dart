@@ -6,14 +6,21 @@ import '../../../core/repositories/repository_factory.dart';
 class VendedorProductFormBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<VendedorProductRepository>(
-      () => RepositoryFactory.createVendedorProductRepository(),
-    );
+    // Verificar se já existe uma instância antes de criar
+    if (!Get.isRegistered<VendedorProductRepository>()) {
+      Get.put<VendedorProductRepository>(
+        RepositoryFactory.createVendedorProductRepository(),
+        permanent: false,
+      );
+    }
 
-    Get.lazyPut<VendorProductFormController>(
-      () => VendorProductFormController(
-        repository: Get.find<VendedorProductRepository>(),
-      ),
-    );
+    if (!Get.isRegistered<VendorProductFormController>()) {
+      Get.put<VendorProductFormController>(
+        VendorProductFormController(
+          repository: Get.find<VendedorProductRepository>(),
+        ),
+        permanent: false,
+      );
+    }
   }
 }
