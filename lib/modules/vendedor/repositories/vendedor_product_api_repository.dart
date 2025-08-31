@@ -17,6 +17,9 @@ class VendedorProductApiRepository implements VendedorProductRepository {
     final token = await _authRepository.getToken();
     return {
       'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
       if (token != null) 'Authorization': 'Bearer $token',
     };
   }

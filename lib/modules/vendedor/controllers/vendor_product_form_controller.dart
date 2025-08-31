@@ -372,9 +372,12 @@ class VendorProductFormController extends GetxController {
       // Retornar o produto atualizado para que a lista possa ser atualizada
       if (isEditing.value) {
         // Para edição, retornar o produto atualizado
+        AppLogger.info(
+            '📤 [FORM] Retornando produto editado: ID=${product.id}, Nome="${product.name}", Imagem="${product.imageUrl}"');
         Get.back(result: product);
       } else {
         // Para criação, retornar true (comportamento padrão)
+        AppLogger.info('📤 [FORM] Retornando true para produto criado');
         Get.back(result: true);
       }
 

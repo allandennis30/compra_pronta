@@ -47,6 +47,24 @@ class VendedorProductListController extends GetxController {
     }
   }
 
+  void updateProductInList(ProductModel updatedProduct) {
+    AppLogger.info(
+        '🔄 [CONTROLLER] Atualizando produto na lista: ${updatedProduct.name}');
+
+    final allProductsIndex =
+        _allProducts.indexWhere((p) => p.id == updatedProduct.id);
+    if (allProductsIndex >= 0) {
+      _allProducts[allProductsIndex] = updatedProduct;
+    }
+
+    final filteredIndex = products.indexWhere((p) => p.id == updatedProduct.id);
+    if (filteredIndex >= 0) {
+      products[filteredIndex] = updatedProduct;
+    }
+
+    _applyFilters();
+  }
+
   Future<void> deleteProduct(String productId) async {
     try {
       isLoading.value = true;
@@ -165,7 +183,11 @@ class VendedorProductListController extends GetxController {
       }).toList();
     }
 
+    // Usar assignAll para garantir reatividade
     products.assignAll(filteredProducts);
+
+    AppLogger.info(
+        '🔍 [CONTROLLER] Filtros aplicados: ${products.length} produtos');
   }
 
   List<String> get availableCategories {

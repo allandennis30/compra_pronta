@@ -42,32 +42,37 @@ class RecentOrdersSection extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+        Expanded(
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.shopping_bag_outlined,
+                  color: Theme.of(context).primaryColor,
+                  size: 20,
+                ),
               ),
-              child: Icon(
-                Icons.shopping_bag_outlined,
-                color: Theme.of(context).primaryColor,
-                size: 20,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Pedidos Recentes',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[800],
+                      ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              'Pedidos Recentes',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[800],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
+        const SizedBox(width: 8),
         TextButton.icon(
           onPressed: () => Get.toNamed('/vendor/pedidos'),
           icon: const Icon(Icons.arrow_forward_ios, size: 14),

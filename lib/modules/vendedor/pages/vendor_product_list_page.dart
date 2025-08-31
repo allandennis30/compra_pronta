@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/vendor_product_list_controller.dart';
-import 'vendor_product_form_page.dart';
-import '../bindings/vendedor_product_form_binding.dart';
 import '../widgets/product_card.dart';
 import '../../cliente/models/product_model.dart';
 import '../../../core/utils/logger.dart';
@@ -12,44 +10,157 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => Scaffold(
-          appBar: AppBar(
-            title: controller.isSearching.value
-                ? _buildSearchField()
-                : const Text('Meus Produtos'),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.filter_list),
-                onPressed: _showFilterDialog,
-              ),
-              IconButton(
-                icon: Icon(
-                    controller.isSearching.value ? Icons.close : Icons.search),
-                onPressed: controller.toggleSearch,
-              ),
-            ],
-          ),
-          body: controller.isLoading.value
-              ? const Center(child: CircularProgressIndicator())
-              : Column(
-                  children: [
-                    _buildFilterIndicator(),
-                    Expanded(
-                      child: controller.products.isEmpty
-                          ? _buildEmptyState()
-                          : _buildProductList(),
-                    ),
-                  ],
+    return Scaffold(
+      appBar: _VendorProductListAppBar(controller: controller),
+      body: Obx(() => controller.isLoading.value
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                _FilterIndicator(controller: controller),
+                Expanded(
+                  child: controller.products.isEmpty
+                      ? _EmptyState(controller: controller)
+                      : _ProductListView(controller: controller),
                 ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () => _navigateToProductForm(),
-            backgroundColor: Colors.green,
-            child: const Icon(Icons.add),
-          ),
+              ],
+            )),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _navigateToProductForm(),
+        backgroundColor: Colors.green,
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  void _navigateToProductForm({dynamic product}) async {
+    // Usar rota nomeada para evitar múltiplas instâncias
+    final result = await Get.toNamed(
+      '/vendor/produto_form',
+      arguments: product,
+    );
+
+    if (result != null) {
+      if (result is ProductModel) {
+        // Produto foi editado - recarregar lista para mostrar a nova imagem
+        AppLogger.info(
+            '🔄 [LIST] Produto editado retornado, recarregando lista...');
+        await controller.loadProducts();
+
+        Get.snackbar(
+          'Sucesso',
+          'Produto atualizado com sucesso!',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      } else if (result == true) {
+        // Produto foi criado - recarregar lista completa
+        AppLogger.info('🆕 [LIST] Novo produto criado, recarregando lista...');
+        await controller.loadProducts();
+
+        Get.snackbar(
+          'Sucesso',
+          'Produto criado com sucesso!',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      }
+    }
+  }
+}
+
+class _VendorProductListAppBar extends StatelessWidget
+    implements PreferredSizeWidget {
+  final VendedorProductListController controller;
+
+  const _VendorProductListAppBar({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() => AppBar(
+          title: controller.isSearching.value
+              ? _SearchField(controller: controller)
+              : const Text('Meus Produtos'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.filter_list),
+              onPressed: () => _showFilterDialog(context),
+            ),
+            IconButton(
+              icon: Icon(
+                  controller.isSearching.value ? Icons.close : Icons.search),
+              onPressed: controller.toggleSearch,
+            ),
+          ],
         ));
   }
 
-  Widget _buildSearchField() {
+  void _showFilterDialog(BuildContext context) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Filtrar Produtos'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Filtrar por categoria:'),
+            const SizedBox(height: 16),
+            Obx(() => DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Categoria',
+                  ),
+                  value: controller.selectedCategory.value.isEmpty
+                      ? null
+                      : controller.selectedCategory.value,
+                  items: [
+                    const DropdownMenuItem<String>(
+                      value: null,
+                      child: Text('Todas as categorias'),
+                    ),
+                    ...controller.availableCategories.map((category) {
+                      return DropdownMenuItem<String>(
+                        value: category,
+                        child: Text(category),
+                      );
+                    }),
+                  ],
+                  onChanged: (value) {
+                    controller.filterByCategory(value);
+                  },
+                )),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              controller.clearFilters();
+              Get.back();
+            },
+            child: const Text('Limpar Filtros'),
+          ),
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Fechar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+class _SearchField extends StatelessWidget {
+  final VendedorProductListController controller;
+
+  const _SearchField({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
     return TextField(
       autofocus: true,
       decoration: const InputDecoration(
@@ -61,8 +172,15 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
       onChanged: controller.searchProducts,
     );
   }
+}
 
-  Widget _buildFilterIndicator() {
+class _FilterIndicator extends StatelessWidget {
+  final VendedorProductListController controller;
+
+  const _FilterIndicator({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
     return Obx(() {
       final hasFilters = controller.searchQuery.value.isNotEmpty ||
           controller.selectedCategory.value.isNotEmpty;
@@ -116,60 +234,15 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
 
     return '${filters.join(' • ')} • $resultText';
   }
+}
 
-  void _showFilterDialog() {
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Filtrar Produtos'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Filtrar por categoria:'),
-            const SizedBox(height: 16),
-            Obx(() => DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Categoria',
-                  ),
-                  value: controller.selectedCategory.value.isEmpty
-                      ? null
-                      : controller.selectedCategory.value,
-                  items: [
-                    const DropdownMenuItem<String>(
-                      value: null,
-                      child: Text('Todas as categorias'),
-                    ),
-                    ...controller.availableCategories.map((category) {
-                      return DropdownMenuItem<String>(
-                        value: category,
-                        child: Text(category),
-                      );
-                    }),
-                  ],
-                  onChanged: (value) {
-                    controller.filterByCategory(value);
-                  },
-                )),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              controller.clearFilters();
-              Get.back();
-            },
-            child: const Text('Limpar Filtros'),
-          ),
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Fechar'),
-          ),
-        ],
-      ),
-    );
-  }
+class _EmptyState extends StatelessWidget {
+  final VendedorProductListController controller;
 
-  Widget _buildEmptyState() {
+  const _EmptyState({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -210,33 +283,14 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
     );
   }
 
-  Widget _buildProductList() {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: controller.products.length,
-      itemBuilder: (context, index) {
-        final product = controller.products[index];
-        return ProductCard(
-          product: product,
-          onTap: () => _navigateToProductForm(product: product),
-          onEdit: () => _navigateToProductForm(product: product),
-          onToggleStatus: () => _toggleProductStatus(product),
-          onDelete: () => _showDeleteConfirmation(product),
-        );
-      },
-    );
-  }
-
-  void _navigateToProductForm({dynamic product}) async {
-    // Usar rota nomeada para evitar múltiplas instâncias
+  void _navigateToProductForm() async {
     final result = await Get.toNamed(
       '/vendor/produto_form',
-      arguments: product,
+      arguments: null,
     );
 
     if (result != null) {
       if (result is ProductModel) {
-        // Produto foi editado - recarregar lista para mostrar a nova imagem
         AppLogger.info(
             '🔄 [LIST] Produto editado retornado, recarregando lista...');
         await controller.loadProducts();
@@ -250,7 +304,66 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
           duration: const Duration(seconds: 3),
         );
       } else if (result == true) {
-        // Produto foi criado - recarregar lista completa
+        AppLogger.info('🆕 [LIST] Novo produto criado, recarregando lista...');
+        await controller.loadProducts();
+
+        Get.snackbar(
+          'Sucesso',
+          'Produto criado com sucesso!',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      }
+    }
+  }
+}
+
+class _ProductListView extends StatelessWidget {
+  final VendedorProductListController controller;
+
+  const _ProductListView({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() => ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          itemCount: controller.products.length,
+          itemBuilder: (context, index) {
+            final product = controller.products[index];
+            return ProductCard(
+              product: product,
+              onTap: () => _navigateToProductForm(product: product),
+              onEdit: () => _navigateToProductForm(product: product),
+              onToggleStatus: () => _toggleProductStatus(product),
+              onDelete: () => _showDeleteConfirmation(product),
+            );
+          },
+        ));
+  }
+
+  void _navigateToProductForm({dynamic product}) async {
+    final result = await Get.toNamed(
+      '/vendor/produto_form',
+      arguments: product,
+    );
+
+    if (result != null) {
+      if (result is ProductModel) {
+        AppLogger.info(
+            '🔄 [LIST] Produto editado retornado, recarregando lista...');
+        await controller.loadProducts();
+
+        Get.snackbar(
+          'Sucesso',
+          'Produto atualizado com sucesso!',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      } else if (result == true) {
         AppLogger.info('🆕 [LIST] Novo produto criado, recarregando lista...');
         await controller.loadProducts();
 
@@ -268,11 +381,9 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
 
   void _toggleProductStatus(ProductModel product) async {
     try {
-      // Chamar o método do controller para atualizar a disponibilidade
       await controller.toggleProductAvailability(product);
     } catch (e) {
       // O controller já trata os erros e mostra snackbars
-      // Aqui apenas para garantir que não quebre a UI
     }
   }
 
