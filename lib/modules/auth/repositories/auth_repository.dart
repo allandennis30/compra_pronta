@@ -96,13 +96,14 @@ class AuthRepositoryImpl implements AuthRepository {
         // Criar AddressModel a partir dos dados do backend
         final addressData = userData['endereco'] ?? userData['address'] ?? {};
         final address = AddressModel(
-          street: addressData['street'] ?? '',
-          number: addressData['number'] ?? '',
-          complement: addressData['complement'],
-          neighborhood: addressData['neighborhood'] ?? '',
-          city: addressData['city'] ?? '',
-          state: addressData['state'] ?? '',
-          zipCode: addressData['zipCode'] ?? '',
+          street: addressData['rua'] ?? addressData['street'] ?? '',
+          number: addressData['numero'] ?? addressData['number'] ?? '',
+          complement: addressData['complemento'] ?? addressData['complement'],
+          neighborhood:
+              addressData['bairro'] ?? addressData['neighborhood'] ?? '',
+          city: addressData['cidade'] ?? addressData['city'] ?? '',
+          state: addressData['estado'] ?? addressData['state'] ?? '',
+          zipCode: addressData['cep'] ?? addressData['zipCode'] ?? '',
         );
 
         final user = UserModel(
@@ -113,7 +114,9 @@ class AuthRepositoryImpl implements AuthRepository {
           address: address,
           latitude: userData['latitude']?.toDouble() ?? 0.0,
           longitude: userData['longitude']?.toDouble() ?? 0.0,
-          istore: userData['tipo'] == 'vendedor' || userData['istore'] == true,
+          istore: userData['isSeller'] == true ||
+              userData['tipo'] == 'vendedor' ||
+              userData['istore'] == true,
         );
 
         await saveUser(user);
@@ -218,16 +221,17 @@ class AuthRepositoryImpl implements AuthRepository {
           await _storage.write('user_id', userId);
           AppLogger.info('💾 User ID salvo no storage: $userId');
         }
-        final addressData = userData['endereco'] ?? userData['address'];
+        final addressData = userData['endereco'] ?? userData['address'] ?? {};
 
         final addressModel = AddressModel(
-          street: addressData['street'] ?? '',
-          number: addressData['number'] ?? '',
-          complement: addressData['complement'],
-          neighborhood: addressData['neighborhood'] ?? '',
-          city: addressData['city'] ?? '',
-          state: addressData['state'] ?? '',
-          zipCode: addressData['zipCode'] ?? '',
+          street: addressData['rua'] ?? addressData['street'] ?? '',
+          number: addressData['numero'] ?? addressData['number'] ?? '',
+          complement: addressData['complemento'] ?? addressData['complement'],
+          neighborhood:
+              addressData['bairro'] ?? addressData['neighborhood'] ?? '',
+          city: addressData['cidade'] ?? addressData['city'] ?? '',
+          state: addressData['estado'] ?? addressData['state'] ?? '',
+          zipCode: addressData['cep'] ?? addressData['zipCode'] ?? '',
         );
 
         final user = UserModel(
@@ -238,7 +242,9 @@ class AuthRepositoryImpl implements AuthRepository {
           address: addressModel,
           latitude: userData['latitude']?.toDouble() ?? 0.0,
           longitude: userData['longitude']?.toDouble() ?? 0.0,
-          istore: userData['tipo'] == 'vendedor' || userData['istore'] == true,
+          istore: userData['isSeller'] == true ||
+              userData['tipo'] == 'vendedor' ||
+              userData['istore'] == true,
         );
 
         await saveUser(user);
