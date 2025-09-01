@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/vendor_metrics_controller.dart';
 import '../widgets/dashboard/index.dart';
+import '../widgets/vendedor_layout.dart';
 
 class VendorDashboardPage extends StatelessWidget {
   final VendorMetricsController controller = Get.put(VendorMetricsController());
@@ -10,11 +11,13 @@ class VendorDashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: const DashboardAppBar(),
-      body: _buildBody(),
-      bottomNavigationBar: const DashboardBottomNav(),
+    return VendedorLayout(
+      currentIndex: 0,
+      child: Scaffold(
+        backgroundColor: Colors.grey[50],
+        appBar: const DashboardAppBar(),
+        body: _buildBody(),
+      ),
     );
   }
 
@@ -149,8 +152,4 @@ class VendorDashboardPage extends StatelessWidget {
       ),
     );
   }
-
-
-
-
 }

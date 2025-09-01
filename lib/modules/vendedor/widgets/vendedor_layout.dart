@@ -1,8 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class DashboardBottomNav extends StatelessWidget {
-  const DashboardBottomNav({super.key});
+class VendedorLayout extends StatelessWidget {
+  final Widget child;
+  final int currentIndex;
+
+  const VendedorLayout({
+    super.key,
+    required this.child,
+    required this.currentIndex,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: child,
+      bottomNavigationBar: VendedorBottomNav(currentIndex: currentIndex),
+    );
+  }
+}
+
+class VendedorBottomNav extends StatelessWidget {
+  final int currentIndex;
+
+  const VendedorBottomNav({
+    super.key,
+    required this.currentIndex,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,35 +52,55 @@ class DashboardBottomNav extends StatelessWidget {
                 context,
                 icon: Icons.dashboard_rounded,
                 label: 'Dashboard',
-                isActive: true,
-                onTap: () {},
+                isActive: currentIndex == 0,
+                onTap: () => _navigateToPage(0),
               ),
               _buildNavItem(
                 context,
                 icon: Icons.inventory_2_outlined,
                 label: 'Produtos',
-                isActive: false,
-                onTap: () => Get.toNamed('/vendor/produtos'),
+                isActive: currentIndex == 1,
+                onTap: () => _navigateToPage(1),
               ),
               _buildNavItem(
                 context,
                 icon: Icons.shopping_bag_outlined,
                 label: 'Pedidos',
-                isActive: false,
-                onTap: () => Get.toNamed('/vendor/pedidos'),
+                isActive: currentIndex == 2,
+                onTap: () => _navigateToPage(2),
               ),
               _buildNavItem(
                 context,
                 icon: Icons.settings_outlined,
                 label: 'Config',
-                isActive: false,
-                onTap: () => Get.toNamed('/vendor/config'),
+                isActive: currentIndex == 3,
+                onTap: () => _navigateToPage(3),
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  void _navigateToPage(int index) {
+    // Só navega se não estiver na página atual
+    if (index != currentIndex) {
+      switch (index) {
+        case 0:
+          Get.offAllNamed('/vendor/dashboard');
+          break;
+        case 1:
+          Get.offAllNamed('/vendor/produtos');
+          break;
+        case 2:
+          Get.offAllNamed('/vendor/pedidos');
+          break;
+        case 3:
+          Get.offAllNamed('/vendor/config');
+          break;
+      }
+    }
   }
 
   Widget _buildNavItem(

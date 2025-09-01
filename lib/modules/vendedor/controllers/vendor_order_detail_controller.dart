@@ -4,8 +4,10 @@ import '../../../core/models/order_model.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/utils/snackbar_utils.dart';
+import '../repositories/vendor_order_repository.dart';
 
 class VendorOrderDetailController extends GetxController {
+  late final VendorOrderRepository _repository;
   final Rx<OrderModel?> _order = Rx<OrderModel?>(null);
   final Rx<UserModel?> _customer = Rx<UserModel?>(null);
   final RxBool _isLoading = false.obs;
@@ -31,9 +33,14 @@ class VendorOrderDetailController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _repository = Get.find<VendorOrderRepository>();
+    _loadOrderFromParameters();
+  }
+
+  void _loadOrderFromParameters() {
     // Verificar parâmetros da rota primeiro
     String? orderId = Get.parameters['orderId'];
-    
+
     // Se não encontrar nos parâmetros, verificar nos argumentos
     if (orderId == null) {
       final arguments = Get.arguments;
@@ -43,11 +50,12 @@ class VendorOrderDetailController extends GetxController {
         orderId = arguments['orderId']?.toString();
       }
     }
-    
-    if (orderId != null) {
+
+    if (orderId != null && orderId.isNotEmpty) {
       loadOrderDetails(orderId);
     } else {
       _errorMessage.value = 'ID do pedido não fornecido';
+      AppLogger.error('ID do pedido não fornecido na navegação');
     }
   }
 
@@ -56,31 +64,43 @@ class VendorOrderDetailController extends GetxController {
       _isLoading.value = true;
       _errorMessage.value = '';
 
-      // Simular busca do pedido (substituir por repository real)
-      await Future.delayed(Duration(milliseconds: 500));
-      
-      final mockOrder = _getMockOrder(orderId);
-      if (mockOrder != null) {
-        _order.value = mockOrder;
-        await _loadCustomerDetails(mockOrder.userId);
+      AppLogger.info(
+          '🔄 [VENDOR_ORDER] Carregando detalhes do pedido: $orderId');
+
+      final order = await _repository.getOrderById(orderId);
+      if (order != null) {
+        _order.value = order;
+        AppLogger.info(
+            '✅ [VENDOR_ORDER] Pedido carregado com sucesso: ${order.id}');
+        AppLogger.info('📍 [VENDOR_ORDER] Endereço do pedido:');
+        AppLogger.info('   - Street: ${order.deliveryAddress.street}');
+        AppLogger.info('   - Number: ${order.deliveryAddress.number}');
+        AppLogger.info(
+            '   - Neighborhood: ${order.deliveryAddress.neighborhood}');
+        AppLogger.info('   - City: ${order.deliveryAddress.city}');
+        AppLogger.info('   - State: ${order.deliveryAddress.state}');
+        AppLogger.info('   - ZipCode: ${order.deliveryAddress.zipCode}');
+        AppLogger.info(
+            '   - FullAddress: ${order.deliveryAddress.fullAddress}');
       } else {
         _errorMessage.value = 'Pedido não encontrado';
+        AppLogger.warning('⚠️ [VENDOR_ORDER] Pedido não encontrado: $orderId');
       }
     } catch (e) {
       _errorMessage.value = 'Erro ao carregar detalhes do pedido: $e';
-      AppLogger.error('Erro ao carregar pedido', e);
+      AppLogger.error('❌ [VENDOR_ORDER] Erro ao carregar pedido', e);
     } finally {
       _isLoading.value = false;
     }
   }
 
-  Future<void> _loadCustomerDetails(String userId) async {
-    try {
-      // Simular busca do cliente (substituir por repository real)
-      final mockCustomer = _getMockCustomer(userId);
-      _customer.value = mockCustomer;
-    } catch (e) {
-      AppLogger.error('Erro ao carregar dados do cliente', e);
+  void goBack() {
+    Get.back();
+  }
+
+  void refreshOrder() {
+    if (_order.value != null) {
+      loadOrderDetails(_order.value!.id);
     }
   }
 
@@ -90,9 +110,12 @@ class VendorOrderDetailController extends GetxController {
     try {
       _isUpdatingStatus.value = true;
 
-      // Simular atualização do status (substituir por repository real)
-      await Future.delayed(Duration(milliseconds: 300));
+      AppLogger.info(
+          '🔄 [VENDOR_ORDER] Atualizando status do pedido ${_order.value!.id} para $newStatus');
 
+      await _repository.updateOrderStatus(_order.value!.id, newStatus);
+
+      // Atualizar o pedido localmente
       final updatedOrder = OrderModel(
         id: _order.value!.id,
         userId: _order.value!.userId,
@@ -102,11 +125,15 @@ class VendorOrderDetailController extends GetxController {
         total: _order.value!.total,
         status: newStatus,
         createdAt: _order.value!.createdAt,
-        deliveredAt: newStatus == 'delivered' ? DateTime.now() : _order.value!.deliveredAt,
+        deliveredAt: newStatus == 'delivered'
+            ? DateTime.now()
+            : _order.value!.deliveredAt,
         deliveryAddress: _order.value!.deliveryAddress,
       );
 
       _order.value = updatedOrder;
+
+      AppLogger.info('✅ [VENDOR_ORDER] Status atualizado com sucesso');
       Get.snackbar(
         'Sucesso',
         'Status atualizado com sucesso!',
@@ -115,6 +142,7 @@ class VendorOrderDetailController extends GetxController {
         colorText: Colors.white,
       );
     } catch (e) {
+      AppLogger.error('❌ [VENDOR_ORDER] Erro ao atualizar status do pedido', e);
       Get.snackbar(
         'Erro',
         'Erro ao atualizar status: $e',
@@ -122,7 +150,6 @@ class VendorOrderDetailController extends GetxController {
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
-      AppLogger.error('Erro ao atualizar status do pedido', e);
     } finally {
       _isUpdatingStatus.value = false;
     }
@@ -177,23 +204,26 @@ class VendorOrderDetailController extends GetxController {
 
     final order = _order.value!;
     final customer = _customer.value;
-    
+
     String message = '*Detalhes do Pedido #${order.id}*\n\n';
     message += '*Cliente:* ${customer?.name ?? 'N/A'}\n';
     message += '*Telefone:* ${customer?.phone ?? 'N/A'}\n\n';
-    message += '*Endereço de Entrega:*\n${order.deliveryAddress.fullAddress}\n\n';
+    message +=
+        '*Endereço de Entrega:*\n${order.deliveryAddress.fullAddress}\n\n';
     message += '*Itens:*\n';
-    
+
     for (final item in order.items) {
-      message += '• ${item.productName} - Qtd: ${item.quantity} - R\$ ${item.price.toStringAsFixed(2)}\n';
+      message +=
+          '• ${item.productName} - Qtd: ${item.quantity} - R\$ ${item.price.toStringAsFixed(2)}\n';
     }
-    
+
     message += '\n*Subtotal:* R\$ ${order.subtotal.toStringAsFixed(2)}\n';
-    message += '*Taxa de Entrega:* R\$ ${order.deliveryFee.toStringAsFixed(2)}\n';
+    message +=
+        '*Taxa de Entrega:* R\$ ${order.deliveryFee.toStringAsFixed(2)}\n';
     message += '*Total:* R\$ ${order.total.toStringAsFixed(2)}\n\n';
     message += '*Status:* ${getStatusDisplayName(order.status)}\n';
     message += '*Data do Pedido:* ${_formatDateTime(order.createdAt)}';
-    
+
     if (order.deliveredAt != null) {
       message += '\n*Data de Entrega:* ${_formatDateTime(order.deliveredAt!)}';
     }
@@ -215,74 +245,5 @@ class VendorOrderDetailController extends GetxController {
 
   String _formatDateTime(DateTime dateTime) {
     return '${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year} às ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-  }
-
-  // Mock data - substituir por repository real
-  OrderModel? _getMockOrder(String orderId) {
-    final mockOrders = {
-      'order_001': OrderModel(
-        id: 'order_001',
-        userId: 'user_cliente_001',
-        items: [
-          OrderItemModel(
-            productId: 'prod_001',
-            productName: 'Maçã Fuji',
-            price: 8.90,
-            quantity: 2,
-          ),
-          OrderItemModel(
-            productId: 'prod_002',
-            productName: 'Banana Prata',
-            price: 4.50,
-            quantity: 3,
-          ),
-          OrderItemModel(
-            productId: 'prod_003',
-            productName: 'Leite Integral 1L',
-            price: 6.90,
-            quantity: 1,
-          ),
-        ],
-        subtotal: 35.60,
-        deliveryFee: 5.00,
-        total: 40.60,
-        status: 'confirmed',
-        createdAt: DateTime.now().subtract(Duration(hours: 2)),
-        deliveryAddress: AddressModel(
-          street: 'Rua das Flores',
-          number: '123',
-          complement: 'Apto 45',
-          neighborhood: 'Centro',
-          city: 'São Paulo',
-          state: 'SP',
-          zipCode: '01234-567',
-        ),
-      ),
-    };
-    return mockOrders[orderId];
-  }
-
-  UserModel? _getMockCustomer(String userId) {
-    final mockCustomers = {
-      'user_cliente_001': UserModel(
-        id: 'user_cliente_001',
-        name: 'Maria Silva',
-        email: 'maria.silva@email.com',
-        phone: '(11) 99999-9999',
-        address: AddressModel(
-          street: 'Rua das Flores',
-          number: '123',
-          complement: 'Apto 45',
-          neighborhood: 'Centro',
-          city: 'São Paulo',
-          state: 'SP',
-          zipCode: '01234-567',
-        ),
-        latitude: -23.5505,
-        longitude: -46.6333,
-        istore: false,
-      ),
-    };
-    return mockCustomers[userId];
   }
 }

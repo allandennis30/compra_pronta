@@ -1,40 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/vendor_order_list_controller.dart';
+import '../widgets/vendedor_layout.dart';
 
 class VendorOrderListPage extends GetView<VendorOrderListController> {
   const VendorOrderListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: _buildAppBar(),
-      body: Obx(() {
-        if (controller.isLoading) {
-          return const Center(
-            child: CircularProgressIndicator(),
+    return VendedorLayout(
+      currentIndex: 2,
+      child: Scaffold(
+        backgroundColor: Colors.grey.shade50,
+        appBar: _buildAppBar(),
+        body: Obx(() {
+          if (controller.isLoading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (controller.errorMessage.isNotEmpty) {
+            return _buildErrorState();
+          }
+
+          return RefreshIndicator(
+            onRefresh: controller.refreshOrders,
+            child: Column(
+              children: [
+                _buildFilters(),
+                Expanded(
+                  child: controller.orders.isEmpty
+                      ? _buildEmptyState()
+                      : _buildOrdersList(),
+                ),
+              ],
+            ),
           );
-        }
-
-        if (controller.errorMessage.isNotEmpty) {
-          return _buildErrorState();
-        }
-
-        return RefreshIndicator(
-          onRefresh: controller.refreshOrders,
-          child: Column(
-            children: [
-              _buildFilters(),
-              Expanded(
-                child: controller.orders.isEmpty
-                    ? _buildEmptyState()
-                    : _buildOrdersList(),
-              ),
-            ],
-          ),
-        );
-      }),
+        }),
+      ),
     );
   }
 
@@ -46,14 +50,19 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
           fontWeight: FontWeight.bold,
         ),
       ),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () => Get.back(),
+        tooltip: 'Voltar',
+      ),
       elevation: 0,
       actions: [
         Obx(() => IconButton(
-          icon: Icon(
-            controller.isSearching ? Icons.close : Icons.search,
-          ),
-          onPressed: controller.toggleSearch,
-        )),
+              icon: Icon(
+                controller.isSearching ? Icons.close : Icons.search,
+              ),
+              onPressed: controller.toggleSearch,
+            )),
       ],
       bottom: controller.isSearching
           ? PreferredSize(
@@ -87,23 +96,24 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
         child: Row(
           children: controller.availableStatuses.map((status) {
             return Obx(() => Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: FilterChip(
-                label: Text(controller.getStatusDisplayName(status)),
-                selected: controller.selectedStatus == status,
-                onSelected: (_) => controller.filterByStatus(status),
-                selectedColor: controller.getStatusColor(status).withOpacity(0.2),
-                checkmarkColor: controller.getStatusColor(status),
-                labelStyle: TextStyle(
-                  color: controller.selectedStatus == status
-                      ? controller.getStatusColor(status)
-                      : Colors.grey.shade700,
-                  fontWeight: controller.selectedStatus == status
-                      ? FontWeight.bold
-                      : FontWeight.normal,
-                ),
-              ),
-            ));
+                  padding: const EdgeInsets.only(right: 8),
+                  child: FilterChip(
+                    label: Text(controller.getStatusDisplayName(status)),
+                    selected: controller.selectedStatus == status,
+                    onSelected: (_) => controller.filterByStatus(status),
+                    selectedColor:
+                        controller.getStatusColor(status).withOpacity(0.2),
+                    checkmarkColor: controller.getStatusColor(status),
+                    labelStyle: TextStyle(
+                      color: controller.selectedStatus == status
+                          ? controller.getStatusColor(status)
+                          : Colors.grey.shade700,
+                      fontWeight: controller.selectedStatus == status
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
+                  ),
+                ));
           }).toList(),
         ),
       ),

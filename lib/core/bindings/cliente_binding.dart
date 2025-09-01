@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
 import '../../modules/cliente/controllers/product_list_controller.dart';
 import '../../modules/cliente/controllers/cart_controller.dart';
-import '../../modules/cliente/controllers/checkout_controller.dart';
 import '../../modules/cliente/controllers/order_history_controller.dart';
+import '../services/api_service.dart';
 import '../../modules/cliente/controllers/profile_controller.dart';
 import '../../modules/cliente/repositories/product_repository.dart';
 import '../../modules/cliente/repositories/cart_repository.dart';
@@ -21,10 +21,12 @@ class ClienteBinding extends Bindings {
     Get.lazyPut<OrderRepository>(
         () => RepositoryFactory.createOrderRepository());
 
+    // Services
+    Get.lazyPut<ApiService>(() => ApiService());
+
     // Controllers
     Get.lazyPut<ProductListController>(() => ProductListController());
     Get.lazyPut<CartController>(() => CartController());
-    Get.lazyPut<CheckoutController>(() => CheckoutController());
     Get.lazyPut<OrderHistoryController>(() => OrderHistoryController());
     Get.lazyPut<ProfileController>(() => ProfileController());
   }

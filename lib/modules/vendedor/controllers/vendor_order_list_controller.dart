@@ -3,8 +3,10 @@ import 'package:get/get.dart';
 import '../../../core/models/order_model.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/utils/logger.dart';
+import '../repositories/vendor_order_repository.dart';
 
 class VendorOrderListController extends GetxController {
+  late final VendorOrderRepository _repository;
   final RxList<OrderModel> _orders = <OrderModel>[].obs;
   final RxList<OrderModel> _filteredOrders = <OrderModel>[].obs;
   final RxBool _isLoading = false.obs;
@@ -34,6 +36,7 @@ class VendorOrderListController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _repository = Get.find<VendorOrderRepository>();
     loadOrders();
   }
 
@@ -42,15 +45,23 @@ class VendorOrderListController extends GetxController {
       _isLoading.value = true;
       _errorMessage.value = '';
 
-      // Simular busca de pedidos (substituir por repository real)
-      await Future.delayed(Duration(milliseconds: 800));
-      
-      final mockOrders = _getMockOrders();
-      _orders.assignAll(mockOrders);
+      AppLogger.info(
+          '🔄 [VENDOR_ORDER] Carregando pedidos reais do vendedor...');
+
+      final orders = await _repository.getVendorOrders();
+      _orders.assignAll(orders);
       _applyFilters();
+
+      if (orders.isEmpty) {
+        AppLogger.info(
+            '📭 [VENDOR_ORDER] Nenhum pedido encontrado para o vendedor');
+      } else {
+        AppLogger.info(
+            '✅ [VENDOR_ORDER] ${orders.length} pedidos carregados com sucesso');
+      }
     } catch (e) {
       _errorMessage.value = 'Erro ao carregar pedidos: $e';
-      AppLogger.error('Erro ao carregar pedidos', e);
+      AppLogger.error('❌ [VENDOR_ORDER] Erro ao carregar pedidos', e);
     } finally {
       _isLoading.value = false;
     }
@@ -79,7 +90,9 @@ class VendorOrderListController extends GetxController {
 
     // Filtrar por status
     if (_selectedStatus.value != 'all') {
-      filtered = filtered.where((order) => order.status == _selectedStatus.value).toList();
+      filtered = filtered
+          .where((order) => order.status == _selectedStatus.value)
+          .toList();
     }
 
     // Filtrar por busca
@@ -87,7 +100,7 @@ class VendorOrderListController extends GetxController {
       final query = _searchQuery.value.toLowerCase();
       filtered = filtered.where((order) {
         return order.id.toLowerCase().contains(query) ||
-               order.status.toLowerCase().contains(query);
+            order.status.toLowerCase().contains(query);
       }).toList();
     }
 
@@ -144,7 +157,18 @@ class VendorOrderListController extends GetxController {
   }
 
   void navigateToOrderDetail(String orderId) {
-    Get.toNamed('/vendor/pedido/$orderId');
+    try {
+      Get.toNamed('/vendor/pedido/$orderId');
+    } catch (e) {
+      AppLogger.error('Erro ao navegar para detalhes do pedido', e);
+      Get.snackbar(
+        'Erro',
+        'Erro ao abrir detalhes do pedido',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
 
   String formatDateTime(DateTime dateTime) {
@@ -153,125 +177,5 @@ class VendorOrderListController extends GetxController {
 
   Future<void> refreshOrders() async {
     await loadOrders();
-  }
-
-  List<OrderModel> _getMockOrders() {
-    return [
-      OrderModel(
-        id: 'ORD_001',
-        userId: 'USER_001',
-        items: [],
-        subtotal: 45.90,
-        deliveryFee: 5.00,
-        total: 50.90,
-        status: 'pending',
-        createdAt: DateTime.now().subtract(Duration(minutes: 30)),
-        deliveryAddress: AddressModel(
-          street: 'Rua das Flores',
-          number: '123',
-          complement: 'Apto 45',
-          neighborhood: 'Centro',
-          city: 'São Paulo',
-          state: 'SP',
-          zipCode: '01234-567',
-        ),
-      ),
-      OrderModel(
-        id: 'ORD_002',
-        userId: 'USER_002',
-        items: [],
-        subtotal: 78.50,
-        deliveryFee: 5.00,
-        total: 83.50,
-        status: 'confirmed',
-        createdAt: DateTime.now().subtract(Duration(hours: 1)),
-        deliveryAddress: AddressModel(
-          street: 'Av. Paulista',
-          number: '1000',
-          complement: '',
-          neighborhood: 'Bela Vista',
-          city: 'São Paulo',
-          state: 'SP',
-          zipCode: '01310-100',
-        ),
-      ),
-      OrderModel(
-        id: 'ORD_003',
-        userId: 'USER_003',
-        items: [],
-        subtotal: 120.00,
-        deliveryFee: 8.00,
-        total: 128.00,
-        status: 'preparing',
-        createdAt: DateTime.now().subtract(Duration(hours: 2)),
-        deliveryAddress: AddressModel(
-          street: 'Rua Augusta',
-          number: '500',
-          complement: 'Casa',
-          neighborhood: 'Consolação',
-          city: 'São Paulo',
-          state: 'SP',
-          zipCode: '01305-000',
-        ),
-      ),
-      OrderModel(
-        id: 'ORD_004',
-        userId: 'USER_004',
-        items: [],
-        subtotal: 95.75,
-        deliveryFee: 5.00,
-        total: 100.75,
-        status: 'ready',
-        createdAt: DateTime.now().subtract(Duration(hours: 3)),
-        deliveryAddress: AddressModel(
-          street: 'Rua Oscar Freire',
-          number: '200',
-          complement: 'Loja 1',
-          neighborhood: 'Jardins',
-          city: 'São Paulo',
-          state: 'SP',
-          zipCode: '01426-000',
-        ),
-      ),
-      OrderModel(
-        id: 'ORD_005',
-        userId: 'USER_005',
-        items: [],
-        subtotal: 67.30,
-        deliveryFee: 5.00,
-        total: 72.30,
-        status: 'delivering',
-        createdAt: DateTime.now().subtract(Duration(hours: 4)),
-        deliveryAddress: AddressModel(
-          street: 'Rua da Consolação',
-          number: '800',
-          complement: 'Apto 12',
-          neighborhood: 'Consolação',
-          city: 'São Paulo',
-          state: 'SP',
-          zipCode: '01302-000',
-        ),
-      ),
-      OrderModel(
-        id: 'ORD_006',
-        userId: 'USER_006',
-        items: [],
-        subtotal: 156.80,
-        deliveryFee: 8.00,
-        total: 164.80,
-        status: 'delivered',
-        createdAt: DateTime.now().subtract(Duration(days: 1)),
-        deliveredAt: DateTime.now().subtract(Duration(hours: 20)),
-        deliveryAddress: AddressModel(
-          street: 'Av. Faria Lima',
-          number: '1500',
-          complement: 'Sala 10',
-          neighborhood: 'Itaim Bibi',
-          city: 'São Paulo',
-          state: 'SP',
-          zipCode: '01452-000',
-        ),
-      ),
-    ];
   }
 }

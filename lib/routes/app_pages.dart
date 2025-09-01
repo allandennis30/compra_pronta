@@ -5,6 +5,7 @@ import '../modules/cliente/pages/product_list_page.dart';
 import '../modules/cliente/pages/product_detail_page.dart';
 import '../modules/cliente/pages/cart_page.dart';
 import '../modules/cliente/pages/checkout_page.dart';
+import '../modules/cliente/pages/order_success_page.dart';
 import '../modules/cliente/pages/order_history_page.dart';
 import '../modules/vendedor/pages/vendor_dashboard_page.dart';
 import '../modules/vendedor/pages/vendor_product_list_page.dart';
@@ -19,9 +20,11 @@ import '../core/bindings/cliente_binding.dart';
 import '../core/bindings/vendedor_binding.dart';
 import '../modules/cliente/pages/profile_page.dart';
 import '../modules/cliente/bindings/product_detail_binding.dart';
+import '../modules/cliente/bindings/checkout_binding.dart';
 import '../modules/vendedor/bindings/vendedor_settings_binding.dart';
 import '../modules/vendedor/bindings/vendedor_product_list_binding.dart';
 import '../modules/vendedor/bindings/vendedor_product_form_binding.dart';
+import '../modules/vendedor/bindings/vendedor_order_detail_binding.dart';
 import '../core/middleware/auth_middleware.dart';
 
 class AuthBinding extends Bindings {
@@ -38,6 +41,7 @@ abstract class Routes {
   static const clienteDetalhe = '/cliente/produto';
   static const clienteCarrinho = '/cliente/carrinho';
   static const clienteCheckout = '/cliente/checkout';
+  static const clienteOrderSuccess = '/cliente/order-success';
   static const clienteHistorico = '/cliente/historico';
   static const vendorDashboard = '/vendor/dashboard';
   static const vendorProdutos = '/vendor/produtos';
@@ -80,6 +84,11 @@ class AppPages {
     GetPage(
       name: Routes.clienteCheckout,
       page: () => CheckoutPage(),
+      binding: CheckoutBinding(),
+    ),
+    GetPage(
+      name: Routes.clienteOrderSuccess,
+      page: () => OrderSuccessPage(),
       binding: ClienteBinding(),
     ),
     GetPage(
@@ -111,12 +120,12 @@ class AppPages {
     GetPage(
       name: Routes.vendorPedidoDetalhe,
       page: () => VendorOrderDetailPage(),
-      binding: VendedorBinding(),
+      binding: VendedorOrderDetailBinding(),
     ),
     GetPage(
       name: '/vendor/pedido/:orderId',
       page: () => VendorOrderDetailPage(),
-      binding: VendedorBinding(),
+      binding: VendedorOrderDetailBinding(),
     ),
     GetPage(
       name: Routes.vendorScan,

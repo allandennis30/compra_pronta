@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/cart_controller.dart';
 import '../../../constants/app_constants.dart';
+import '../../../routes/app_pages.dart';
 
 class CartSummaryWidget extends GetView<CartController> {
   final bool isDesktop;
@@ -71,7 +72,7 @@ class CartSummaryWidget extends GetView<CartController> {
         width: double.infinity,
         child: Obx(() => ElevatedButton(
               onPressed: controller.canCheckout()
-                  ? () => Get.toNamed('/cliente/checkout')
+                  ? () => Get.toNamed(Routes.clienteCheckout)
                   : null,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),

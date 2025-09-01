@@ -5,6 +5,7 @@ import '../../../core/models/order_model.dart';
 import '../../../constants/app_constants.dart';
 import '../../../core/utils/logger.dart';
 import '../../auth/controllers/auth_controller.dart';
+import '../../../core/services/api_service.dart';
 import 'package:get/get.dart';
 
 abstract class OrderRepository extends BaseRepository<OrderModel> {
@@ -58,9 +59,6 @@ class OrderRepositoryImpl implements OrderRepository {
 
   @override
   Future<List<OrderModel>> getUserOrders() async {
-    // Simular delay de rede
-    await Future.delayed(Duration(milliseconds: 500));
-
     try {
       // Obter usuário atual
       final authController = Get.find<AuthController>();
@@ -71,12 +69,91 @@ class OrderRepositoryImpl implements OrderRepository {
         return [];
       }
 
+      // Tentar buscar da API real primeiro
+      try {
+        final apiService = Get.find<ApiService>();
+        AppLogger.info('📡 [ORDER] Chamando API /orders...');
+        final response = await apiService.get('/orders');
+        AppLogger.info('📡 [ORDER] API chamada com sucesso');
+
+        AppLogger.info('📡 [ORDER] Resposta da API de pedidos:');
+        AppLogger.info('   - Success: ${response['success']}');
+        AppLogger.info('   - Orders count: ${response['orders']?.length ?? 0}');
+
+        if (response['success'] == true && response['orders'] != null) {
+          final ordersData = response['orders'] as List<dynamic>;
+          AppLogger.info(
+              '📋 [ORDER] Processando ${ordersData.length} pedidos da API');
+
+          // Log dos dados brutos da API
+          AppLogger.info('📄 [ORDER] Dados brutos da API:');
+          AppLogger.info('📄 [ORDER] Response completa: $response');
+          AppLogger.info('📄 [ORDER] Orders data: $ordersData');
+
+          for (int i = 0; i < ordersData.length; i++) {
+            final json = ordersData[i];
+            AppLogger.info('📦 [ORDER] Pedido ${i + 1} (JSON):');
+            AppLogger.info('   - ID: ${json['id']}');
+            AppLogger.info('   - Status: ${json['status']}');
+            AppLogger.info('   - Total: ${json['total']}');
+            AppLogger.info('   - Itens: ${json['items']}');
+            AppLogger.info('   - Itens é List: ${json['items'] is List}');
+            AppLogger.info('   - Itens é null: ${json['items'] == null}');
+            AppLogger.info('   - Itens type: ${json['items']?.runtimeType}');
+            AppLogger.info('   - Itens toString: ${json['items'].toString()}');
+
+            if (json['items'] is List) {
+              final items = json['items'] as List;
+              AppLogger.info('   - Quantidade de itens: ${items.length}');
+              for (int j = 0; j < items.length; j++) {
+                final item = items[j];
+                AppLogger.info('     ${j + 1}. ${item}');
+              }
+            } else if (json['items'] != null) {
+              AppLogger.info('   - Itens não é List, é: ${json['items']}');
+            } else {
+              AppLogger.warning('   - ⚠️ ITENS É NULL OU VAZIO!');
+            }
+          }
+
+          final orders = ordersData
+              .map((json) {
+                try {
+                  AppLogger.info(
+                      '🔄 [ORDER] Convertendo pedido: ${json['id']}');
+                  final order = OrderModel.fromJson(json);
+                  AppLogger.info(
+                      '✅ [ORDER] Pedido ${json['id']} convertido com ${order.items.length} itens');
+                  AppLogger.info('✅ [ORDER] Itens do pedido: ${order.items}');
+                  return order;
+                } catch (e) {
+                  AppLogger.error(
+                      '❌ [ORDER] Erro ao converter pedido ${json['id']}:', e);
+                  return null;
+                }
+              })
+              .where((order) => order != null)
+              .where((order) => order!.userId == currentUser.id)
+              .cast<OrderModel>()
+              .toList();
+
+          AppLogger.info(
+              '✅ [ORDER] ${orders.length} pedidos processados com sucesso');
+          AppLogger.info('✅ [ORDER] Pedidos finais: $orders');
+          AppLogger.info('✅ [ORDER] Retornando pedidos para o controller...');
+          return orders;
+        }
+      } catch (apiError) {
+        AppLogger.warning(
+            '❌ [ORDER] Erro ao buscar pedidos da API, usando dados locais: $apiError');
+      }
+
+      // Fallback para dados locais
       final ordersData =
           _storage.read(AppConstants.ordersKey) as List<dynamic>?;
       if (ordersData != null) {
         final allOrders =
             ordersData.map((json) => OrderModel.fromJson(json)).toList();
-        // Filtrar apenas pedidos do usuário atual
         return allOrders
             .where((order) => order.userId == currentUser.id)
             .toList();
@@ -87,7 +164,6 @@ class OrderRepositoryImpl implements OrderRepository {
         return _getMockOrders();
       }
 
-      // Se for vendedor ou outro usuário, retornar lista vazia
       return [];
     } catch (e) {
       AppLogger.error('Erro ao carregar pedidos do usuário', e);
@@ -107,6 +183,8 @@ class OrderRepositoryImpl implements OrderRepository {
 
   @override
   Future<OrderModel> createOrder(OrderModel order) async {
+    AppLogger.info('🛒 [ORDER] Criando pedido local: ${order.id}');
+
     // Simular criação na API
     await Future.delayed(Duration(milliseconds: 300));
 
@@ -116,6 +194,7 @@ class OrderRepositoryImpl implements OrderRepository {
     await _storage.write(
         AppConstants.ordersKey, orders.map((o) => o.toJson()).toList());
 
+    AppLogger.info('✅ [ORDER] Pedido salvo localmente: ${order.id}');
     return order;
   }
 

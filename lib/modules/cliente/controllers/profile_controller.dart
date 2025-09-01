@@ -8,7 +8,7 @@ class ProfileController extends GetxController {
   final Rx<UserModel?> user = Rx<UserModel?>(null);
   final RxBool isEditing = false.obs;
   final RxBool isLoading = false.obs;
-  
+
   // Controllers para os campos editáveis
   final nameController = TextEditingController();
   final phoneController = TextEditingController();
@@ -19,7 +19,7 @@ class ProfileController extends GetxController {
   final cityController = TextEditingController();
   final stateController = TextEditingController();
   final zipCodeController = TextEditingController();
-  
+
   // Controllers para alterar senha
   final currentPasswordController = TextEditingController();
   final newPasswordController = TextEditingController();
@@ -31,7 +31,7 @@ class ProfileController extends GetxController {
     user.value = _authController.currentUser;
     _initializeControllers();
   }
-  
+
   @override
   void onClose() {
     nameController.dispose();
@@ -48,7 +48,7 @@ class ProfileController extends GetxController {
     confirmPasswordController.dispose();
     super.onClose();
   }
-  
+
   void _initializeControllers() {
     final currentUser = user.value;
     if (currentUser != null) {
@@ -63,7 +63,7 @@ class ProfileController extends GetxController {
       zipCodeController.text = currentUser.address.zipCode;
     }
   }
-  
+
   void toggleEdit() {
     if (isEditing.value) {
       // Cancelar edição - restaurar valores originais
@@ -71,23 +71,25 @@ class ProfileController extends GetxController {
     }
     isEditing.toggle();
   }
-  
+
   Future<void> saveProfile() async {
     if (user.value == null) return;
-    
+
     try {
       isLoading.value = true;
-      
+
       final updatedAddress = AddressModel(
         street: streetController.text.trim(),
         number: numberController.text.trim(),
-        complement: complementController.text.trim().isEmpty ? null : complementController.text.trim(),
+        complement: complementController.text.trim().isEmpty
+            ? null
+            : complementController.text.trim(),
         neighborhood: neighborhoodController.text.trim(),
         city: cityController.text.trim(),
         state: stateController.text.trim(),
         zipCode: zipCodeController.text.trim(),
       );
-      
+
       final updatedUser = UserModel(
         id: user.value!.id,
         name: nameController.text.trim(),
@@ -98,11 +100,11 @@ class ProfileController extends GetxController {
         longitude: user.value!.longitude,
         istore: user.value!.istore,
       );
-      
+
       _authController.updateUser(updatedUser);
       user.value = updatedUser;
       isEditing.value = false;
-      
+
       Get.snackbar(
         'Sucesso',
         'Perfil atualizado com sucesso!',
@@ -120,13 +122,13 @@ class ProfileController extends GetxController {
       isLoading.value = false;
     }
   }
-  
+
   void showChangePasswordDialog() {
     // Limpar campos
     currentPasswordController.clear();
     newPasswordController.clear();
     confirmPasswordController.clear();
-    
+
     Get.dialog(
       AlertDialog(
         title: const Text('Alterar Senha'),
@@ -167,27 +169,29 @@ class ProfileController extends GetxController {
             child: const Text('Cancelar'),
           ),
           Obx(() => ElevatedButton(
-            onPressed: isLoading.value ? null : changePassword,
-            child: isLoading.value
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('Alterar'),
-          )),
+                onPressed: isLoading.value ? null : changePassword,
+                child: isLoading.value
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Alterar'),
+              )),
         ],
       ),
     );
   }
-  
+
   Future<void> changePassword() async {
     final currentPassword = currentPasswordController.text.trim();
     final newPassword = newPasswordController.text.trim();
     final confirmPassword = confirmPasswordController.text.trim();
-    
+
     // Validações
-    if (currentPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
+    if (currentPassword.isEmpty ||
+        newPassword.isEmpty ||
+        confirmPassword.isEmpty) {
       Get.snackbar(
         'Erro',
         'Todos os campos são obrigatórios',
@@ -196,7 +200,7 @@ class ProfileController extends GetxController {
       );
       return;
     }
-    
+
     if (newPassword != confirmPassword) {
       Get.snackbar(
         'Erro',
@@ -206,7 +210,7 @@ class ProfileController extends GetxController {
       );
       return;
     }
-    
+
     if (newPassword.length < 6) {
       Get.snackbar(
         'Erro',
@@ -216,16 +220,16 @@ class ProfileController extends GetxController {
       );
       return;
     }
-    
+
     try {
       isLoading.value = true;
-      
+
       // Simular validação da senha atual e alteração
       await Future.delayed(const Duration(seconds: 1));
-      
+
       // Em uma implementação real, aqui seria feita a validação da senha atual
       // e a alteração no backend
-      
+
       Get.back(); // Fechar dialog
       Get.snackbar(
         'Sucesso',

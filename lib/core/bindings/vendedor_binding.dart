@@ -15,11 +15,20 @@ import '../../modules/vendedor/controllers/vendor_scan_controller.dart';
 import '../../modules/vendedor/controllers/vendor_metrics_controller.dart';
 import '../../modules/vendedor/repositories/vendor_metrics_repository.dart';
 import '../../modules/vendedor/repositories/vendedor_product_repository.dart';
+import '../../modules/vendedor/repositories/vendor_order_repository.dart';
 import '../repositories/repository_factory.dart';
+import '../services/api_service.dart';
+import '../../modules/auth/controllers/auth_controller.dart';
 
 class VendedorBinding extends Bindings {
   @override
   void dependencies() {
+    // Services
+    Get.lazyPut<ApiService>(() => ApiService());
+
+    // Controllers
+    Get.lazyPut<AuthController>(() => AuthController());
+
     // Repositories usando factory
     Get.lazyPut<AuthRepository>(() => RepositoryFactory.createAuthRepository());
     // TODO: Renomear para VendedorMetricsRepository após renomear os arquivos
@@ -27,6 +36,7 @@ class VendedorBinding extends Bindings {
         () => RepositoryFactory.createVendorMetricsRepository());
     Get.lazyPut<VendedorProductRepository>(
         () => RepositoryFactory.createVendedorProductRepository());
+    Get.lazyPut<VendorOrderRepository>(() => VendorOrderRepositoryImpl());
 
     // Controllers
     // TODO: Renomear para VendedorProductListController após renomear os arquivos

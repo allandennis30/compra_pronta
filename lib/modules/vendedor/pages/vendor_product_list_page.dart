@@ -3,35 +3,39 @@ import 'package:get/get.dart';
 import '../controllers/vendor_product_list_controller.dart';
 import '../../cliente/models/product_model.dart';
 import '../widgets/product_card.dart';
+import '../widgets/vendedor_layout.dart';
 
 class VendorProductListPage extends GetView<VendedorProductListController> {
   const VendorProductListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Meus Produtos'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _navigateToProductForm(),
-            tooltip: 'Adicionar Produto',
-          ),
-        ],
+    return VendedorLayout(
+      currentIndex: 1,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Meus Produtos'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () => _navigateToProductForm(),
+              tooltip: 'Adicionar Produto',
+            ),
+          ],
+        ),
+        body: Obx(() => controller.isLoading.value
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
+                children: [
+                  _buildFilters(),
+                  Expanded(
+                    child: controller.products.isEmpty
+                        ? _buildEmptyState()
+                        : _buildProductList(),
+                  ),
+                ],
+              )),
       ),
-      body: Obx(() => controller.isLoading.value
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                _buildFilters(),
-                Expanded(
-                  child: controller.products.isEmpty
-                      ? _buildEmptyState()
-                      : _buildProductList(),
-                ),
-              ],
-            )),
     );
   }
 

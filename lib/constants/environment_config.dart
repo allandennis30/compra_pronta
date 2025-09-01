@@ -21,7 +21,7 @@ class EnvironmentConfig {
   ///
   /// Configurado para usar desenvolvimento local
   /// para conectar ao servidor local na porta 3000
-  static const Environment _currentEnvironment = Environment.development;
+  static const Environment _currentEnvironment = Environment.production;
 
   /// URLs dos servidores
   static const Map<Environment, String> _serverUrls = {

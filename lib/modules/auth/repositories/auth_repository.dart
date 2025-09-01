@@ -73,6 +73,9 @@ class AuthRepositoryImpl implements AuthRepository {
         AppLogger.success(
             '✅ Login realizado com sucesso - UserID: ${responseData['user']?['id']} - Tipo: ${responseData['user']?['tipo']}');
 
+        // Criar modelo do usuário a partir da resposta
+        final userData = responseData['user'];
+
         // Salvar token JWT
         final token = responseData['token'];
         if (token != null) {
@@ -80,11 +83,15 @@ class AuthRepositoryImpl implements AuthRepository {
           AppLogger.info('💾 Token JWT salvo no storage');
         }
 
+        // Salvar user_id para uso em outras partes do app
+        final userId = userData['id']?.toString();
+        if (userId != null) {
+          await _storage.write('user_id', userId);
+          AppLogger.info('💾 User ID salvo no storage: $userId');
+        }
+
         // Salvar credenciais para login automático futuro
         await saveCredentials(email, password);
-
-        // Criar modelo do usuário a partir da resposta
-        final userData = responseData['user'];
 
         // Criar AddressModel a partir dos dados do backend
         final addressData = userData['endereco'] ?? userData['address'] ?? {};
@@ -204,6 +211,13 @@ class AuthRepositoryImpl implements AuthRepository {
 
         // Criar modelo do usuário a partir da resposta
         final userData = responseData['user'];
+
+        // Salvar user_id para uso em outras partes do app
+        final userId = userData['id']?.toString();
+        if (userId != null) {
+          await _storage.write('user_id', userId);
+          AppLogger.info('💾 User ID salvo no storage: $userId');
+        }
         final addressData = userData['endereco'] ?? userData['address'];
 
         final addressModel = AddressModel(
@@ -291,9 +305,11 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await _storage.remove(AppConstants.userKey);
       await _storage.remove(AppConstants.tokenKey);
+      await _storage.remove('user_id');
       await _storage.remove(AppConstants.cartKey);
       // Limpar credenciais salvas também
       await clearSavedCredentials();
+      AppLogger.info('💾 Logout realizado - dados limpos do storage');
     } catch (e) {
       AppLogger.error('Erro ao fazer logout', e);
       rethrow;

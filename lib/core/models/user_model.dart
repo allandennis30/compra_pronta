@@ -20,26 +20,26 @@ class UserModel {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
-    id: json['id'],
-    name: json['name'],
-    email: json['email'],
-    phone: json['phone'],
-    address: AddressModel.fromJson(json['address']),
-    latitude: json['latitude'],
-    longitude: json['longitude'],
-    istore: json['istore'] ?? false,
-  );
+        id: json['id'],
+        name: json['name'],
+        email: json['email'],
+        phone: json['phone'],
+        address: AddressModel.fromJson(json['address']),
+        latitude: json['latitude'],
+        longitude: json['longitude'],
+        istore: json['istore'] ?? false,
+      );
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'email': email,
-    'phone': phone,
-    'address': address.toJson(),
-    'latitude': latitude,
-    'longitude': longitude,
-    'istore': istore,
-  };
+        'id': id,
+        'name': name,
+        'email': email,
+        'phone': phone,
+        'address': address.toJson(),
+        'latitude': latitude,
+        'longitude': longitude,
+        'istore': istore,
+      };
 }
 
 class AddressModel {
@@ -62,24 +62,41 @@ class AddressModel {
   });
 
   factory AddressModel.fromJson(Map<String, dynamic> json) => AddressModel(
-    street: json['street'],
-    number: json['number'],
-    complement: json['complement'],
-    neighborhood: json['neighborhood'],
-    city: json['city'],
-    state: json['state'],
-    zipCode: json['zipCode'],
-  );
+        street: json['street'] ?? json['rua'] ?? '',
+        number: json['number'] ?? json['numero'] ?? '',
+        complement: json['complement'] ?? json['complemento'],
+        neighborhood: json['neighborhood'] ?? json['bairro'] ?? '',
+        city: json['city'] ?? json['cidade'] ?? '',
+        state: json['state'] ?? json['estado'] ?? '',
+        zipCode: json['zipCode'] ?? json['cep'] ?? '',
+      );
 
   Map<String, dynamic> toJson() => {
-    'street': street,
-    'number': number,
-    'complement': complement,
-    'neighborhood': neighborhood,
-    'city': city,
-    'state': state,
-    'zipCode': zipCode,
-  };
+        'rua': street,
+        'numero': number,
+        'complemento': complement,
+        'bairro': neighborhood,
+        'cidade': city,
+        'estado': state,
+        'cep': zipCode,
+      };
 
-  String get fullAddress => '$street, $number${complement != null ? ' - $complement' : ''}, $neighborhood, $city - $state, $zipCode';
-} 
+  String get fullAddress {
+    final parts = <String>[];
+
+    if (street.isNotEmpty) parts.add(street);
+    if (number.isNotEmpty) parts.add(number);
+    if (complement != null && complement!.isNotEmpty) parts.add(complement!);
+    if (neighborhood.isNotEmpty) parts.add(neighborhood);
+    if (city.isNotEmpty && state.isNotEmpty) {
+      parts.add('$city - $state');
+    } else if (city.isNotEmpty) {
+      parts.add(city);
+    } else if (state.isNotEmpty) {
+      parts.add(state);
+    }
+    if (zipCode.isNotEmpty) parts.add(zipCode);
+
+    return parts.isEmpty ? 'Endereço não informado' : parts.join(', ');
+  }
+}

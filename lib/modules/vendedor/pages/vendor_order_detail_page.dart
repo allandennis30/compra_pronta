@@ -16,12 +16,27 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
           'Detalhes do Pedido',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Get.back(),
+          tooltip: 'Voltar',
+        ),
         actions: [
           Obx(() => controller.order != null
-              ? IconButton(
-                  icon: const Icon(Icons.share),
-                  onPressed: controller.shareOrderDetails,
-                  tooltip: 'Compartilhar',
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.refresh),
+                      onPressed: controller.refreshOrder,
+                      tooltip: 'Atualizar',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.share),
+                      onPressed: controller.shareOrderDetails,
+                      tooltip: 'Compartilhar',
+                    ),
+                  ],
                 )
               : const SizedBox()),
         ],
@@ -85,23 +100,30 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
           );
         }
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildOrderHeader(context),
-              const SizedBox(height: 16),
-              _buildCustomerAndDeliveryInfo(context),
-              const SizedBox(height: 16),
-              _buildOrderItems(context),
-              const SizedBox(height: 16),
-              _buildOrderSummary(context),
-              const SizedBox(height: 16),
-              _buildStatusSection(context),
-              const SizedBox(height: 24),
-            ],
-          ),
+        return Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildOrderHeader(context),
+                    const SizedBox(height: 16),
+                    _buildCustomerAndDeliveryInfo(context),
+                    const SizedBox(height: 16),
+                    _buildOrderItems(context),
+                    const SizedBox(height: 16),
+                    _buildOrderSummary(context),
+                    const SizedBox(height: 16),
+                    _buildStatusSection(context),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            ),
+            _buildBottomActions(context),
+          ],
         );
       }),
     );
@@ -117,49 +139,61 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Pedido #${order.id}',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Text(
+                        'Pedido #${order.id.substring(0, 8)}...',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      controller.formatDateTime(order.createdAt),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    const SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: controller
+                            .getStatusColor(order.status)
+                            .withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: controller.getStatusColor(order.status),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        controller.getStatusDisplayName(order.status),
+                        style: TextStyle(
+                          color: controller.getStatusColor(order.status),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+                const SizedBox(height: 4),
+                Text(
+                  'ID completo: ${order.id}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.5),
+                    fontFamily: 'monospace',
                   ),
-                  decoration: BoxDecoration(
-                    color: controller
-                        .getStatusColor(order.status)
-                        .withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: controller.getStatusColor(order.status),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    controller.getStatusDisplayName(order.status),
-                    style: TextStyle(
-                      color: controller.getStatusColor(order.status),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                    ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  controller.formatDateTime(order.createdAt),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
                   ),
                 ),
               ],
@@ -174,11 +208,14 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
                     size: 16,
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    'Entregue em ${controller.formatDateTime(order.deliveredAt!)}',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w500,
+                  Expanded(
+                    child: Text(
+                      'Entregue em ${controller.formatDateTime(order.deliveredAt!)}',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -195,6 +232,16 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
     final address = controller.order!.deliveryAddress;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+
+    // Debug: verificar se o endereço está chegando
+    print('🔍 [VENDOR_ORDER_DETAIL] Endereço: ${address.fullAddress}');
+    print('🔍 [VENDOR_ORDER_DETAIL] Street: ${address.street}');
+    print('🔍 [VENDOR_ORDER_DETAIL] Number: ${address.number}');
+    print('🔍 [VENDOR_ORDER_DETAIL] Neighborhood: ${address.neighborhood}');
+    print('🔍 [VENDOR_ORDER_DETAIL] City: ${address.city}');
+    print('🔍 [VENDOR_ORDER_DETAIL] State: ${address.state}');
+    print('🔍 [VENDOR_ORDER_DETAIL] ZipCode: ${address.zipCode}');
+    print('🔍 [VENDOR_ORDER_DETAIL] Complement: ${address.complement}');
 
     return Card(
       child: Padding(
@@ -269,11 +316,53 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
                   color: theme.colorScheme.outline.withOpacity(0.3),
                 ),
               ),
-              child: Text(
-                address.fullAddress,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  height: 1.4,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (address.street.isNotEmpty)
+                    Text(
+                      address.street,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  if (address.number.isNotEmpty)
+                    Text(
+                      'Número: ${address.number}',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                  if (address.neighborhood.isNotEmpty)
+                    Text(
+                      'Bairro: ${address.neighborhood}',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                  if (address.city.isNotEmpty || address.state.isNotEmpty)
+                    Text(
+                      '${address.city}${address.city.isNotEmpty && address.state.isNotEmpty ? ' - ' : ''}${address.state}',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                  if (address.zipCode.isNotEmpty)
+                    Text(
+                      'CEP: ${address.zipCode}',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                  if (address.street.isEmpty && address.city.isEmpty)
+                    Text(
+                      'Endereço não informado',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.5),
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                ],
               ),
             ),
           ],
@@ -318,6 +407,7 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
               itemBuilder: (context, index) {
                 final item = items[index];
                 return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
                       width: 50,
@@ -347,6 +437,8 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
                             style: theme.textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.w500,
                             ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -359,6 +451,7 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
                         ],
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
@@ -370,7 +463,7 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Total: R\$ ${(item.price * item.quantity).toStringAsFixed(2)}',
+                          'R\$ ${(item.price * item.quantity).toStringAsFixed(2)}',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurface.withOpacity(0.6),
                           ),
@@ -587,17 +680,21 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: isTotal
-                ? theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  )
-                : theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
-                  ),
+          Expanded(
+            child: Text(
+              label,
+              style: isTotal
+                  ? theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    )
+                  : theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    ),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
+          const SizedBox(width: 8),
           Text(
             value,
             style: isTotal
@@ -606,7 +703,7 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
                     color: theme.colorScheme.primary,
                   )
                 : theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                   ),
           ),
         ],
@@ -620,6 +717,49 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
       arguments: {
         'order': controller.order,
       },
+    );
+  }
+
+  Widget _buildBottomActions(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () => controller.goBack(),
+              icon: const Icon(Icons.arrow_back),
+              label: const Text('Voltar'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: () => _navigateToOrderBuilder(context),
+              icon: const Icon(Icons.edit),
+              label: const Text('Editar Pedido'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
