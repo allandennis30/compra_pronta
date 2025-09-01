@@ -25,7 +25,7 @@ class EnvironmentConfig {
 
   /// URLs dos servidores
   static const Map<Environment, String> _serverUrls = {
-    Environment.development: 'http://192.168.3.43:3000', // IP da máquina
+    //  Environment.development: 'http://192.168.3.43:3000', // IP da máquina
     Environment.production: 'https://backend-compra-pronta.onrender.com',
   };
 
