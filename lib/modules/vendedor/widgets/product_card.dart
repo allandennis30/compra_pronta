@@ -281,13 +281,10 @@ class ProductCard extends StatelessWidget {
         onTap: onTap,
         child: Tooltip(
           message: tooltip,
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            child: Icon(
-              icon,
-              size: 18,
-              color: color,
-            ),
+          child: Icon(
+            icon,
+            size: 18,
+            color: color,
           ),
         ),
       ),

@@ -196,6 +196,16 @@ class VendorProductFormController extends GetxController {
 
   void setBarcode(String barcode) {
     barcodeController.text = barcode;
+    
+    // Mostrar mensagem de sucesso
+    Get.snackbar(
+      'Código Escaneado',
+      'Código de barras: $barcode',
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: Colors.green,
+      colorText: Colors.white,
+      duration: const Duration(seconds: 2),
+    );
   }
 
   Future<bool> saveProduct() async {

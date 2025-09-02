@@ -20,6 +20,7 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
   bool _isTorchOn = false;
   bool _isFrontCamera = false;
   final TextEditingController _manualInputController = TextEditingController();
+  String? _lastScannedBarcode; // Para prevenir múltiplos escaneamentos
 
   @override
   void initState() {
@@ -52,172 +53,257 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
 
     if (_isProcessing) return;
 
-    _processBarcode(barcode.trim());
-    _manualInputController.clear();
+    // Chamar o callback diretamente para entrada manual
+    widget.onBarcodeDetected(barcode.trim());
+    
+    // Voltar para a página anterior (cadastro de produto)
+    Get.back();
   }
 
   void _processBarcode(String barcode) async {
     if (_isProcessing) return;
+    
+    // Prevenir múltiplos escaneamentos do mesmo código
+    if (_lastScannedBarcode == barcode) return;
 
     setState(() {
       _isProcessing = true;
+      _lastScannedBarcode = barcode;
     });
 
+    // Preencher o campo manual com o código escaneado
+    _manualInputController.text = barcode;
+
+    // Chamar o callback
     widget.onBarcodeDetected(barcode);
 
-    // Aguarda 1 segundo antes de permitir novo escaneamento
-    await Future.delayed(const Duration(seconds: 1));
+    // Aguarda um pouco para mostrar o feedback visual
+    await Future.delayed(const Duration(milliseconds: 500));
 
+    // Voltar para a página anterior (cadastro de produto)
     if (mounted) {
-      setState(() {
-        _isProcessing = false;
-      });
+      Get.back();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Controles da câmera
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Escanear Código de Barras',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              Row(
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Controles da câmera
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton(
-                    icon: Icon(_isTorchOn ? Icons.flash_on : Icons.flash_off),
-                    onPressed: () {
-                      controller.toggleTorch();
-                      setState(() {
-                        _isTorchOn = !_isTorchOn;
-                      });
-                    },
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () => Get.back(),
+                        tooltip: 'Voltar',
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Escanear Código de Barras',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ],
                   ),
-                  IconButton(
-                    icon: Icon(_isFrontCamera ? Icons.camera_front : Icons.camera_rear),
-                    onPressed: () {
-                      controller.switchCamera();
-                      setState(() {
-                        _isFrontCamera = !_isFrontCamera;
-                      });
-                    },
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(_isTorchOn ? Icons.flash_on : Icons.flash_off),
+                        onPressed: () {
+                          controller.toggleTorch();
+                          setState(() {
+                            _isTorchOn = !_isTorchOn;
+                          });
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(_isFrontCamera ? Icons.camera_front : Icons.camera_rear),
+                        onPressed: () {
+                          controller.switchCamera();
+                          setState(() {
+                            _isFrontCamera = !_isFrontCamera;
+                          });
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: Stack(
-            children: [
-              MobileScanner(
-                controller: controller,
-                onDetect: (capture) {
-                  if (_isProcessing) return;
+            ),
+            // Câmera com altura fixa para evitar overflow
+            Container(
+              height: MediaQuery.of(context).size.height * 0.5, // 50% da altura da tela
+              child: Stack(
+                children: [
+                  MobileScanner(
+                    controller: controller,
+                    onDetect: (capture) {
+                      if (_isProcessing) return;
 
-                  final List<Barcode> barcodes = capture.barcodes;
-                  if (barcodes.isNotEmpty) {
-                    final Barcode barcode = barcodes.first;
-                    if (barcode.rawValue != null) {
-                      _processBarcode(barcode.rawValue!);
-                    }
-                  }
-                },
-              ),
-              if (_isProcessing)
-                Container(
-                  color: Colors.black.withOpacity(0.3),
-                  child: const Center(
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
+                      final List<Barcode> barcodes = capture.barcodes;
+                      if (barcodes.isNotEmpty) {
+                        final Barcode barcode = barcodes.first;
+                        if (barcode.rawValue != null) {
+                          _processBarcode(barcode.rawValue!);
+                        }
+                      }
+                    },
+                  ),
+                  if (_isProcessing)
+                    Container(
+                      color: Colors.black.withOpacity(0.3),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Colors.green.withOpacity(0.9),
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.3),
+                                    spreadRadius: 2,
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.check_circle,
+                                    color: Colors.white,
+                                    size: 48,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  const Text(
+                                    'Código Detectado!',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Código: ${_manualInputController.text}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    'Retornando ao cadastro...',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
+                ],
+              ),
+            ),
+            // Área de instruções e entrada manual
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                width: double.infinity,
+                color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _isProcessing 
+                            ? 'Código detectado com sucesso!'
+                            : 'Aponte a câmera para o código de barras',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _isProcessing
+                            ? 'Retornando ao cadastro...'
+                            : 'O código será detectado automaticamente e você retornará ao cadastro',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 12),
+                      const Divider(height: 1),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Ou digite manualmente e aperte OK:',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _manualInputController,
+                              decoration: InputDecoration(
+                                hintText: _manualInputController.text.isEmpty 
+                                    ? 'Digite o código de barras' 
+                                    : 'Código escaneado: ${_manualInputController.text}',
+                                border: const OutlineInputBorder(),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                isDense: true,
+                              ),
+                              keyboardType: TextInputType.number,
+                              onSubmitted: _processManualInput,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          ElevatedButton(
+                            onPressed: () =>
+                                _processManualInput(_manualInputController.text),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              minimumSize: const Size(0, 36),
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text('Usar Código', style: TextStyle(fontSize: 11)),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-            ],
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.all(12),
-          width: double.infinity,
-          color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  _isProcessing 
-                      ? 'Processando código de barras...'
-                      : 'Aponte a câmera para o código de barras',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  _isProcessing
-                      ? 'Aguarde 1 segundo para escanear novamente'
-                      : 'O código será detectado automaticamente',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                const SizedBox(height: 12),
-                const Divider(height: 1),
-                const SizedBox(height: 6),
-                Text(
-                  'Ou digite manualmente:',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _manualInputController,
-                        decoration: const InputDecoration(
-                          hintText: 'Digite o código de barras',
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          isDense: true,
-                        ),
-                        keyboardType: TextInputType.number,
-                        onSubmitted: _processManualInput,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    ElevatedButton(
-                      onPressed: () =>
-                          _processManualInput(_manualInputController.text),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        minimumSize: const Size(0, 36),
-                      ),
-                      child: const Text('OK', style: TextStyle(fontSize: 12)),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

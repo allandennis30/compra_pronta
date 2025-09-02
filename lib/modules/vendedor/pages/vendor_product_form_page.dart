@@ -271,6 +271,8 @@ class VendorProductFormPage extends GetView<VendorProductFormController> {
           onBarcodeDetected: (barcode) {
             controller.setBarcode(barcode);
             controller.checkExistingBarcode();
+            // Retorna automaticamente para a tela de cadastro após reconhecimento
+            Get.back();
           },
         ));
   }
