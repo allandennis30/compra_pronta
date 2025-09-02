@@ -56,29 +56,29 @@ class AppPages {
     ),
     GetPage(
       name: Routes.signup,
-      page: () => SignupPage(),
+      page: () => const SignupPage(),
       binding: AuthBinding(),
     ),
     // Cliente - Página principal com navegação interna
     GetPage(
       name: Routes.clienteMain,
-      page: () => ClienteMainPage(),
+      page: () => const ClienteMainPage(),
       binding: ClienteBinding(),
     ),
     // Rotas específicas do cliente que ainda precisam de navegação separada
     GetPage(
       name: Routes.clienteDetalhe,
-      page: () => ProductDetailPage(),
+      page: () => const ProductDetailPage(),
       binding: ProductDetailBinding(),
     ),
     GetPage(
       name: Routes.clienteCheckout,
-      page: () => CheckoutPage(),
+      page: () => const CheckoutPage(),
       binding: CheckoutBinding(),
     ),
     GetPage(
       name: Routes.clienteOrderSuccess,
-      page: () => OrderSuccessPage(),
+      page: () => const OrderSuccessPage(),
       binding: ClienteBinding(),
     ),
     // Vendedor
@@ -89,27 +89,27 @@ class AppPages {
     ),
     GetPage(
       name: Routes.vendorProdutos,
-      page: () => VendorProductListPage(),
+      page: () => const VendorProductListPage(),
       binding: VendedorProductListBinding(),
     ),
     GetPage(
       name: Routes.vendorForm,
-      page: () => VendorProductFormPage(),
+      page: () => const VendorProductFormPage(),
       binding: VendedorProductFormBinding(),
     ),
     GetPage(
       name: Routes.vendorPedidos,
-      page: () => VendorOrderListPage(),
+      page: () => const VendorOrderListPage(),
       binding: VendedorBinding(),
     ),
     GetPage(
       name: Routes.vendorPedidoDetalhe,
-      page: () => VendorOrderDetailPage(),
+      page: () => const VendorOrderDetailPage(),
       binding: VendedorOrderDetailBinding(),
     ),
     GetPage(
       name: '/vendor/pedido/:orderId',
-      page: () => VendorOrderDetailPage(),
+      page: () => const VendorOrderDetailPage(),
       binding: VendedorOrderDetailBinding(),
     ),
     GetPage(
@@ -119,12 +119,12 @@ class AppPages {
     ),
     GetPage(
       name: Routes.vendorConfig,
-      page: () => VendedorSettingsPage(),
+      page: () => const VendedorSettingsPage(),
       binding: VendedorSettingsBinding(),
     ),
     GetPage(
       name: Routes.vendorOrderBuilder,
-      page: () => OrderBuilderPage(),
+      page: () => const OrderBuilderPage(),
       binding: VendedorBinding(),
     ),
   ];

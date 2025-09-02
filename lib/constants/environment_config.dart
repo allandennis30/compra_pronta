@@ -35,7 +35,7 @@ class EnvironmentConfig {
 
   /// Retorna a URL base do servidor baseada no ambiente atual
   static String get baseUrl {
-    if (_currentEnvironment == Environment.development) {
+    if (_currentEnvironment == Environment.production) {
       return _getDevelopmentUrl();
     }
     return _serverUrls[_currentEnvironment]!;
@@ -53,7 +53,7 @@ class EnvironmentConfig {
 
   /// Retorna o nome do ambiente atual
   static String get environmentName {
-    if (_currentEnvironment == Environment.development) {
+    if (_currentEnvironment == Environment.production) {
       return 'Desenvolvimento Local (${_isAndroidEmulator() ? "Android Emulator" : "iOS/Real"})';
     }
     return 'Produção (Render)';

@@ -4,7 +4,8 @@ import 'package:get_storage/get_storage.dart';
 import '../utils/logger.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.3.43:3000/api';
+  static const String baseUrl =
+      'https://backend-compra-pronta.onrender.com/api';
   final _storage = GetStorage();
 
   String? get _token {

@@ -5,13 +5,11 @@ import 'dart:convert';
 import '../models/order_model.dart';
 import '../controllers/cart_controller.dart';
 import '../repositories/order_repository.dart';
-import '../../../constants/app_constants.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/utils/snackbar_utils.dart';
 import '../../../core/services/api_service.dart';
 import '../../../routes/app_pages.dart';
 import '../../auth/controllers/auth_controller.dart';
-import '../../../core/models/user_model.dart';
 
 class CheckoutController extends GetxController {
   final _storage = GetStorage();
