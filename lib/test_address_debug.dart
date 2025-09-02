@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'core/models/user_model.dart';
 
 void main() {
@@ -6,7 +5,7 @@ void main() {
   print('=== TESTE 1: Endereço correto ===');
   final address1 = AddressModel(
     street: 'Avenida Dom José Newton de Almeida Batista',
-    number: '0',
+    number: 0,
     complement: null,
     neighborhood: 'Santo Hilário',
     city: 'Goiânia',
@@ -22,7 +21,7 @@ void main() {
   print('\n=== TESTE 2: Endereço problemático ===');
   final address2 = AddressModel(
     street: 'Endereço não informado',
-    number: '',
+    number: 0,
     complement: null,
     neighborhood: '',
     city: '',
@@ -38,7 +37,7 @@ void main() {
   print('\n=== TESTE 3: Endereço parcial ===');
   final address3 = AddressModel(
     street: 'Rua das Flores',
-    number: '123',
+    number: 123,
     complement: null,
     neighborhood: 'Centro',
     city: 'São Paulo',
@@ -54,7 +53,7 @@ void main() {
   print('\n=== TESTE 4: Endereço com campos vazios ===');
   final address4 = AddressModel(
     street: 'Rua das Flores',
-    number: '',
+    number: 0,
     complement: null,
     neighborhood: '',
     city: 'São Paulo',

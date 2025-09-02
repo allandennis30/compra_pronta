@@ -186,7 +186,7 @@ class OrderRepositoryImpl implements OrderRepository {
     AppLogger.info('🛒 [ORDER] Criando pedido local: ${order.id}');
 
     // Simular criação na API
-    await Future.delayed(Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 300));
 
     // Salvar no storage local
     final orders = await getUserOrders();
@@ -229,7 +229,7 @@ class OrderRepositoryImpl implements OrderRepository {
     // Endereço padrão para dados mock
     final defaultAddress = AddressModel(
       street: 'Rua das Flores, 123',
-      number: '123',
+      number: 123,
       complement: 'Apto 45',
       neighborhood: 'Centro',
       city: 'São Paulo',

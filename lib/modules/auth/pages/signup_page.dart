@@ -496,7 +496,8 @@ class _SignupPageState extends State<SignupPage> {
                                   double longitude = -46.633308;
                                   AddressModel address = AddressModel(
                                     street: _streetController.text.trim(),
-                                    number: _numberController.text.trim(),
+                                    number: int.parse(
+                                        _numberController.text.trim()),
                                     complement: _complementController.text
                                             .trim()
                                             .isEmpty

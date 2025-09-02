@@ -326,7 +326,7 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                  if (address.number.isNotEmpty)
+                  if (address.number.toString().isNotEmpty)
                     Text(
                       'Número: ${address.number}',
                       style: theme.textTheme.bodyMedium?.copyWith(

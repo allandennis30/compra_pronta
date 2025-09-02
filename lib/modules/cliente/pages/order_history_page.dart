@@ -76,13 +76,6 @@ class OrderHistoryPage extends StatelessWidget {
   Widget _buildOrderCard(BuildContext context, OrderModel order) {
     final theme = Theme.of(context);
 
-    // Logs do card do pedido
-    AppLogger.info('📋 [ORDER_CARD] Renderizando card do pedido:');
-    AppLogger.info('   - ID: ${order.id}');
-    AppLogger.info('   - Status: ${order.status}');
-    AppLogger.info('   - Total: R\$ ${order.total}');
-    AppLogger.info('   - Quantidade de itens: ${order.items.length}');
-
     if (order.items.isNotEmpty) {
       AppLogger.info('   - Primeiros itens:');
       for (int i = 0; i < order.items.take(3).length; i++) {

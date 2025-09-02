@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import '../../../core/models/user_model.dart';
 import '../../../constants/app_constants.dart';
 import '../../../core/utils/logger.dart';
+import '../../cliente/models/client_model.dart';
 
 abstract class AuthRepository {
   Future<UserModel?> login(String email, String password);
@@ -93,31 +94,71 @@ class AuthRepositoryImpl implements AuthRepository {
         // Salvar credenciais para login automático futuro
         await saveCredentials(email, password);
 
-        // Criar AddressModel a partir dos dados do backend
-        final addressData = userData['endereco'] ?? userData['address'] ?? {};
-        final address = AddressModel(
-          street: addressData['rua'] ?? addressData['street'] ?? '',
-          number: addressData['numero'] ?? addressData['number'] ?? '',
-          complement: addressData['complemento'] ?? addressData['complement'],
-          neighborhood:
-              addressData['bairro'] ?? addressData['neighborhood'] ?? '',
-          city: addressData['cidade'] ?? addressData['city'] ?? '',
-          state: addressData['estado'] ?? addressData['state'] ?? '',
-          zipCode: addressData['cep'] ?? addressData['zipCode'] ?? '',
-        );
+        // Verificar se é um cliente ou vendedor
+        final isSeller = userData['isSeller'] == true ||
+            userData['tipo'] == 'vendedor' ||
+            userData['istore'] == true;
 
-        final user = UserModel(
-          id: userData['id'].toString(),
-          name: userData['nome'] ?? userData['name'] ?? '',
-          email: userData['email'],
-          phone: userData['telefone'] ?? userData['phone'] ?? '',
-          address: address,
-          latitude: userData['latitude']?.toDouble() ?? 0.0,
-          longitude: userData['longitude']?.toDouble() ?? 0.0,
-          istore: userData['isSeller'] == true ||
-              userData['tipo'] == 'vendedor' ||
-              userData['istore'] == true,
-        );
+        UserModel user;
+
+        if (isSeller) {
+          // Criar AddressModel a partir dos dados do backend para vendedor
+          final addressData = userData['endereco'] ?? userData['address'] ?? {};
+          final address = AddressModel(
+            street: addressData['rua'] ?? addressData['street'] ?? '',
+            number: addressData['numero'] ?? addressData['number'] ?? '',
+            complement: addressData['complemento'] ?? addressData['complement'],
+            neighborhood:
+                addressData['bairro'] ?? addressData['neighborhood'] ?? '',
+            city: addressData['cidade'] ?? addressData['city'] ?? '',
+            state: addressData['estado'] ?? addressData['state'] ?? '',
+            zipCode: addressData['cep'] ?? addressData['zipCode'] ?? '',
+          );
+
+          user = UserModel(
+            id: userData['id'].toString(),
+            name: userData['nome'] ?? userData['name'] ?? '',
+            email: userData['email'],
+            phone: userData['telefone'] ?? userData['phone'] ?? '',
+            address: address,
+            latitude: userData['latitude']?.toDouble() ?? 0.0,
+            longitude: userData['longitude']?.toDouble() ?? 0.0,
+            istore: true,
+          );
+        } else {
+          // Para cliente, usar ClientModel diretamente
+          try {
+            user = ClientModel.fromJson(userData);
+          } catch (e) {
+            AppLogger.error('💥 Erro ao criar ClientModel: $e', e);
+            // Fallback para UserModel básico se falhar
+            final addressData =
+                userData['endereco'] ?? userData['address'] ?? {};
+            final address = AddressModel(
+              street: addressData['rua'] ?? addressData['street'] ?? '',
+              number:
+                  int.tryParse(addressData['numero']?.toString() ?? '0') ?? 0,
+              complement:
+                  addressData['complemento'] ?? addressData['complement'],
+              neighborhood:
+                  addressData['bairro'] ?? addressData['neighborhood'] ?? '',
+              city: addressData['cidade'] ?? addressData['city'] ?? '',
+              state: addressData['estado'] ?? addressData['state'] ?? '',
+              zipCode: addressData['cep'] ?? addressData['zipCode'] ?? '',
+            );
+
+            user = UserModel(
+              id: userData['id'].toString(),
+              name: userData['nome'] ?? userData['name'] ?? '',
+              email: userData['email'],
+              phone: userData['telefone'] ?? userData['phone'] ?? '',
+              address: address,
+              latitude: userData['latitude']?.toDouble() ?? 0.0,
+              longitude: userData['longitude']?.toDouble() ?? 0.0,
+              istore: false,
+            );
+          }
+        }
 
         await saveUser(user);
         AppLogger.info('💾 Usuário salvo no storage local');

@@ -44,7 +44,7 @@ class UserModel {
 
 class AddressModel {
   final String street;
-  final String number;
+  final int number;
   final String? complement;
   final String neighborhood;
   final String city;
@@ -63,7 +63,12 @@ class AddressModel {
 
   factory AddressModel.fromJson(Map<String, dynamic> json) => AddressModel(
         street: json['street'] ?? json['rua'] ?? '',
-        number: json['number'] ?? json['numero'] ?? '',
+        number: json['number'] is int
+            ? json['number']
+            : int.tryParse(json['number']?.toString() ??
+                    json['numero']?.toString() ??
+                    '0') ??
+                0,
         complement: json['complement'] ?? json['complemento'],
         neighborhood: json['neighborhood'] ?? json['bairro'] ?? '',
         city: json['city'] ?? json['cidade'] ?? '',
@@ -85,7 +90,7 @@ class AddressModel {
     final parts = <String>[];
 
     if (street.isNotEmpty) parts.add(street);
-    if (number.isNotEmpty) parts.add(number);
+    if (number.toString().isNotEmpty) parts.add(number.toString());
     if (complement != null && complement!.isNotEmpty) parts.add(complement!);
     if (neighborhood.isNotEmpty) parts.add(neighborhood);
     if (city.isNotEmpty && state.isNotEmpty) {

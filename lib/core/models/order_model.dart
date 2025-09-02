@@ -150,7 +150,7 @@ class OrderModel {
             '⚠️ [ORDER_MODEL] Todos os campos do endereço estão vazios, usando fallback');
         return AddressModel(
           street: 'Endereço não informado',
-          number: '',
+          number: 0,
           complement: null,
           neighborhood: '',
           city: '',
@@ -173,7 +173,7 @@ class OrderModel {
             '⚠️ [ORDER_MODEL] Padrão problemático detectado, usando fallback');
         return AddressModel(
           street: 'Endereço não informado',
-          number: '',
+          number: 0,
           complement: null,
           neighborhood: '',
           city: '',
@@ -189,7 +189,7 @@ class OrderModel {
       if (parts.length >= 6) {
         final result = AddressModel(
           street: parts[0].trim(),
-          number: parts[1].trim(),
+          number: int.parse(parts[1].trim()),
           complement: null,
           neighborhood: parts[2].trim(),
           city: parts[3].trim(),
@@ -203,7 +203,7 @@ class OrderModel {
         // Padrão alternativo: "Rua, Bairro, Cidade, Estado"
         final result = AddressModel(
           street: parts[0].trim(),
-          number: '',
+          number: 0,
           complement: null,
           neighborhood: parts[1].trim(),
           city: parts[2].trim(),
@@ -217,7 +217,7 @@ class OrderModel {
         // Se não conseguir extrair, usar a string completa como rua
         final result = AddressModel(
           street: addressString,
-          number: '',
+          number: 0,
           complement: null,
           neighborhood: '',
           city: '',
@@ -234,7 +234,7 @@ class OrderModel {
           '🔄 [ORDER_MODEL] AddressData não é String nem Map, usando fallback');
       return AddressModel(
         street: 'Endereço não informado',
-        number: '',
+        number: 0,
         complement: null,
         neighborhood: '',
         city: '',

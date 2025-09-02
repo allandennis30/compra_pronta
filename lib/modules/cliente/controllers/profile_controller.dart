@@ -55,7 +55,7 @@ class ProfileController extends GetxController {
       nameController.text = currentUser.name;
       phoneController.text = currentUser.phone;
       streetController.text = currentUser.address.street;
-      numberController.text = currentUser.address.number;
+      numberController.text = currentUser.address.number.toString();
       complementController.text = currentUser.address.complement ?? '';
       neighborhoodController.text = currentUser.address.neighborhood;
       cityController.text = currentUser.address.city;
@@ -80,7 +80,7 @@ class ProfileController extends GetxController {
 
       final updatedAddress = AddressModel(
         street: streetController.text.trim(),
-        number: numberController.text.trim(),
+        number: int.parse(numberController.text.trim()),
         complement: complementController.text.trim().isEmpty
             ? null
             : complementController.text.trim(),
