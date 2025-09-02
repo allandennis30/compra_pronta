@@ -4,7 +4,6 @@ import '../controllers/cart_controller.dart';
 import '../widgets/empty_cart_widget.dart';
 import '../widgets/cart_item_widget.dart';
 import '../widgets/cart_summary_widget.dart';
-import '../widgets/client_bottom_nav.dart';
 
 class CartPage extends GetView<CartController> {
   const CartPage({super.key});
@@ -32,7 +31,6 @@ class CartPage extends GetView<CartController> {
         ],
       ),
       body: _body,
-      bottomNavigationBar: const ClientBottomNav(currentIndex: 1),
     );
   }
 

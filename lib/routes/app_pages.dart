@@ -1,12 +1,10 @@
 import 'package:get/get.dart';
 import '../modules/auth/pages/login_page.dart';
 import '../modules/auth/pages/signup_page.dart';
-import '../modules/cliente/pages/product_list_page.dart';
+import '../modules/cliente/pages/cliente_main_page.dart';
 import '../modules/cliente/pages/product_detail_page.dart';
-import '../modules/cliente/pages/cart_page.dart';
 import '../modules/cliente/pages/checkout_page.dart';
 import '../modules/cliente/pages/order_success_page.dart';
-import '../modules/cliente/pages/order_history_page.dart';
 import '../modules/vendedor/pages/vendor_dashboard_page.dart';
 import '../modules/vendedor/pages/vendor_product_list_page.dart';
 import '../modules/vendedor/pages/vendor_product_form_page.dart';
@@ -18,14 +16,12 @@ import '../modules/vendedor/pages/order_builder_page.dart';
 import '../modules/auth/controllers/auth_controller.dart';
 import '../core/bindings/cliente_binding.dart';
 import '../core/bindings/vendedor_binding.dart';
-import '../modules/cliente/pages/profile_page.dart';
 import '../modules/cliente/bindings/product_detail_binding.dart';
 import '../modules/cliente/bindings/checkout_binding.dart';
 import '../modules/vendedor/bindings/vendedor_settings_binding.dart';
 import '../modules/vendedor/bindings/vendedor_product_list_binding.dart';
 import '../modules/vendedor/bindings/vendedor_product_form_binding.dart';
 import '../modules/vendedor/bindings/vendedor_order_detail_binding.dart';
-import '../core/middleware/auth_middleware.dart';
 
 class AuthBinding extends Bindings {
   @override
@@ -37,12 +33,10 @@ class AuthBinding extends Bindings {
 abstract class Routes {
   static const login = '/login';
   static const signup = '/signup';
-  static const clienteProdutos = '/cliente/produtos';
+  static const clienteMain = '/cliente';
   static const clienteDetalhe = '/cliente/produto';
-  static const clienteCarrinho = '/cliente/carrinho';
   static const clienteCheckout = '/cliente/checkout';
   static const clienteOrderSuccess = '/cliente/order-success';
-  static const clienteHistorico = '/cliente/historico';
   static const vendorDashboard = '/vendor/dashboard';
   static const vendorProdutos = '/vendor/produtos';
   static const vendorForm = '/vendor/produto_form';
@@ -65,21 +59,17 @@ class AppPages {
       page: () => SignupPage(),
       binding: AuthBinding(),
     ),
-    // Cliente
+    // Cliente - Página principal com navegação interna
     GetPage(
-      name: Routes.clienteProdutos,
-      page: () => ProductListPage(),
+      name: Routes.clienteMain,
+      page: () => ClienteMainPage(),
       binding: ClienteBinding(),
     ),
+    // Rotas específicas do cliente que ainda precisam de navegação separada
     GetPage(
       name: Routes.clienteDetalhe,
       page: () => ProductDetailPage(),
       binding: ProductDetailBinding(),
-    ),
-    GetPage(
-      name: Routes.clienteCarrinho,
-      page: () => CartPage(),
-      binding: ClienteBinding(),
     ),
     GetPage(
       name: Routes.clienteCheckout,
@@ -89,11 +79,6 @@ class AppPages {
     GetPage(
       name: Routes.clienteOrderSuccess,
       page: () => OrderSuccessPage(),
-      binding: ClienteBinding(),
-    ),
-    GetPage(
-      name: Routes.clienteHistorico,
-      page: () => OrderHistoryPage(),
       binding: ClienteBinding(),
     ),
     // Vendedor
@@ -141,11 +126,6 @@ class AppPages {
       name: Routes.vendorOrderBuilder,
       page: () => OrderBuilderPage(),
       binding: VendedorBinding(),
-    ),
-    GetPage(
-      name: '/cliente/perfil',
-      page: () => ProfilePage(),
-      binding: ClienteBinding(),
     ),
   ];
 }

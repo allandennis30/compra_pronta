@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import '../controllers/product_list_controller.dart';
 import '../controllers/cart_controller.dart';
 import '../models/product_model.dart';
-import '../widgets/client_bottom_nav.dart';
+
 import '../../../core/widgets/product_image_display.dart';
 
 class ProductListPage extends StatelessWidget {
@@ -32,7 +32,6 @@ class ProductListPage extends StatelessWidget {
           _buildPaginationInfo(),
         ],
       ),
-      bottomNavigationBar: const ClientBottomNav(currentIndex: 0),
     );
   }
 

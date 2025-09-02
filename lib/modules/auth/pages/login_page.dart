@@ -79,7 +79,7 @@ class LoginPage extends StatelessWidget {
                                 if (_authController.isVendor) {
                                   Get.offAllNamed('/vendor/dashboard');
                                 } else {
-                                  Get.offAllNamed('/cliente/produtos');
+                                  Get.offAllNamed('/cliente');
                                 }
                               }
                             },

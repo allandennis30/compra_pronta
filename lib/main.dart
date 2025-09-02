@@ -84,7 +84,7 @@ class _InitialRouteDecider extends StatelessWidget {
           Future.microtask(() => Get.offAllNamed('/vendor/dashboard'));
         } else {
           // Cliente
-          Future.microtask(() => Get.offAllNamed('/cliente/produtos'));
+          Future.microtask(() => Get.offAllNamed('/cliente'));
         }
         return const SizedBox.shrink();
       }

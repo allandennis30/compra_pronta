@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/order_history_controller.dart';
 import '../../../core/models/order_model.dart';
-import '../widgets/client_bottom_nav.dart';
+
 import '../../../core/utils/logger.dart';
 
 class OrderHistoryPage extends StatelessWidget {
@@ -70,7 +70,6 @@ class OrderHistoryPage extends StatelessWidget {
           ),
         );
       }),
-      bottomNavigationBar: const ClientBottomNav(currentIndex: 2),
     );
   }
 

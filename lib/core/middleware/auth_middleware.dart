@@ -42,7 +42,7 @@ class VendorAuthMiddleware extends GetMiddleware {
     }
 
     // Se está logado mas não é vendedor, redirecionar para área do cliente
-    return GetNavConfig.fromRoute('/cliente/produtos');
+    return GetNavConfig.fromRoute('/cliente');
   }
 }
 

@@ -520,7 +520,7 @@ class _SignupPageState extends State<SignupPage> {
                                     istore: false,
                                   );
                                   if (ok) {
-                                    Get.offAllNamed('/cliente/produtos');
+                                    Get.offAllNamed('/cliente');
                                   }
                                 }
                               },

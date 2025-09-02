@@ -12,7 +12,7 @@ class OrderSuccessPage extends StatelessWidget {
     // Redirecionar automaticamente para o histórico após 2 segundos
     Future.delayed(const Duration(seconds: 2), () {
       print('🔄 [SUCCESS] Redirecionando para histórico de pedidos...');
-      Get.offAllNamed('/cliente/historico');
+      Get.offAllNamed('/cliente');
     });
 
     return Scaffold(
