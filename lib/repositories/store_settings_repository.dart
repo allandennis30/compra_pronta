@@ -32,10 +32,21 @@ class StoreSettingsRepository {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         print('🔍 [STORE_SETTINGS_REPO] Dados decodificados: $data');
-        return data['data'];
+        
+        // Verificar se a resposta tem o formato esperado
+        if (data['success'] == true && data['data'] != null) {
+          return data['data'];
+        } else {
+          print('🔍 [STORE_SETTINGS_REPO] Resposta não tem formato esperado: $data');
+          return null;
+        }
       } else if (response.statusCode == 404) {
         print('🔍 [STORE_SETTINGS_REPO] Configurações não encontradas (404)');
         return null; // Configurações não encontradas
+      } else if (response.statusCode == 403) {
+        final error = json.decode(response.body);
+        print('🔍 [STORE_SETTINGS_REPO] Acesso negado (403): $error');
+        throw Exception('Apenas vendedores podem acessar configurações da loja');
       } else {
         final error = json.decode(response.body);
         print('🔍 [STORE_SETTINGS_REPO] Erro na resposta: $error');
@@ -67,7 +78,17 @@ class StoreSettingsRepository {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return data['data'];
+        
+        // Verificar se a resposta tem o formato esperado
+        if (data['success'] == true && data['data'] != null) {
+          return data['data'];
+        } else {
+          print('🔍 [STORE_SETTINGS_REPO] Resposta não tem formato esperado: $data');
+          throw Exception('Resposta inválida do servidor');
+        }
+      } else if (response.statusCode == 403) {
+        final error = json.decode(response.body);
+        throw Exception('Apenas vendedores podem configurar a loja');
       } else {
         final error = json.decode(response.body);
         throw Exception(error['message'] ?? 'Erro ao salvar configurações');
@@ -98,7 +119,17 @@ class StoreSettingsRepository {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return data['data'];
+        
+        // Verificar se a resposta tem o formato esperado
+        if (data['success'] == true && data['data'] != null) {
+          return data['data'];
+        } else {
+          print('🔍 [STORE_SETTINGS_REPO] Resposta não tem formato esperado: $data');
+          throw Exception('Resposta inválida do servidor');
+        }
+      } else if (response.statusCode == 403) {
+        final error = json.decode(response.body);
+        throw Exception('Apenas vendedores podem configurar a loja');
       } else {
         final error = json.decode(response.body);
         throw Exception(error['message'] ?? 'Erro ao atualizar configurações');
@@ -133,7 +164,14 @@ class StoreSettingsRepository {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return List<Map<String, dynamic>>.from(data['data']);
+        
+        // Verificar se a resposta tem o formato esperado
+        if (data['success'] == true && data['data'] != null) {
+          return List<Map<String, dynamic>>.from(data['data']);
+        } else {
+          print('🔍 [STORE_SETTINGS_REPO] Resposta não tem formato esperado: $data');
+          throw Exception('Resposta inválida do servidor');
+        }
       } else {
         final error = json.decode(response.body);
         throw Exception(error['message'] ?? 'Erro ao buscar lojas');
@@ -156,7 +194,14 @@ class StoreSettingsRepository {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return data['data'];
+        
+        // Verificar se a resposta tem o formato esperado
+        if (data['success'] == true && data['data'] != null) {
+          return data['data'];
+        } else {
+          print('🔍 [STORE_SETTINGS_REPO] Resposta não tem formato esperado: $data');
+          return null;
+        }
       } else if (response.statusCode == 404) {
         return null; // Loja não encontrada
       } else {

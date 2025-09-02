@@ -13,7 +13,7 @@ import '../modules/vendedor/pages/vendor_product_form_page.dart';
 import '../modules/vendedor/pages/vendor_order_list_page.dart';
 import '../modules/vendedor/pages/vendor_order_detail_page.dart';
 import '../modules/vendedor/pages/vendor_scan_page.dart';
-import '../modules/vendedor/pages/vendor_settings_page.dart';
+import '../modules/vendedor/pages/vendedor_settings_page.dart';
 import '../modules/vendedor/pages/order_builder_page.dart';
 import '../modules/auth/controllers/auth_controller.dart';
 import '../core/bindings/cliente_binding.dart';
@@ -134,7 +134,7 @@ class AppPages {
     ),
     GetPage(
       name: Routes.vendorConfig,
-      page: () => VendorSettingsPage(),
+      page: () => VendedorSettingsPage(),
       binding: VendedorSettingsBinding(),
     ),
     GetPage(

@@ -9,13 +9,13 @@ import '../widgets/entrega/politica_entrega_section.dart';
 import '../widgets/sincronizacao/sincronizacao_loja_section.dart';
 import '../widgets/vendedor_layout.dart';
 
-class VendorSettingsPage extends GetView<VendedorSettingsController> {
-  const VendorSettingsPage({super.key});
+class VendedorSettingsPage extends GetView<VendedorSettingsController> {
+  const VendedorSettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (!controller.isVendor) {
+      if (!controller.isVendedor) {
         return Scaffold(
           appBar: AppBar(title: const Text('Configurações da Loja')),
           body: const Center(child: Text('Acesso restrito.')),

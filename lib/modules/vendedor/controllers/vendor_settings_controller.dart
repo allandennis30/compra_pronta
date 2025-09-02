@@ -17,8 +17,8 @@ class VendedorSettingsController extends GetxController {
   var longitude = 0.0.obs;
 
   // Preferências de operação
-  var horarioInicio = TimeOfDay(hour: 8, minute: 0).obs;
-  var horarioFim = TimeOfDay(hour: 18, minute: 0).obs;
+  var horarioInicio = const TimeOfDay(hour: 8, minute: 0).obs;
+  var horarioFim = const TimeOfDay(hour: 18, minute: 0).obs;
   var aceitaForaHorario = false.obs;
   var tempoPreparo = 30.obs;
   var mensagemBoasVindas = ''.obs;
@@ -42,7 +42,7 @@ class VendedorSettingsController extends GetxController {
 
   final StoreSettingsRepository _storeSettingsRepository =
       StoreSettingsRepository();
-  bool get isVendor => Get.find<AuthController>().isVendor;
+  bool get isVendedor => Get.find<AuthController>().isVendor;
 
   Future<void> carregarDadosLoja() async {
     try {
