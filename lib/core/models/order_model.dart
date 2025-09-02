@@ -16,8 +16,11 @@ class OrderModel {
   final DateTime createdAt;
   final DateTime? deliveredAt;
   final DateTime? estimatedDeliveryTime;
+  final DateTime? updatedAt;
   final AddressModel deliveryAddress;
   final String? notes;
+  final String? sellerId;
+  final String? sellerName;
 
   OrderModel({
     required this.id,
@@ -35,8 +38,11 @@ class OrderModel {
     required this.createdAt,
     this.deliveredAt,
     this.estimatedDeliveryTime,
+    this.updatedAt,
     required this.deliveryAddress,
     this.notes,
+    this.sellerId,
+    this.sellerName,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
@@ -89,8 +95,12 @@ class OrderModel {
       estimatedDeliveryTime: json['estimatedDeliveryTime'] != null
           ? DateTime.parse(json['estimatedDeliveryTime'])
           : null,
+      updatedAt:
+          json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
       deliveryAddress: _parseDeliveryAddress(json['deliveryAddress']),
       notes: json['notes'],
+      sellerId: json['sellerId'],
+      sellerName: json['sellerName'],
     );
   }
 
@@ -110,8 +120,11 @@ class OrderModel {
         'createdAt': createdAt.toIso8601String(),
         'deliveredAt': deliveredAt?.toIso8601String(),
         'estimatedDeliveryTime': estimatedDeliveryTime?.toIso8601String(),
+        'updatedAt': updatedAt?.toIso8601String(),
         'deliveryAddress': deliveryAddress.toJson(),
         'notes': notes,
+        'sellerId': sellerId,
+        'sellerName': sellerName,
       };
 
   static AddressModel _parseDeliveryAddress(dynamic addressData) {

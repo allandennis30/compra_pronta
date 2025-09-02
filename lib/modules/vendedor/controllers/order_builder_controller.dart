@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import '../../../core/models/order_model.dart';
+import '../../../core/utils/logger.dart';
 import '../../cliente/models/product_model.dart';
 import '../repositories/vendedor_product_repository.dart';
 
@@ -14,7 +15,8 @@ class OrderBuilderController extends GetxController {
   final RxBool isScannerVisible = false.obs;
 
   // Pedido atual
-  late OrderModel currentOrder;
+  final Rx<OrderModel?> _currentOrder = Rx<OrderModel?>(null);
+  OrderModel? get currentOrder => _currentOrder.value;
 
   @override
   void onInit() {
@@ -22,29 +24,53 @@ class OrderBuilderController extends GetxController {
     // Receber o pedido como argumento
     final arguments = Get.arguments;
     if (arguments != null && arguments['order'] != null) {
-      currentOrder = arguments['order'] as OrderModel;
+      _currentOrder.value = arguments['order'] as OrderModel;
       _initializeOrderItems();
+      AppLogger.info(
+          '✅ [ORDER_BUILDER] Pedido carregado: ${_currentOrder.value?.id} - Cliente: ${_currentOrder.value?.clientName}');
+    } else {
+      // Fallback para evitar erros
+      AppLogger.error('❌ [ORDER_BUILDER] Pedido não fornecido nos argumentos');
+      Get.back(); // Voltar para a página anterior
     }
   }
 
   void _initializeOrderItems() {
-    orderItems.value = currentOrder.items
-        .map((item) => OrderItemStatus(
-              orderItem: item,
-              isScanned: false,
-              product: null,
-              scannedQuantity: 0,
-            ))
-        .toList();
+    if (_currentOrder.value != null) {
+      try {
+        orderItems.value = _currentOrder.value!.items
+            .map((item) => OrderItemStatus(
+                  orderItem: item,
+                  isScanned: false,
+                  product: null,
+                  scannedQuantity: 0,
+                ))
+            .toList();
+        AppLogger.info(
+            '✅ [ORDER_BUILDER] ${orderItems.length} itens inicializados');
+      } catch (e) {
+        AppLogger.error('❌ [ORDER_BUILDER] Erro ao inicializar itens:', e);
+        orderItems.value = [];
+      }
+    } else {
+      AppLogger.warning(
+          '⚠️ [ORDER_BUILDER] Pedido não disponível para inicializar itens');
+      orderItems.value = [];
+    }
   }
 
   // Processar código de barras escaneado
   Future<void> processScannedBarcode(String barcode) async {
     try {
+      AppLogger.info(
+          '🔍 [ORDER_BUILDER] Processando código de barras: $barcode');
+
       // Buscar produto pelo código de barras
       final product = await _productRepository.getProductByBarcode(barcode);
 
       if (product != null) {
+        AppLogger.info('✅ [ORDER_BUILDER] Produto encontrado: ${product.name}');
+
         // Verificar se o produto está na lista de itens do pedido
         final itemIndex = orderItems.indexWhere(
           (item) => item.orderItem.productId == product.id,
@@ -97,6 +123,8 @@ class OrderBuilderController extends GetxController {
             );
           }
         } else {
+          AppLogger.warning(
+              '⚠️ [ORDER_BUILDER] Produto ${product.name} não encontrado na lista do pedido');
           Get.snackbar(
             'Produto não encontrado',
             'Este produto não está na lista do pedido',
@@ -107,6 +135,8 @@ class OrderBuilderController extends GetxController {
           );
         }
       } else {
+        AppLogger.warning(
+            '⚠️ [ORDER_BUILDER] Código de barras não reconhecido: $barcode');
         Get.snackbar(
           'Produto não encontrado',
           'Código de barras não reconhecido',
@@ -117,6 +147,8 @@ class OrderBuilderController extends GetxController {
         );
       }
     } catch (e) {
+      AppLogger.error(
+          '❌ [ORDER_BUILDER] Erro ao processar código de barras: $barcode', e);
       Get.snackbar(
         'Erro',
         'Erro ao processar código de barras: $e',

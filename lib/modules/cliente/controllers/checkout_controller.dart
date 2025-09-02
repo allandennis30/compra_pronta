@@ -102,6 +102,7 @@ class CheckoutController extends GetxController {
               endereco['city'] ?? endereco['cidade'],
               endereco['state'] ?? endereco['estado'],
               endereco['zipCode'] ?? endereco['cep'],
+              endereco['complement'] ?? endereco['complemento'],
             ].where((part) => part != null && part.isNotEmpty).toList();
 
             deliveryAddress.value = addressParts.join(', ');
@@ -146,6 +147,7 @@ class CheckoutController extends GetxController {
             endereco['cidade'],
             endereco['estado'],
             endereco['cep'],
+            endereco['complemento'], // Adicionar complemento
           ].where((part) => part != null && part.isNotEmpty).toList();
 
           deliveryAddress.value = addressParts.join(', ');

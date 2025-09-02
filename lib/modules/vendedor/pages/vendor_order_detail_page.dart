@@ -147,7 +147,9 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Pedido #${order.id.substring(0, 8)}...',
+                        order.clientName != null && order.clientName!.isNotEmpty
+                            ? 'Pedido do ${order.clientName}'
+                            : 'Pedido #${order.id.substring(0, 8)}...',
                         style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -329,6 +331,14 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
                   if (address.number.toString().isNotEmpty)
                     Text(
                       'Número: ${address.number}',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                  if (address.complement != null &&
+                      address.complement!.isNotEmpty)
+                    Text(
+                      'Complemento: ${address.complement}',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurface.withOpacity(0.7),
                       ),
@@ -752,7 +762,7 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
             child: ElevatedButton.icon(
               onPressed: () => _navigateToOrderBuilder(context),
               icon: const Icon(Icons.edit),
-              label: const Text('Editar Pedido'),
+              label: const Text('Montar Pedido'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),

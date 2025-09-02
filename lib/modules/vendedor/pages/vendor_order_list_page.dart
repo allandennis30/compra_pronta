@@ -154,7 +154,10 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Pedido #${order.id}',
+                          order.clientName != null &&
+                                  order.clientName!.isNotEmpty
+                              ? 'Pedido do ${order.clientName}'
+                              : 'Pedido #${order.id}',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -202,7 +205,7 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
-                      '${order.deliveryAddress.street}, ${order.deliveryAddress.number}',
+                      '${order.deliveryAddress.street}, ${order.deliveryAddress.number}${order.deliveryAddress.complement != null && order.deliveryAddress.complement!.isNotEmpty ? ', ${order.deliveryAddress.complement}' : ''}',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade700,

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/order_builder_controller.dart';
-import '../controllers/vendor_scan_controller.dart';
 import '../widgets/order_item_card.dart';
 import '../widgets/barcode_scanner.dart';
 
@@ -12,7 +11,6 @@ class OrderBuilderPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final orderController = Get.put(OrderBuilderController());
-    Get.put(VendorScanController());
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
@@ -30,11 +28,26 @@ class OrderBuilderPage extends StatelessWidget {
                 color: theme.colorScheme.onSurface,
               ),
             ),
-            Text(
-              'Pedido #${orderController.currentOrder.id}',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
-              ),
+            Builder(
+              builder: (context) {
+                final order = orderController.currentOrder;
+                if (order == null) {
+                  return Text(
+                    'Carregando...',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  );
+                }
+                return Text(
+                  order.clientName != null && order.clientName!.isNotEmpty
+                      ? 'Pedido do ${order.clientName}'
+                      : 'Pedido #${order.id}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -46,23 +59,26 @@ class OrderBuilderPage extends StatelessWidget {
         elevation: isDark ? 1 : 0,
         shadowColor: isDark ? theme.colorScheme.shadow.withOpacity(0.1) : null,
         actions: [
-          Obx(() => Container(
-                margin: const EdgeInsets.only(right: 8),
-                child: IconButton(
-                  onPressed: orderController.allItemsScanned
-                      ? () => _showCompletionDialog(context, orderController)
-                      : null,
-                  icon: Icon(
-                    Icons.check_circle,
-                    color: orderController.allItemsScanned
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurface.withOpacity(0.3),
-                  ),
-                  tooltip: orderController.allItemsScanned
-                      ? 'Finalizar pedido'
-                      : 'Escaneie todos os itens',
+          Obx(() {
+            final allItemsScanned = orderController.allItemsScanned;
+            return Container(
+              margin: const EdgeInsets.only(right: 8),
+              child: IconButton(
+                onPressed: allItemsScanned
+                    ? () => _showCompletionDialog(context, orderController)
+                    : null,
+                icon: Icon(
+                  Icons.check_circle,
+                  color: allItemsScanned
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurface.withOpacity(0.3),
                 ),
-              )),
+                tooltip: allItemsScanned
+                    ? 'Finalizar pedido'
+                    : 'Escaneie todos os itens',
+              ),
+            );
+          }),
         ],
       ),
       body: Stack(
@@ -73,92 +89,96 @@ class OrderBuilderPage extends StatelessWidget {
               Container(
                 width: double.infinity,
                 margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
-                child: Obx(() => ElevatedButton.icon(
-                      onPressed: () =>
-                          orderController.toggleScannerVisibility(),
-                      icon: Icon(
-                        orderController.isScannerVisible.value
-                            ? Icons.close
-                            : Icons.qr_code_scanner,
-                        size: 18,
+                child: Obx(() {
+                  final isScannerVisible =
+                      orderController.isScannerVisible.value;
+                  return ElevatedButton.icon(
+                    onPressed: () => orderController.toggleScannerVisibility(),
+                    icon: Icon(
+                      isScannerVisible ? Icons.close : Icons.qr_code_scanner,
+                      size: 18,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      isScannerVisible ? 'Fechar Leitor' : 'Abrir Leitor',
+                      style: theme.textTheme.labelMedium?.copyWith(
                         color: Colors.white,
                       ),
-                      label: Text(
-                        orderController.isScannerVisible.value
-                            ? 'Fechar Leitor'
-                            : 'Abrir Leitor',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: Colors.white,
-                        ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          isScannerVisible ? Colors.red : Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
                       ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: orderController.isScannerVisible.value
-                            ? Colors.red
-                            : Colors.green,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                    )),
+                      elevation: 2,
+                    ),
+                  );
+                }),
               ),
 
               // Scanner de código de barras - condicional
-              Obx(() => orderController.isScannerVisible.value
-                  ? Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 12),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? theme.colorScheme.surface
-                            : theme.colorScheme.background,
-                        borderRadius: BorderRadius.circular(12),
-                        border: isDark
-                            ? Border.all(
+              Obx(() {
+                if (orderController.isScannerVisible.value) {
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? theme.colorScheme.surface
+                          : theme.colorScheme.background,
+                      borderRadius: BorderRadius.circular(12),
+                      border: isDark
+                          ? Border.all(
+                              color: theme.colorScheme.outline.withOpacity(0.2),
+                              width: 1,
+                            )
+                          : null,
+                      boxShadow: isDark
+                          ? null
+                          : [
+                              BoxShadow(
                                 color:
-                                    theme.colorScheme.outline.withOpacity(0.2),
-                                width: 1,
-                              )
-                            : null,
-                        boxShadow: isDark
-                            ? null
-                            : [
-                                BoxShadow(
-                                  color: theme.colorScheme.shadow
-                                      .withOpacity(0.08),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: 300, // Aumentado para melhor visualização
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: BarcodeScanner(
-                                onBarcodeDetected: (barcode) {
-                                  orderController
-                                      .processScannedBarcode(barcode);
-                                },
+                                    theme.colorScheme.shadow.withOpacity(0.08),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
                               ),
+                            ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: 300, // Aumentado para melhor visualização
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: BarcodeScanner(
+                              onBarcodeDetected: (barcode) {
+                                orderController.processScannedBarcode(barcode);
+                              },
                             ),
                           ),
-                        ],
-                      ),
-                    )
-                  : const SizedBox.shrink()),
+                        ),
+                      ],
+                    ),
+                  );
+                } else {
+                  return const SizedBox.shrink();
+                }
+              }),
 
-              Obx(() => orderController.isScannerVisible.value
-                  ? const SizedBox(height: 12)
-                  : const SizedBox.shrink()),
+              Obx(() {
+                if (orderController.isScannerVisible.value) {
+                  return const SizedBox(height: 12);
+                } else {
+                  return const SizedBox.shrink();
+                }
+              }),
 
               // Lista de itens do pedido
               Expanded(
@@ -183,31 +203,37 @@ class OrderBuilderPage extends StatelessWidget {
                             ),
                           ),
                           const Spacer(),
-                          Obx(() => Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
+                          Obx(() {
+                            final scannedCount =
+                                orderController.scannedItemsCount;
+                            final totalCount = orderController.totalItemsCount;
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color:
+                                    theme.colorScheme.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '$scannedCount/$totalCount',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
                                 ),
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary
-                                      .withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  '${orderController.scannedItemsCount}/${orderController.totalItemsCount}',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              )),
+                              ),
+                            );
+                          }),
                         ],
                       ),
                     ),
                     const SizedBox(height: 8),
                     Expanded(
                       child: Obx(() {
-                        if (orderController.orderItems.isEmpty) {
+                        final items = orderController.orderItems;
+                        if (items.isEmpty) {
                           return Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -234,10 +260,9 @@ class OrderBuilderPage extends StatelessWidget {
                         return ListView.builder(
                           padding: const EdgeInsets.fromLTRB(12, 0, 12,
                               66), // Padding bottom para não sobrepor o progresso
-                          itemCount: orderController.orderItems.length,
+                          itemCount: items.length,
                           itemBuilder: (context, index) {
-                            final itemStatus =
-                                orderController.orderItems[index];
+                            final itemStatus = items[index];
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 8),
                               child: OrderItemCard(
@@ -298,12 +323,13 @@ class OrderBuilderPage extends StatelessWidget {
                 final detailedProgress = orderController.detailedProgress;
                 final scannedCount = orderController.scannedItemsCount;
                 final totalCount = orderController.totalItemsCount;
+                final items = orderController.orderItems;
 
                 // Calcular quantidades totais
-                final totalQuantityNeeded = orderController.orderItems
-                    .fold(0, (sum, item) => sum + item.orderItem.quantity);
-                final totalQuantityScanned = orderController.orderItems
-                    .fold(0, (sum, item) => sum + item.scannedQuantity);
+                final totalQuantityNeeded =
+                    items.fold(0, (sum, item) => sum + item.orderItem.quantity);
+                final totalQuantityScanned =
+                    items.fold(0, (sum, item) => sum + item.scannedQuantity);
 
                 return Padding(
                   padding:

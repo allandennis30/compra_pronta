@@ -70,6 +70,28 @@ class VendorOrderDetailController extends GetxController {
       final order = await _repository.getOrderById(orderId);
       if (order != null) {
         _order.value = order;
+
+        // Carregar informações do cliente a partir do pedido
+        if (order.clientName != null ||
+            order.clientEmail != null ||
+            order.clientPhone != null) {
+          _customer.value = UserModel(
+            id: order.userId,
+            name: order.clientName ?? 'Cliente não identificado',
+            email: order.clientEmail ?? '',
+            phone: order.clientPhone ?? '',
+            address: order.deliveryAddress,
+            latitude: 0.0, // Não disponível no pedido
+            longitude: 0.0, // Não disponível no pedido
+            istore: false,
+          );
+          AppLogger.info(
+              '✅ [VENDOR_ORDER] Cliente carregado: ${_customer.value?.name}');
+        } else {
+          AppLogger.warning(
+              '⚠️ [VENDOR_ORDER] Informações do cliente não disponíveis no pedido');
+        }
+
         AppLogger.info(
             '✅ [VENDOR_ORDER] Pedido carregado com sucesso: ${order.id}');
         AppLogger.info('📍 [VENDOR_ORDER] Endereço do pedido:');
