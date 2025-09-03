@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/cart_controller.dart';
+import '../../../core/themes/app_colors.dart';
 
 class ClientBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -16,10 +17,10 @@ class ClientBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.bottomNavBackground(context),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: AppColors.shadow(context),
             spreadRadius: 1,
             blurRadius: 10,
             offset: const Offset(0, -2),
@@ -28,7 +29,7 @@ class ClientBottomNav extends StatelessWidget {
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -101,14 +102,14 @@ class ClientBottomNav extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             onTap: () => _handleTabTap(1),
             child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: 4),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Stack(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
                           color: isActive
                               ? primaryColor.withOpacity(0.1)
@@ -120,7 +121,7 @@ class ClientBottomNav extends StatelessWidget {
                               ? Icons.shopping_cart
                               : Icons.shopping_cart_outlined,
                           size: 24,
-                          color: isActive ? primaryColor : Colors.grey[600],
+                          color: isActive ? primaryColor : AppColors.bottomNavUnselected(context),
                         ),
                       ),
                       if (itemCount > 0)
@@ -150,13 +151,13 @@ class ClientBottomNav extends StatelessWidget {
                         ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 1),
                   Text(
                     'Carrinho',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                      color: isActive ? primaryColor : Colors.grey[600],
+                      color: isActive ? primaryColor : AppColors.bottomNavUnselected(context),
                     ),
                   ),
                   if (isActive)
@@ -195,7 +196,7 @@ class ClientBottomNav extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           onTap: onTap,
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.symmetric(vertical: 4),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -210,16 +211,16 @@ class ClientBottomNav extends StatelessWidget {
                   child: Icon(
                     isActive ? activeIcon : icon,
                     size: 24,
-                    color: isActive ? primaryColor : Colors.grey[600],
+                    color: isActive ? primaryColor : AppColors.bottomNavUnselected(context),
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 1),
                 Text(
                   label,
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                    color: isActive ? primaryColor : Colors.grey[600],
+                    color: isActive ? primaryColor : AppColors.bottomNavUnselected(context),
                   ),
                 ),
                 if (isActive)

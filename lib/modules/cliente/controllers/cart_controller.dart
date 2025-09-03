@@ -20,6 +20,16 @@ class CartItem {
   double get displayQuantity => (product.isSoldByWeight ?? false)
       ? quantity / 10.0 // Converte de volta para kg
       : quantity.toDouble();
+
+  Map<String, dynamic> toJson() => {
+        'product': product.toJson(),
+        'quantity': quantity,
+      };
+
+  factory CartItem.fromJson(Map<String, dynamic> json) => CartItem(
+        product: ProductModel.fromJson(json['product']),
+        quantity: json['quantity'] ?? 1,
+      );
 }
 
 class CartController extends GetxController {
@@ -65,8 +75,19 @@ class CartController extends GetxController {
   void _loadCart() {
     try {
       final cartData = _storage.read(AppConstants.cartKey);
-      if (cartData != null) {
-        // TODO: Implementar carregamento do carrinho do storage
+      if (cartData != null && cartData is List) {
+        cartItems.clear();
+        for (var itemData in cartData) {
+          if (itemData is Map<String, dynamic>) {
+            try {
+              final cartItem = CartItem.fromJson(itemData);
+              cartItems.add(cartItem);
+            } catch (e) {
+              AppLogger.error('Erro ao carregar item do carrinho', e);
+            }
+          }
+        }
+        AppLogger.info('Carrinho carregado com ${cartItems.length} itens');
       }
     } catch (e) {
       AppLogger.error('Erro ao carregar carrinho', e);
@@ -75,7 +96,9 @@ class CartController extends GetxController {
 
   void _saveCart() {
     try {
-      // TODO: Implementar salvamento do carrinho no storage
+      final cartData = cartItems.map((item) => item.toJson()).toList();
+      _storage.write(AppConstants.cartKey, cartData);
+      AppLogger.info('Carrinho salvo com ${cartItems.length} itens');
     } catch (e) {
       AppLogger.error('Erro ao salvar carrinho', e);
     }
@@ -136,6 +159,10 @@ class CartController extends GetxController {
 
   bool canCheckout() {
     return !isEmpty && subtotal.value >= AppConstants.minOrderValue;
+  }
+
+  bool isProductInCart(String productId) {
+    return cartItems.any((item) => item.product.id == productId);
   }
 
   void showClearCartDialog(BuildContext context) {

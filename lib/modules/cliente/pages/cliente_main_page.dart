@@ -1,52 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../widgets/client_bottom_nav.dart';
+import '../controllers/cliente_main_controller.dart';
 import 'product_list_page.dart';
 import 'cart_page.dart';
 import 'order_history_page.dart';
 import 'profile_page.dart';
 
-class ClienteMainPage extends StatefulWidget {
+class ClienteMainPage extends StatelessWidget {
   const ClienteMainPage({super.key});
 
   @override
-  State<ClienteMainPage> createState() => _ClienteMainPageState();
-}
+  Widget build(BuildContext context) {
+    // Garante que o controller esteja disponível
+    if (!Get.isRegistered<ClienteMainController>()) {
+      Get.put(ClienteMainController());
+    }
 
-class _ClienteMainPageState extends State<ClienteMainPage> {
-  int _currentIndex = 0;
+    final controller = Get.find<ClienteMainController>();
 
-  // Lista de páginas que serão exibidas
-  final List<Widget> _pages = [];
-
-  @override
-  void initState() {
-    super.initState();
-    // Inicializa as páginas com seus controllers
-    _pages.addAll([
+    // Lista de páginas que serão exibidas
+    final List<Widget> pages = [
       ProductListPage(),
       CartPage(),
       OrderHistoryPage(),
       ProfilePage(),
-    ]);
-  }
+    ];
 
-  void _onTabTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
-      bottomNavigationBar: ClientBottomNav(
-        currentIndex: _currentIndex,
-        onTabTapped: _onTabTapped,
-      ),
+      body: Obx(() => IndexedStack(
+        index: controller.currentIndex.value,
+        children: pages,
+      )),
+      bottomNavigationBar: Obx(() => ClientBottomNav(
+        currentIndex: controller.currentIndex.value,
+        onTabTapped: controller.setCurrentIndex,
+      )),
     );
   }
 }

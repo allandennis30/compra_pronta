@@ -22,32 +22,19 @@ class AuthController extends GetxController {
   void onInit() {
     super.onInit();
     _isLoading.value = true;
-    _autoAuthenticate();
+    // Usar addPostFrameCallback para evitar problemas de build scope
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _autoAuthenticate();
+    });
   }
 
   /// Método de teste para verificar o estado do storage
   Future<void> debugStorage() async {
     try {
-      AppLogger.info('🔍 [DEBUG] Verificando estado do storage...');
-
-      final token = await _authRepository.getToken();
-      final user = await _authRepository.getCurrentUser();
-      final hasCredentials = await _authRepository.hasSavedCredentials();
-      final credentials = await _authRepository.getSavedCredentials();
-
-      AppLogger.info(
-          '🔍 [DEBUG] Token: ${token != null ? 'presente' : 'null'}');
-      AppLogger.info(
-          '🔍 [DEBUG] Usuário: ${user != null ? user.name : 'null'}');
-      AppLogger.info('🔍 [DEBUG] Tem credenciais: $hasCredentials');
-      AppLogger.info(
-          '🔍 [DEBUG] Credenciais: ${credentials != null ? 'presentes' : 'null'}');
-
-      if (credentials != null) {
-        AppLogger.info('🔍 [DEBUG] Email salvo: ${credentials['email']}');
-        AppLogger.info(
-            '🔍 [DEBUG] Senha salva: ${credentials['password']?.isNotEmpty == true ? 'presente' : 'vazia'}');
-      }
+      await _authRepository.getToken();
+      await _authRepository.getCurrentUser();
+      await _authRepository.hasSavedCredentials();
+      await _authRepository.getSavedCredentials();
     } catch (e) {
       AppLogger.error('❌ [DEBUG] Erro ao verificar storage', e);
     }
@@ -56,28 +43,20 @@ class AuthController extends GetxController {
   /// Autenticação automática na inicialização do app
   void _autoAuthenticate() async {
     try {
-      AppLogger.info('🔄 Iniciando autenticação automática...');
-
       // Debug do storage
       await debugStorage();
 
       final isAuthenticated = await _authRepository.isAuthenticated();
       if (isAuthenticated) {
-        AppLogger.info('🔑 Token encontrado, verificando validade...');
-
         // Verificar se o token ainda é válido
         final isValid = await _verifyTokenValidity();
         if (isValid) {
-          AppLogger.success('✅ Token válido, carregando usuário...');
           _loadUserFromStorage();
         } else {
-          AppLogger.warning('⚠️ Token expirado, tentando renovar...');
           _refreshToken();
         }
       } else {
         // Tentar login automático com credenciais salvas
-        AppLogger.info(
-            'ℹ️ Nenhum token encontrado, tentando login automático...');
         await _tryAutoLogin();
       }
     } catch (e) {
@@ -159,9 +138,7 @@ class AuthController extends GetxController {
       if (user != null) {
         _currentUser.value = user;
         _isLoggedIn.value = true;
-        AppLogger.success('✅ Usuário carregado: ${user.name}');
       } else {
-        AppLogger.warning('⚠️ Usuário não encontrado no storage');
         await _authRepository.logout();
       }
     } catch (e) {

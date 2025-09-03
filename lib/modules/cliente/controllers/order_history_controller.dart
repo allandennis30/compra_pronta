@@ -29,34 +29,9 @@ class OrderHistoryController extends GetxController {
 
   void _loadOrders() async {
     _isLoading.value = true;
-    AppLogger.info('🔄 [HISTORY] Carregando histórico de pedidos...');
 
     try {
       final orders = await _orderRepository.getUserOrders();
-      AppLogger.info('📋 [HISTORY] ${orders.length} pedidos carregados');
-
-      // Logs detalhados de cada pedido
-      for (int i = 0; i < orders.length; i++) {
-        final order = orders[i];
-        AppLogger.info('📦 [HISTORY] Pedido ${i + 1}:');
-        AppLogger.info('   - ID: ${order.id}');
-        AppLogger.info('   - Status: ${order.status}');
-        AppLogger.info('   - Total: R\$ ${order.total}');
-        AppLogger.info('   - Itens: ${order.items.length}');
-        AppLogger.info('   - Data: ${order.createdAt}');
-
-        if (order.items.isNotEmpty) {
-          AppLogger.info('   - Detalhes dos itens:');
-          for (int j = 0; j < order.items.length; j++) {
-            final item = order.items[j];
-            AppLogger.info(
-                '     ${j + 1}. ${item.productName} (${item.quantity}x - R\$ ${item.price})');
-          }
-        } else {
-          AppLogger.warning('⚠️ [HISTORY] Pedido ${order.id} SEM ITENS!');
-        }
-      }
-
       _orders.value = orders;
     } catch (e) {
       // Log do erro, mas não mostrar snackbar aqui pois não temos contexto

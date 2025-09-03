@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/themes/app_colors.dart';
 
 class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
   const DashboardAppBar({super.key});
@@ -8,7 +9,8 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       elevation: 0,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.appBarBackground(context),
+      foregroundColor: AppColors.appBarForeground(context),
       surfaceTintColor: Colors.transparent,
       title: Row(
         children: [
@@ -17,8 +19,8 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Theme.of(context).primaryColor,
-                  Theme.of(context).primaryColor.withOpacity(0.8),
+                  AppColors.primary(context),
+                  AppColors.primary(context).withOpacity(0.8),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -26,7 +28,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Theme.of(context).primaryColor.withOpacity(0.3),
+                  color: AppColors.primary(context).withOpacity(0.3),
                   spreadRadius: 1,
                   blurRadius: 4,
                   offset: const Offset(0, 2),
@@ -47,13 +49,13 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                 'Dashboard',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: Colors.grey[800],
+                  color: AppColors.onSurface(context),
                 ),
               ),
               Text(
                 'Painel do Vendedor',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[600],
+                  color: AppColors.onSurfaceVariant(context),
                   fontSize: 12,
                 ),
               ),
@@ -65,13 +67,13 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
         Container(
           margin: const EdgeInsets.only(right: 8),
           decoration: BoxDecoration(
-            color: Colors.grey[100],
+            color: AppColors.surfaceVariant(context),
             borderRadius: BorderRadius.circular(12),
           ),
           child: IconButton(
             icon: Icon(
               Icons.settings_outlined,
-              color: Colors.grey[700],
+              color: AppColors.iconSecondary(context),
             ),
             onPressed: () => Get.toNamed('/vendor/config'),
             tooltip: 'Configurações',
@@ -85,9 +87,9 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Colors.grey.withOpacity(0.1),
-                Colors.grey.withOpacity(0.3),
-                Colors.grey.withOpacity(0.1),
+                AppColors.divider(context).withOpacity(0.1),
+                AppColors.divider(context).withOpacity(0.3),
+                AppColors.divider(context).withOpacity(0.1),
               ],
             ),
           ),

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/vendor_metrics_controller.dart';
+import '../../../../core/themes/app_colors.dart';
+import '../../../../core/models/order_model.dart';
 
 class OrderCard extends StatelessWidget {
-  final Map<String, dynamic> order;
+  final OrderModel order;
   final VendorMetricsController controller;
 
   const OrderCard({
@@ -16,10 +18,10 @@ class OrderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: AppColors.surfaceVariant(context),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.grey.withOpacity(0.2),
+          color: AppColors.border(context),
           width: 1,
         ),
       ),
@@ -27,7 +29,7 @@ class OrderCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: () => Get.toNamed('/vendor/pedido', arguments: order['id']),
+          onTap: () => Get.toNamed('/vendor/pedido', arguments: order.id),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -54,8 +56,8 @@ class OrderCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            controller.getStatusColor(order['status']),
-            controller.getStatusColor(order['status']).withOpacity(0.8),
+            controller.getStatusColor(order.status),
+            controller.getStatusColor(order.status).withOpacity(0.8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -63,7 +65,7 @@ class OrderCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: controller.getStatusColor(order['status']).withOpacity(0.3),
+            color: controller.getStatusColor(order.status).withOpacity(0.3),
             spreadRadius: 1,
             blurRadius: 4,
             offset: const Offset(0, 2),
@@ -72,7 +74,7 @@ class OrderCard extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-          '#${order['id'].toString().split('_').last}',
+          '#${order.id.split('_').last}',
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -88,10 +90,10 @@ class OrderCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          order['customer'],
+          order.clientName ?? 'Cliente não informado',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
-            color: Colors.grey[800],
+            color: AppColors.onSurface(context),
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -102,14 +104,14 @@ class OrderCard extends StatelessWidget {
             Icon(
               Icons.attach_money,
               size: 16,
-              color: Colors.green[600],
+              color: AppColors.success(context),
             ),
             Text(
-              'R\$ ${order['total'].toStringAsFixed(2)}',
+              'R\$ ${order.total.toStringAsFixed(2)}',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Colors.green[600],
+                color: AppColors.success(context),
               ),
             ),
           ],
@@ -120,14 +122,14 @@ class OrderCard extends StatelessWidget {
             Icon(
               Icons.access_time,
               size: 14,
-              color: Colors.grey[500],
+              color: AppColors.iconSecondary(context),
             ),
             const SizedBox(width: 4),
             Text(
               _getTimeAgo(),
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: AppColors.onSurfaceVariant(context),
               ),
             ),
           ],
@@ -137,8 +139,8 @@ class OrderCard extends StatelessWidget {
   }
 
   Widget _buildStatusChip() {
-    final statusColor = controller.getStatusColor(order['status']);
-    final statusText = controller.getStatusText(order['status']);
+    final statusColor = controller.getStatusColor(order.status);
+    final statusText = controller.getStatusText(order.status);
     
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -176,14 +178,19 @@ class OrderCard extends StatelessWidget {
   }
 
   String _getTimeAgo() {
-    // Simulação de tempo - em um app real, você usaria a data real do pedido
-    final random = order['id'].hashCode % 60;
-    if (random < 5) {
+    final now = DateTime.now();
+    final difference = now.difference(order.createdAt);
+    
+    if (difference.inMinutes < 1) {
       return 'Agora mesmo';
-    } else if (random < 30) {
-      return '${random}min atrás';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes}min atrás';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours}h atrás';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d atrás';
     } else {
-      return '${(random / 60).floor()}h atrás';
+      return '${order.createdAt.day}/${order.createdAt.month}/${order.createdAt.year}';
     }
   }
 }

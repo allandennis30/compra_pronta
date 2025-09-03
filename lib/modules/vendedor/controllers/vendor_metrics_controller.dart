@@ -2,15 +2,15 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../repositories/vendor_metrics_repository.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/models/order_model.dart';
 
 class VendorMetricsController extends GetxController {
   final VendorMetricsRepository _metricsRepository =
       Get.find<VendorMetricsRepository>();
-  final RxList<Map<String, dynamic>> _recentOrders =
-      <Map<String, dynamic>>[].obs;
+  final RxList<OrderModel> _recentOrders = <OrderModel>[].obs;
   final RxBool _isLoading = false.obs;
 
-  List<Map<String, dynamic>> get recentOrders => _recentOrders;
+  List<OrderModel> get recentOrders => _recentOrders;
   bool get isLoading => _isLoading.value;
 
   @override
@@ -66,19 +66,22 @@ class VendorMetricsController extends GetxController {
   }
 
   Color getStatusColor(String status) {
-    // Note: This method should ideally receive a BuildContext to access theme
-    // For now, using Material Design default colors that work in both themes
+    // Usar cores do sistema de temas
     switch (status) {
       case 'pending':
         return const Color(0xFFFF9800); // Orange
       case 'confirmed':
         return const Color(0xFF2196F3); // Blue
       case 'preparing':
-        return const Color(0xFF2196F3); // Blue
+        return const Color(0xFF9C27B0); // Purple
       case 'delivering':
-        return const Color(0xFF2196F3); // Blue
+        return const Color(0xFF00BCD4); // Cyan
       case 'delivered':
         return const Color(0xFF4CAF50); // Green
+      case 'ready':
+        return const Color(0xFF388E3C); // Dark Green
+      case 'cancelled':
+        return const Color(0xFFF44336); // Red
       default:
         return const Color(0xFF9E9E9E); // Grey
     }

@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/profile_controller.dart';
+import '../../../core/themes/app_colors.dart';
 
-class ProfilePage extends GetView<ProfileController> {
+class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return GetBuilder<ProfileController>(
+      init: ProfileController(),
+      builder: (controller) {
+        return Scaffold(
       appBar: AppBar(
         title: const Text('Perfil'),
         actions: [
@@ -56,6 +60,7 @@ class ProfilePage extends GetView<ProfileController> {
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(
+                        context: context,
                         label: 'Nome',
                         controller: controller.nameController,
                         readOnly: !controller.isEditing.value,
@@ -63,6 +68,7 @@ class ProfilePage extends GetView<ProfileController> {
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(
+                        context: context,
                         label: 'E-mail',
                         initialValue: user.email,
                         readOnly: true, // Email nunca pode ser editado
@@ -70,6 +76,7 @@ class ProfilePage extends GetView<ProfileController> {
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(
+                        context: context,
                         label: 'Telefone',
                         controller: controller.phoneController,
                         readOnly: !controller.isEditing.value,
@@ -102,6 +109,7 @@ class ProfilePage extends GetView<ProfileController> {
                           Expanded(
                             flex: 3,
                             child: _buildTextField(
+                              context: context,
                               label: 'Rua',
                               controller: controller.streetController,
                               readOnly: !controller.isEditing.value,
@@ -112,6 +120,7 @@ class ProfilePage extends GetView<ProfileController> {
                           Expanded(
                             flex: 1,
                             child: _buildTextField(
+                              context: context,
                               label: 'Número',
                               controller: controller.numberController,
                               readOnly: !controller.isEditing.value,
@@ -122,6 +131,7 @@ class ProfilePage extends GetView<ProfileController> {
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(
+                        context: context,
                         label: 'Complemento',
                         controller: controller.complementController,
                         readOnly: !controller.isEditing.value,
@@ -129,6 +139,7 @@ class ProfilePage extends GetView<ProfileController> {
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(
+                        context: context,
                         label: 'Bairro',
                         controller: controller.neighborhoodController,
                         readOnly: !controller.isEditing.value,
@@ -140,6 +151,7 @@ class ProfilePage extends GetView<ProfileController> {
                           Expanded(
                             flex: 2,
                             child: _buildTextField(
+                              context: context,
                               label: 'Cidade',
                               controller: controller.cityController,
                               readOnly: !controller.isEditing.value,
@@ -149,6 +161,7 @@ class ProfilePage extends GetView<ProfileController> {
                           Expanded(
                             flex: 1,
                             child: _buildTextField(
+                              context: context,
                               label: 'Estado',
                               controller: controller.stateController,
                               readOnly: !controller.isEditing.value,
@@ -158,6 +171,7 @@ class ProfilePage extends GetView<ProfileController> {
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(
+                        context: context,
                         label: 'CEP',
                         controller: controller.zipCodeController,
                         readOnly: !controller.isEditing.value,
@@ -253,10 +267,13 @@ class ProfilePage extends GetView<ProfileController> {
           ),
         );
       }),
+        );
+      },
     );
   }
 
   Widget _buildTextField({
+    required BuildContext context,
     required String label,
     TextEditingController? controller,
     String? initialValue,
@@ -276,7 +293,7 @@ class ProfilePage extends GetView<ProfileController> {
         prefixIcon: icon != null ? Icon(icon) : null,
         border: const OutlineInputBorder(),
         filled: readOnly,
-        fillColor: readOnly ? Colors.grey.shade100 : null,
+        fillColor: readOnly ? AppColors.surfaceVariant(context) : null,
       ),
     );
   }

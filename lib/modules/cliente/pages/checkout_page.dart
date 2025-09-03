@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/checkout_controller.dart';
 import '../widgets/client_bottom_nav.dart';
-import '../../../constants/app_constants.dart';
+import '../../../core/themes/app_colors.dart';
 
 class CheckoutPage extends GetView<CheckoutController> {
   const CheckoutPage({super.key});
@@ -11,11 +11,11 @@ class CheckoutPage extends GetView<CheckoutController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Checkout',
+        title: Text('Checkout',
             style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Colors.black)),
+                color: AppColors.onSurface(context))),
         backgroundColor: Theme.of(context).colorScheme.surface,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 0,
@@ -24,38 +24,38 @@ class CheckoutPage extends GetView<CheckoutController> {
           onPressed: () => Get.back(),
         ),
       ),
-      body: _body,
+      body: _body(context),
       bottomNavigationBar: const ClientBottomNav(currentIndex: 1),
     );
   }
 
-  Widget get _body => Obx(() {
+  Widget _body(BuildContext context) => Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
 
         return Column(
           children: [
-            _stepper,
-            Expanded(child: _currentStepContent),
+            _stepper(context),
+            Expanded(child: _currentStepContent(context)),
           ],
         );
       });
 
-  Widget get _stepper => Container(
+  Widget _stepper(BuildContext context) => Container(
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            _buildStep(0, 'Dados', Icons.person),
-            _buildStepLine(),
-            _buildStep(1, 'Pagamento', Icons.payment),
-            _buildStepLine(),
-            _buildStep(2, 'Revisão', Icons.check_circle),
+            _buildStep(context, 0, 'Dados', Icons.person),
+            _buildStepLine(context),
+            _buildStep(context, 1, 'Pagamento', Icons.payment),
+            _buildStepLine(context),
+            _buildStep(context, 2, 'Revisão', Icons.check_circle),
           ],
         ),
       );
 
-  Widget _buildStep(int step, String title, IconData icon) {
+  Widget _buildStep(BuildContext context, int step, String title, IconData icon) {
     final isActive = controller.currentStep.value == step;
     final isCompleted = controller.currentStep.value > step;
 
@@ -67,15 +67,15 @@ class CheckoutPage extends GetView<CheckoutController> {
             height: 40,
             decoration: BoxDecoration(
               color: isCompleted
-                  ? const Color(AppConstants.successColor)
+                  ? AppColors.success(context)
                   : isActive
-                      ? const Color(AppConstants.primaryColor)
-                      : Colors.grey[300],
+                      ? AppColors.primary(context)
+                      : AppColors.surfaceVariant(context),
               shape: BoxShape.circle,
             ),
             child: Icon(
               icon,
-              color: isCompleted || isActive ? Colors.white : Colors.grey[600],
+              color: isCompleted || isActive ? Colors.white : AppColors.onSurfaceVariant(context),
               size: 20,
             ),
           ),
@@ -86,8 +86,8 @@ class CheckoutPage extends GetView<CheckoutController> {
               fontSize: 12,
               fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
               color: isActive
-                  ? const Color(AppConstants.primaryColor)
-                  : Colors.grey[600],
+                  ? AppColors.primary(context)
+                  : AppColors.onSurfaceVariant(context),
             ),
           ),
         ],
@@ -95,43 +95,45 @@ class CheckoutPage extends GetView<CheckoutController> {
     );
   }
 
-  Widget _buildStepLine() {
+  Widget _buildStepLine(BuildContext context) {
     return Container(
       height: 2,
       width: 20,
       color: controller.currentStep.value > 0
-          ? Colors.grey[300]
-          : Colors.grey[200],
+          ? AppColors.surfaceVariant(context)
+          : AppColors.border(context),
     );
   }
 
-  Widget get _currentStepContent {
+  Widget _currentStepContent(BuildContext context) {
     switch (controller.currentStep.value) {
       case 0:
-        return _personalDataStep;
+        return _personalDataStep(context);
       case 1:
-        return _paymentStep;
+        return _paymentStep(context);
       case 2:
-        return _reviewStep;
+        return _reviewStep(context);
       default:
         return const SizedBox();
     }
   }
 
-  Widget get _personalDataStep => SingleChildScrollView(
+  Widget _personalDataStep(BuildContext context) => SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Dados Pessoais',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: AppColors.onSurface(context),
               ),
             ),
             const SizedBox(height: 24),
             _buildTextField(
+              context: context,
               label: 'Nome Completo',
               controller: controller.clientNameController,
               onChanged: (value) => controller.clientName.value = value,
@@ -139,6 +141,7 @@ class CheckoutPage extends GetView<CheckoutController> {
             ),
             const SizedBox(height: 16),
             _buildTextField(
+              context: context,
               label: 'Email',
               controller: controller.clientEmailController,
               onChanged: (value) => controller.clientEmail.value = value,
@@ -147,6 +150,7 @@ class CheckoutPage extends GetView<CheckoutController> {
             ),
             const SizedBox(height: 16),
             _buildTextField(
+              context: context,
               label: 'Telefone',
               controller: controller.clientPhoneController,
               onChanged: (value) => controller.clientPhone.value = value,
@@ -155,6 +159,7 @@ class CheckoutPage extends GetView<CheckoutController> {
             ),
             const SizedBox(height: 16),
             _buildTextField(
+              context: context,
               label: 'Endereço de Entrega',
               controller: controller.deliveryAddressController,
               onChanged: (value) => controller.deliveryAddress.value = value,
@@ -163,6 +168,7 @@ class CheckoutPage extends GetView<CheckoutController> {
             ),
             const SizedBox(height: 16),
             _buildTextField(
+              context: context,
               label: 'Instruções de Entrega (opcional)',
               controller: controller.deliveryInstructionsController,
               onChanged: (value) =>
@@ -179,7 +185,7 @@ class CheckoutPage extends GetView<CheckoutController> {
                     : null,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: const Color(AppConstants.primaryColor),
+                  backgroundColor: AppColors.primary(context),
                   foregroundColor: Colors.white,
                 ),
                 child: const Text(
@@ -192,21 +198,22 @@ class CheckoutPage extends GetView<CheckoutController> {
         ),
       );
 
-  Widget get _paymentStep => SingleChildScrollView(
+  Widget _paymentStep(BuildContext context) => SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Método de Pagamento',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: AppColors.onSurface(context),
               ),
             ),
             const SizedBox(height: 24),
             ...controller.paymentMethods
-                .map((method) => _buildPaymentOption(method)),
+                .map((method) => _buildPaymentOption(context, method)),
             const SizedBox(height: 32),
             Row(
               children: [
@@ -227,7 +234,7 @@ class CheckoutPage extends GetView<CheckoutController> {
                         : null,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: const Color(AppConstants.primaryColor),
+                      backgroundColor: AppColors.primary(context),
                       foregroundColor: Colors.white,
                     ),
                     child: const Text(
@@ -243,20 +250,21 @@ class CheckoutPage extends GetView<CheckoutController> {
         ),
       );
 
-  Widget get _reviewStep => SingleChildScrollView(
+  Widget _reviewStep(BuildContext context) => SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Revisar Pedido',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: AppColors.onSurface(context),
               ),
             ),
             const SizedBox(height: 24),
-            _buildReviewSection('Dados Pessoais', [
+            _buildReviewSection(context, 'Dados Pessoais', [
               'Nome: ${controller.clientName.value}',
               'Email: ${controller.clientEmail.value}',
               'Telefone: ${controller.clientPhone.value}',
@@ -265,13 +273,13 @@ class CheckoutPage extends GetView<CheckoutController> {
                 'Instruções: ${controller.deliveryInstructions.value}',
             ]),
             const SizedBox(height: 16),
-            _buildReviewSection('Pagamento', [
+            _buildReviewSection(context, 'Pagamento', [
               'Método: ${controller.getPaymentMethodLabel(controller.selectedPaymentMethod.value)}',
             ]),
             const SizedBox(height: 16),
-            _buildOrderItems(),
+            _buildOrderItems(context),
             const SizedBox(height: 16),
-            _buildOrderSummary(),
+            _buildOrderSummary(context),
             const SizedBox(height: 32),
             Row(
               children: [
@@ -292,8 +300,7 @@ class CheckoutPage extends GetView<CheckoutController> {
                             : () => controller.submitOrder(Get.context!),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor:
-                              const Color(AppConstants.successColor),
+                          backgroundColor: AppColors.success(context),
                           foregroundColor: Colors.white,
                         ),
                         child: controller.isSubmitting.value
@@ -320,6 +327,7 @@ class CheckoutPage extends GetView<CheckoutController> {
       );
 
   Widget _buildTextField({
+    required BuildContext context,
     required String label,
     required TextEditingController controller,
     required Function(String) onChanged,
@@ -340,8 +348,8 @@ class CheckoutPage extends GetView<CheckoutController> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(
-            color: Color(AppConstants.primaryColor),
+          borderSide: BorderSide(
+            color: AppColors.primary(context),
             width: 2,
           ),
         ),
@@ -349,7 +357,7 @@ class CheckoutPage extends GetView<CheckoutController> {
     );
   }
 
-  Widget _buildPaymentOption(Map<String, String> method) {
+  Widget _buildPaymentOption(BuildContext context, Map<String, String> method) {
     return Obx(() {
       final isSelected =
           controller.selectedPaymentMethod.value == method['value'];
@@ -364,8 +372,8 @@ class CheckoutPage extends GetView<CheckoutController> {
             decoration: BoxDecoration(
               border: Border.all(
                 color: isSelected
-                    ? const Color(AppConstants.primaryColor)
-                    : Colors.grey[300]!,
+                    ? AppColors.primary(context)
+                    : AppColors.border(context),
                 width: isSelected ? 2 : 1,
               ),
               borderRadius: BorderRadius.circular(8),
@@ -376,12 +384,12 @@ class CheckoutPage extends GetView<CheckoutController> {
                   value: method['value']!,
                   groupValue: controller.selectedPaymentMethod.value,
                   onChanged: (value) => controller.setPaymentMethod(value!),
-                  activeColor: const Color(AppConstants.primaryColor),
+                  activeColor: AppColors.primary(context),
                 ),
                 const SizedBox(width: 12),
                 Text(
                   method['label']!,
-                  style: const TextStyle(fontSize: 16),
+                  style: TextStyle(fontSize: 16, color: AppColors.onSurface(context)),
                 ),
               ],
             ),
@@ -391,7 +399,7 @@ class CheckoutPage extends GetView<CheckoutController> {
     });
   }
 
-  Widget _buildReviewSection(String title, List<String> items) {
+  Widget _buildReviewSection(BuildContext context, String title, List<String> items) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -400,9 +408,10 @@ class CheckoutPage extends GetView<CheckoutController> {
           children: [
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
+                color: AppColors.onSurface(context),
               ),
             ),
             const SizedBox(height: 8),
@@ -410,7 +419,7 @@ class CheckoutPage extends GetView<CheckoutController> {
                   padding: const EdgeInsets.only(bottom: 4),
                   child: Text(
                     item,
-                    style: const TextStyle(fontSize: 14),
+                    style: TextStyle(fontSize: 14, color: AppColors.onSurface(context)),
                   ),
                 )),
           ],
@@ -419,18 +428,19 @@ class CheckoutPage extends GetView<CheckoutController> {
     );
   }
 
-  Widget _buildOrderItems() {
+  Widget _buildOrderItems(BuildContext context) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Itens do Pedido',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
+                color: AppColors.onSurface(context),
               ),
             ),
             const SizedBox(height: 12),
@@ -462,19 +472,20 @@ class CheckoutPage extends GetView<CheckoutController> {
                           children: [
                             Text(
                               item.productName ?? 'Produto',
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.onSurface(context)),
                             ),
                             Text(
                               '${item.quantity}x R\$ ${item.price.toStringAsFixed(2)}',
-                              style: TextStyle(color: Colors.grey[600]),
+                              style: TextStyle(color: AppColors.onSurfaceVariant(context)),
                             ),
                           ],
                         ),
                       ),
                       Text(
                         'R\$ ${item.total.toStringAsFixed(2)}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.onSurface(context)),
                       ),
                     ],
                   ),
@@ -485,19 +496,19 @@ class CheckoutPage extends GetView<CheckoutController> {
     );
   }
 
-  Widget _buildOrderSummary() {
+  Widget _buildOrderSummary(BuildContext context) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _buildSummaryRow('Subtotal',
+            _buildSummaryRow(context, 'Subtotal',
                 'R\$ ${controller.subtotal.value.toStringAsFixed(2)}'),
             const SizedBox(height: 8),
-            _buildSummaryRow(
+            _buildSummaryRow(context,
                 'Frete', 'R\$ ${controller.shipping.value.toStringAsFixed(2)}'),
             const Divider(height: 24),
-            _buildSummaryRow(
+            _buildSummaryRow(context,
               'Total',
               'R\$ ${controller.total.value.toStringAsFixed(2)}',
               isTotal: true,
@@ -508,7 +519,7 @@ class CheckoutPage extends GetView<CheckoutController> {
     );
   }
 
-  Widget _buildSummaryRow(String label, String value, {bool isTotal = false}) {
+  Widget _buildSummaryRow(BuildContext context, String label, String value, {bool isTotal = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -524,7 +535,7 @@ class CheckoutPage extends GetView<CheckoutController> {
           style: TextStyle(
             fontSize: isTotal ? 16 : 14,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            color: isTotal ? const Color(AppConstants.successColor) : null,
+            color: isTotal ? AppColors.success(context) : AppColors.onSurface(context),
           ),
         ),
       ],

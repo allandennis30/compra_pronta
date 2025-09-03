@@ -24,6 +24,12 @@ dependencies:
   image: ^4.1.7
   # Dependências para máscaras e validações
   mask_text_input_formatter: ^2.9.0
+  # Dependências para geração de PDF e relatórios
+  pdf: ^3.10.7
+  printing: ^5.12.0
+  share_plus: ^7.2.2
+  path_provider: ^2.1.2
+  intl: ^0.17.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

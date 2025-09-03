@@ -440,8 +440,6 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> saveCredentials(String email, String password) async {
     try {
-      AppLogger.info('💾 [STORAGE] Salvando credenciais para: $email');
-
       // Criptografar a senha antes de salvar (usando base64 como exemplo simples)
       final encodedPassword = base64.encode(utf8.encode(password));
 
@@ -449,16 +447,6 @@ class AuthRepositoryImpl implements AuthRepository {
       await _storage.write('saved_password', encodedPassword);
       await _storage.write(
           'credentials_timestamp', DateTime.now().millisecondsSinceEpoch);
-
-      // Verificar se foi salvo corretamente
-      final savedEmail = _storage.read('saved_email');
-      final savedPassword = _storage.read('saved_password');
-
-      AppLogger.info(
-          '💾 [STORAGE] Email salvo: ${savedEmail != null ? savedEmail : 'ERRO'}');
-      AppLogger.info(
-          '💾 [STORAGE] Password salvo: ${savedPassword != null ? 'presente' : 'ERRO'}');
-      AppLogger.info('💾 Credenciais salvas para login automático');
     } catch (e) {
       AppLogger.error('❌ [STORAGE] Erro ao salvar credenciais', e);
       rethrow;
@@ -507,19 +495,10 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<bool> hasSavedCredentials() async {
     try {
-      AppLogger.info('🔍 [STORAGE] Verificando credenciais salvas...');
-
       final email = _storage.read('saved_email');
       final password = _storage.read('saved_password');
 
-      AppLogger.info(
-          '🔍 [STORAGE] Email lido: ${email != null ? email : 'null'}');
-      AppLogger.info(
-          '🔍 [STORAGE] Password lido: ${password != null ? 'presente' : 'null'}');
-
       final hasCredentials = email != null && password != null;
-      AppLogger.info('🔍 [STORAGE] Tem credenciais: $hasCredentials');
-
       return hasCredentials;
     } catch (e) {
       AppLogger.error('❌ [STORAGE] Erro ao verificar credenciais salvas', e);

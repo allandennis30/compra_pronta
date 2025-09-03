@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/vendor_metrics_controller.dart';
+import '../controllers/sales_report_controller.dart';
 import '../widgets/dashboard/index.dart';
+import '../widgets/dashboard/sales_report_section.dart';
 import '../widgets/vendedor_layout.dart';
+import '../../../core/themes/app_colors.dart';
 
 class VendorDashboardPage extends StatelessWidget {
   final VendorMetricsController controller = Get.put(VendorMetricsController());
+  final SalesReportController reportController = Get.put(SalesReportController());
 
   VendorDashboardPage({super.key});
 
@@ -14,7 +18,7 @@ class VendorDashboardPage extends StatelessWidget {
     return VendedorLayout(
       currentIndex: 0,
       child: Scaffold(
-        backgroundColor: Colors.grey[50],
+        backgroundColor: AppColors.background(context),
         appBar: const DashboardAppBar(),
         body: _buildBody(),
       ),
@@ -31,6 +35,8 @@ class VendorDashboardPage extends StatelessWidget {
           const SizedBox(height: 24),
           RecentOrdersSection(controller: controller),
           const SizedBox(height: 20),
+          SalesReportSection(controller: reportController),
+          const SizedBox(height: 20),
         ],
       ),
     );
@@ -42,8 +48,8 @@ class VendorDashboardPage extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.blue[600]!,
-            Colors.blue[400]!,
+            AppColors.primary(Get.context!),
+            AppColors.primary(Get.context!).withOpacity(0.8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -51,7 +57,7 @@ class VendorDashboardPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withOpacity(0.3),
+            color: AppColors.primary(Get.context!).withOpacity(0.3),
             spreadRadius: 1,
             blurRadius: 8,
             offset: const Offset(0, 4),

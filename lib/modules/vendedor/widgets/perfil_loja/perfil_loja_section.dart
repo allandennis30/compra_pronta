@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../campo_editavel.dart';
 import '../../controllers/vendor_settings_controller.dart';
+import 'endereco_widget.dart';
 
 class PerfilLojaSection extends StatelessWidget {
   final VendedorSettingsController controller;
@@ -34,11 +35,8 @@ class PerfilLojaSection extends StatelessWidget {
               onChanged: (v) => controller.descricao.value = v,
               maxLines: 2,
             ),
-            CampoEditavel(
-              label: 'Endereço',
-              valor: controller.endereco.value,
-              onChanged: (v) => controller.endereco.value = v,
-            ),
+            // Widget de endereço com funcionalidade de CEP
+            EnderecoWidget(controller: controller),
             CampoEditavel(
               label: 'Telefone',
               valor: controller.telefone.value,

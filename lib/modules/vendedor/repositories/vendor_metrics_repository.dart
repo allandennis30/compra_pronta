@@ -1,52 +1,100 @@
+import 'package:get/get.dart';
+import '../../../core/models/order_model.dart';
+import '../../../core/utils/logger.dart';
+import 'vendor_order_repository.dart';
+
 abstract class VendorMetricsRepository {
   Future<Map<String, dynamic>> getDashboardMetrics();
-  Future<List<Map<String, dynamic>>> getRecentOrders();
+  Future<List<OrderModel>> getRecentOrders();
+  Future<List<OrderModel>> getAllOrders();
   Future<List<Map<String, dynamic>>> getTopProducts();
   Future<Map<String, dynamic>> getSalesReport({DateTime? startDate, DateTime? endDate});
 }
 
 class VendorMetricsRepositoryImpl implements VendorMetricsRepository {
-  @override
-  Future<Map<String, dynamic>> getDashboardMetrics() async {
-    // Simular delay de rede
-    await Future.delayed(Duration(milliseconds: 500));
-    
-    return {
-      'totalSales': 1250.50,
-      'totalOrders': 45,
-      'pendingOrders': 8,
-      'totalProducts': 25,
-    };
+  late final VendorOrderRepository _orderRepository;
+
+  VendorMetricsRepositoryImpl() {
+    _orderRepository = Get.find<VendorOrderRepository>();
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getRecentOrders() async {
-    // Simular delay de rede
-    await Future.delayed(Duration(milliseconds: 300));
-    
-    return [
-      {
-        'id': 'order_001',
-        'customer': 'João Silva',
-        'total': 89.90,
-        'status': 'pending',
-        'date': DateTime.now().subtract(Duration(hours: 2)),
-      },
-      {
-        'id': 'order_002',
-        'customer': 'Maria Santos',
-        'total': 156.70,
-        'status': 'confirmed',
-        'date': DateTime.now().subtract(Duration(hours: 4)),
-      },
-      {
-        'id': 'order_003',
-        'customer': 'Pedro Costa',
-        'total': 67.30,
-        'status': 'delivered',
-        'date': DateTime.now().subtract(Duration(days: 1)),
-      },
-    ];
+  Future<Map<String, dynamic>> getDashboardMetrics() async {
+    try {
+      // Buscar pedidos reais para calcular métricas
+      final orders = await _orderRepository.getVendorOrders();
+      
+      // Calcular métricas baseadas nos pedidos reais
+      double totalSales = 0.0;
+      int totalOrders = orders.length;
+      int pendingOrders = 0;
+      
+      for (final order in orders) {
+        totalSales += order.total;
+        if (order.status == 'pending') {
+          pendingOrders++;
+        }
+      }
+      
+      return {
+        'totalSales': totalSales,
+        'totalOrders': totalOrders,
+        'pendingOrders': pendingOrders,
+        'totalProducts': 25, // TODO: Implementar contagem real de produtos
+      };
+    } catch (e) {
+      AppLogger.error('Erro ao calcular métricas do dashboard', e);
+      // Retornar valores padrão em caso de erro
+      return {
+        'totalSales': 0.0,
+        'totalOrders': 0,
+        'pendingOrders': 0,
+        'totalProducts': 0,
+      };
+    }
+  }
+
+  @override
+  Future<List<OrderModel>> getRecentOrders() async {
+    try {
+      AppLogger.info('📊 [METRICS] Buscando pedidos recentes reais...');
+      
+      // Buscar todos os pedidos do vendedor
+      final allOrders = await _orderRepository.getVendorOrders();
+      
+      // Ordenar por data de criação (mais recentes primeiro)
+      allOrders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      
+      // Retornar apenas os 5 mais recentes
+      final recentOrders = allOrders.take(5).toList();
+      
+      AppLogger.info('📊 [METRICS] ${recentOrders.length} pedidos recentes encontrados');
+      
+      return recentOrders;
+    } catch (e) {
+      AppLogger.error('Erro ao buscar pedidos recentes', e);
+      return [];
+    }
+  }
+
+  @override
+  Future<List<OrderModel>> getAllOrders() async {
+    try {
+      AppLogger.info('📊 [METRICS] Buscando todos os pedidos...');
+      
+      // Buscar todos os pedidos do vendedor
+      final allOrders = await _orderRepository.getVendorOrders();
+      
+      // Ordenar por data de criação (mais recentes primeiro)
+      allOrders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      
+      AppLogger.info('📊 [METRICS] ${allOrders.length} pedidos encontrados');
+      
+      return allOrders;
+    } catch (e) {
+      AppLogger.error('Erro ao buscar todos os pedidos', e);
+      return [];
+    }
   }
 
   @override

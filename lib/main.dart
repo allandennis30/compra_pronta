@@ -34,6 +34,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system, // Reage automaticamente ao tema do sistema
       getPages: AppPages.pages,
       defaultTransition: Transition.fade,
       transitionDuration: const Duration(milliseconds: 300),
@@ -81,15 +82,21 @@ class _InitialRouteDecider extends StatelessWidget {
       if (authController.isLoggedIn) {
         if (authController.isVendor) {
           // Vendedor
-          Future.microtask(() => Get.offAllNamed('/vendor/dashboard'));
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Get.offAllNamed('/vendor/dashboard');
+          });
         } else {
           // Cliente
-          Future.microtask(() => Get.offAllNamed('/cliente'));
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Get.offAllNamed('/cliente');
+          });
         }
         return const SizedBox.shrink();
       }
       // Não logado
-      Future.microtask(() => Get.offAllNamed('/login'));
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.offAllNamed('/login');
+      });
       return const SizedBox.shrink();
     });
   }

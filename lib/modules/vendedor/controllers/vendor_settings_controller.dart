@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../models/horario_funcionamento.dart';
 import '../../../repositories/store_settings_repository.dart';
+import '../../../core/services/cep_service.dart';
 
 class VendedorSettingsController extends GetxController {
   // Informações da loja
@@ -15,6 +16,20 @@ class VendedorSettingsController extends GetxController {
   var logoUrl = ''.obs;
   var latitude = 0.0.obs;
   var longitude = 0.0.obs;
+
+  // Campos de endereço separados
+  var rua = ''.obs;
+  var numero = ''.obs;
+  var complemento = ''.obs;
+  var bairro = ''.obs;
+  var cidade = ''.obs;
+  var estado = ''.obs;
+  var cep = ''.obs;
+
+  // Controle da busca de CEP
+  var isLoadingCep = false.obs;
+  var isCityLocked = false.obs;
+  var isStateLocked = false.obs;
 
   // Preferências de operação
   var horarioInicio = const TimeOfDay(hour: 8, minute: 0).obs;
@@ -30,15 +45,16 @@ class VendedorSettingsController extends GetxController {
   var taxaEntrega = 0.0.obs;
   var raioEntrega = 5.0.obs;
   var limiteEntregaGratis = 100.0.obs;
+  var tempoEntregaMin = 30.obs;
+  var tempoEntregaMax = 60.obs;
+  var pedidoMinimo = 0.0.obs;
 
-  // Estado extra
-  var lojaOffline = false.obs;
-
-  // Resumo de vendas
-  var vendasDia = 0.0.obs;
-  var vendasSemana = 0.0.obs;
-  var vendasMes = 0.0.obs;
-  var totalAcumulado = 0.0.obs;
+  // Configurações adicionais
+  var categoriaLoja = 'Supermercado'.obs;
+  var aceitaCartao = true.obs;
+  var aceitaDinheiro = true.obs;
+  var aceitaPix = true.obs;
+  var ativo = true.obs;
 
   final StoreSettingsRepository _storeSettingsRepository =
       StoreSettingsRepository();
@@ -49,27 +65,53 @@ class VendedorSettingsController extends GetxController {
       print('🔍 [VENDOR_SETTINGS] Iniciando carregamento de dados...');
       final settings = await _storeSettingsRepository.getStoreSettings();
       print('🔍 [VENDOR_SETTINGS] Dados recebidos: $settings');
+      
+      // Debug: mostrar todos os campos disponíveis
+      if (settings != null) {
+        print('🔍 [VENDOR_SETTINGS] Campos disponíveis no backend:');
+        settings.forEach((key, value) {
+          print('   $key: $value (${value.runtimeType})');
+        });
+      }
 
       if (settings != null) {
         print('🔍 [VENDOR_SETTINGS] Atribuindo dados aos observables...');
 
         // Carregar dados da loja
-        nomeLoja.value = settings['nomeLoja'] ?? '';
-        cnpjCpf.value = settings['cnpjCpf'] ?? '';
+        nomeLoja.value = settings['nome_empresa']?? '';
+        cnpjCpf.value = settings['cnpj']?? '';
         descricao.value = settings['descricao'] ?? '';
-        endereco.value = settings['endereco']?.toString() ?? '';
         telefone.value = settings['telefone'] ?? '';
         logoUrl.value = settings['logoUrl'] ?? '';
         latitude.value = (settings['latitude'] ?? 0.0).toDouble();
         longitude.value = (settings['longitude'] ?? 0.0).toDouble();
 
-        print('🔍 [VENDOR_SETTINGS] Dados básicos atribuídos:');
-        print('   Nome: ${nomeLoja.value}');
-        print('   CNPJ: ${cnpjCpf.value}');
-        print('   Telefone: ${telefone.value}');
-        print('   Descrição: ${descricao.value}');
-        print('   Endereço: ${endereco.value}');
-        print('   Logo URL: ${logoUrl.value}');
+        // Carregar endereço separadamente
+        final enderecoData = settings['endereco'];
+        if (enderecoData != null) {
+          if (enderecoData is Map<String, dynamic>) {
+            // Endereço já está em formato de objeto
+            rua.value = enderecoData['rua'] ?? enderecoData['street'] ?? '';
+            numero.value = enderecoData['numero']?.toString() ?? enderecoData['number']?.toString() ?? '';
+            complemento.value = enderecoData['complemento'] ?? enderecoData['complement'] ?? '';
+            bairro.value = enderecoData['bairro'] ?? enderecoData['neighborhood'] ?? '';
+            cidade.value = enderecoData['cidade'] ?? enderecoData['city'] ?? '';
+            estado.value = enderecoData['estado'] ?? enderecoData['state'] ?? '';
+            cep.value = enderecoData['cep'] ?? enderecoData['zipCode'] ?? '';
+            
+            // Se CEP estiver vazio, tentar buscar de outros campos
+            if (cep.value.isEmpty) {
+              // Verificar se há CEP em outros campos do endereço
+              cep.value = enderecoData['cep'] ?? enderecoData['zipCode'] ?? enderecoData['postalCode'] ?? '';
+            }
+          } else {
+            // Endereço está como string, tentar converter
+            final enderecoStr = enderecoData.toString();
+            endereco.value = enderecoStr;
+            _parseEnderecoString(enderecoStr);
+          }
+        }
+
 
         // Carregar preferências de operação
         if (settings['horarioInicio'] != null) {
@@ -98,10 +140,6 @@ class VendedorSettingsController extends GetxController {
         tempoPreparo.value = settings['tempoPreparo'] ?? 30;
         mensagemBoasVindas.value = settings['mensagemBoasVindas'] ?? '';
 
-        print('🔍 [VENDOR_SETTINGS] Dados de operação atribuídos:');
-        print('   Aceita fora horário: ${aceitaForaHorario.value}');
-        print('   Tempo preparo: ${tempoPreparo.value}');
-        print('   Mensagem boas-vindas: ${mensagemBoasVindas.value}');
 
         // Carregar horários de funcionamento
         if (settings['horariosFuncionamento'] != null) {
@@ -116,20 +154,21 @@ class VendedorSettingsController extends GetxController {
         }
 
         // Carregar política de entrega
-        taxaEntrega.value = (settings['taxaEntrega'] ?? 0.0).toDouble();
+        taxaEntrega.value = (settings['taxa_entrega'] ?? settings['taxaEntrega'] ?? 0.0).toDouble();
         raioEntrega.value = (settings['raioEntrega'] ?? 5.0).toDouble();
-        limiteEntregaGratis.value =
-            (settings['limiteEntregaGratis'] ?? 100.0).toDouble();
+        limiteEntregaGratis.value = (settings['limiteEntregaGratis'] ?? 100.0).toDouble();
+        tempoEntregaMin.value = (settings['tempo_entrega_min'] ?? settings['tempoEntregaMin'] ?? 30).toInt();
+        tempoEntregaMax.value = (settings['tempo_entrega_max'] ?? settings['tempoEntregaMax'] ?? 60).toInt();
+        pedidoMinimo.value = (settings['pedido_minimo'] ?? settings['pedidoMinimo'] ?? 0.0).toDouble();
 
-        // Carregar estado da loja
-        lojaOffline.value = settings['lojaOffline'] ?? false;
+        // Carregar configurações adicionais
+        categoriaLoja.value = settings['categoria_loja'] ?? settings['categoriaLoja'] ?? 'Supermercado';
+        aceitaCartao.value = settings['aceita_cartao'] ?? settings['aceitaCartao'] ?? true;
+        aceitaDinheiro.value = settings['aceita_dinheiro'] ?? settings['aceitaDinheiro'] ?? true;
+        aceitaPix.value = settings['aceita_pix'] ?? settings['aceitaPix'] ?? true;
+        ativo.value = settings['ativo'] ?? true;
 
-        print('🔍 [VENDOR_SETTINGS] Dados de entrega atribuídos:');
-        print('   Taxa: ${taxaEntrega.value}');
-        print('   Raio: ${raioEntrega.value}');
-        print('   Limite Grátis: ${limiteEntregaGratis.value}');
-        print(
-            '🔍 [VENDOR_SETTINGS] Todos os dados foram atribuídos com sucesso!');
+      
       }
 
       // Inicializar horários de funcionamento se estiver vazio
@@ -148,6 +187,108 @@ class VendedorSettingsController extends GetxController {
       if (horariosFuncionamento.isEmpty) {
         _inicializarHorariosFuncionamento();
       }
+    }
+  }
+
+  /// Limpa os campos de endereço
+  void clearEndereco() {
+    rua.value = '';
+    numero.value = '';
+    complemento.value = '';
+    bairro.value = '';
+    cidade.value = '';
+    estado.value = '';
+    cep.value = '';
+    isCityLocked.value = false;
+    isStateLocked.value = false;
+  }
+
+  /// Busca dados do endereço pelo CEP
+  Future<void> searchCep() async {
+    final cepValue = cep.value;
+    if (cepValue.length < 8) return;
+
+    isLoadingCep.value = true;
+
+    try {
+      final cepData = await CepService.searchCep(cepValue);
+
+      if (cepData != null) {
+        rua.value = cepData['logradouro'] ?? '';
+        bairro.value = cepData['bairro'] ?? '';
+        cidade.value = cepData['localidade'] ?? '';
+        estado.value = cepData['uf'] ?? '';
+
+        // Bloqueia os campos cidade e UF quando preenchidos automaticamente
+        isCityLocked.value = cepData['localidade']?.isNotEmpty == true;
+        isStateLocked.value = cepData['uf']?.isNotEmpty == true;
+
+        Get.snackbar(
+          'CEP encontrado',
+          'Endereço preenchido automaticamente',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+        );
+      } else {
+        // Desbloqueia os campos se o CEP não for encontrado
+        isCityLocked.value = false;
+        isStateLocked.value = false;
+
+        Get.snackbar(
+          'CEP não encontrado',
+          'Verifique o CEP informado',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      // Desbloqueia os campos em caso de erro
+      isCityLocked.value = false;
+      isStateLocked.value = false;
+
+      Get.snackbar(
+        'Erro',
+        'Erro ao buscar CEP. Tente novamente.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isLoadingCep.value = false;
+    }
+  }
+
+  void _parseEnderecoString(String enderecoStr) {
+    try {
+      // Tentar fazer parse de string no formato "Rua, Número, Bairro, Cidade, Estado, CEP"
+      final parts = enderecoStr.split(',').map((e) => e.trim()).toList();
+      
+      if (parts.length >= 6) {
+        // Padrão: "Rua, Número, Bairro, Cidade, Estado, CEP"
+        rua.value = parts[0];
+        numero.value = parts[1];
+        bairro.value = parts[2];
+        cidade.value = parts[3];
+        estado.value = parts[4];
+        cep.value = parts[5];
+        if (parts.length > 6) {
+          complemento.value = parts[6];
+        }
+      } else if (parts.length >= 4) {
+        // Padrão alternativo: "Rua, Bairro, Cidade, Estado"
+        rua.value = parts[0];
+        bairro.value = parts[1];
+        cidade.value = parts[2];
+        estado.value = parts[3];
+        if (parts.length > 4) {
+          cep.value = parts[4];
+        }
+      }
+    } catch (e) {
+      print('Erro ao fazer parse do endereço: $e');
     }
   }
 
@@ -257,11 +398,21 @@ class VendedorSettingsController extends GetxController {
   Future<void> salvarDadosLoja() async {
     try {
       // Preparar dados para enviar ao backend
+      final enderecoData = {
+        'rua': rua.value,
+        'numero': numero.value,
+        'complemento': complemento.value,
+        'bairro': bairro.value,
+        'cidade': cidade.value,
+        'estado': estado.value,
+        'cep': cep.value,
+      };
+
       final settingsData = {
-        'nomeLoja': nomeLoja.value,
-        'cnpjCpf': cnpjCpf.value,
+        'nome_empresa': nomeLoja.value,
+        'cnpj': cnpjCpf.value,
         'descricao': descricao.value,
-        'endereco': endereco.value,
+        'endereco': enderecoData,
         'telefone': telefone.value,
         'logoUrl': logoUrl.value,
         'latitude': latitude.value,
@@ -278,7 +429,14 @@ class VendedorSettingsController extends GetxController {
         'taxaEntrega': taxaEntrega.value,
         'raioEntrega': raioEntrega.value,
         'limiteEntregaGratis': limiteEntregaGratis.value,
-        'lojaOffline': lojaOffline.value,
+        'tempoEntregaMin': tempoEntregaMin.value,
+        'tempoEntregaMax': tempoEntregaMax.value,
+        'pedidoMinimo': pedidoMinimo.value,
+        'categoriaLoja': categoriaLoja.value,
+        'aceitaCartao': aceitaCartao.value,
+        'aceitaDinheiro': aceitaDinheiro.value,
+        'aceitaPix': aceitaPix.value,
+        'ativo': ativo.value,
       };
 
       await _storeSettingsRepository.saveStoreSettings(settingsData);
@@ -306,13 +464,7 @@ class VendedorSettingsController extends GetxController {
     // TODO: Obter localização via GPS e atualizar latitude/longitude
   }
 
-  Future<void> exportarRelatorioVendas() async {
-    // TODO: Gerar e exportar relatório em PDF/CSV
-  }
 
-  Future<void> enviarRelatorioPorWhatsappOuEmail() async {
-    // TODO: Compartilhar relatório via WhatsApp ou e-mail
-  }
 
   Future<void> alterarSenha(String novaSenha) async {
     // TODO: Chamar backend para alterar senha
@@ -323,32 +475,9 @@ class VendedorSettingsController extends GetxController {
     await Get.find<AuthController>().logout();
   }
 
-  Future<void> sincronizarComServidor() async {
-    try {
-      await carregarDadosLoja();
 
-      Get.snackbar(
-        'Sincronização',
-        'Dados sincronizados com sucesso!',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.blue,
-        colorText: Colors.white,
-      );
-    } catch (e) {
-      print('Erro ao sincronizar com servidor: $e');
-      Get.snackbar(
-        'Erro',
-        'Não foi possível sincronizar com o servidor',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-    }
-  }
 
-  Future<void> backupManual() async {
-    // TODO: Enviar backup manual para o servidor
-  }
+
 
   Future<void> selecionarHorario() async {
     // TODO: Abrir diálogo para selecionar horário de funcionamento

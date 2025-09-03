@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../controllers/order_builder_controller.dart';
+import '../../../core/themes/app_colors.dart';
 
 class OrderItemCard extends StatelessWidget {
   final OrderItemStatus itemStatus;
@@ -23,30 +24,26 @@ class OrderItemCard extends StatelessWidget {
     final item = itemStatus.orderItem;
     final progress = itemStatus.progress;
 
-    // Cores baseadas no status
+    // Cores baseadas no status usando o sistema reativo
     Color cardColor;
     Color borderColor;
-    Color iconColor;
     Color textColor;
     
     if (isComplete) {
       // Verde quando completo
-      cardColor = theme.colorScheme.primary.withOpacity(0.15);
-      borderColor = theme.colorScheme.primary;
-      iconColor = theme.colorScheme.primary;
-      textColor = theme.colorScheme.primary;
+      cardColor = AppColors.success(context).withOpacity(0.15);
+      borderColor = AppColors.success(context);
+      textColor = AppColors.success(context);
     } else if (isScanned) {
       // Azul quando parcialmente escaneado
-      cardColor = theme.colorScheme.secondary.withOpacity(0.1);
-      borderColor = theme.colorScheme.secondary;
-      iconColor = theme.colorScheme.secondary;
-      textColor = theme.colorScheme.secondary;
+      cardColor = AppColors.statusConfirmed(context).withOpacity(0.1);
+      borderColor = AppColors.statusConfirmed(context);
+      textColor = AppColors.statusConfirmed(context);
     } else {
       // Cinza quando não escaneado
-      cardColor = theme.colorScheme.surface;
-      borderColor = theme.colorScheme.outline.withOpacity(0.3);
-      iconColor = theme.colorScheme.onSurface.withOpacity(0.6);
-      textColor = theme.colorScheme.onSurface;
+      cardColor = AppColors.surface(context);
+      borderColor = AppColors.border(context).withOpacity(0.3);
+      textColor = AppColors.onSurface(context);
     }
 
     return Card(

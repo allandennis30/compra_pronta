@@ -10,57 +10,87 @@ class ProfileController extends GetxController {
   final RxBool isLoading = false.obs;
 
   // Controllers para os campos editáveis
-  final nameController = TextEditingController();
-  final phoneController = TextEditingController();
-  final streetController = TextEditingController();
-  final numberController = TextEditingController();
-  final complementController = TextEditingController();
-  final neighborhoodController = TextEditingController();
-  final cityController = TextEditingController();
-  final stateController = TextEditingController();
-  final zipCodeController = TextEditingController();
+  late TextEditingController nameController;
+  late TextEditingController phoneController;
+  late TextEditingController streetController;
+  late TextEditingController numberController;
+  late TextEditingController complementController;
+  late TextEditingController neighborhoodController;
+  late TextEditingController cityController;
+  late TextEditingController stateController;
+  late TextEditingController zipCodeController;
 
   // Controllers para alterar senha
-  final currentPasswordController = TextEditingController();
-  final newPasswordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
+  late TextEditingController currentPasswordController;
+  late TextEditingController newPasswordController;
+  late TextEditingController confirmPasswordController;
 
   @override
   void onInit() {
     super.onInit();
+    _createControllers();
     user.value = _authController.currentUser;
     _initializeControllers();
   }
 
+  void _createControllers() {
+    nameController = TextEditingController();
+    phoneController = TextEditingController();
+    streetController = TextEditingController();
+    numberController = TextEditingController();
+    complementController = TextEditingController();
+    neighborhoodController = TextEditingController();
+    cityController = TextEditingController();
+    stateController = TextEditingController();
+    zipCodeController = TextEditingController();
+    currentPasswordController = TextEditingController();
+    newPasswordController = TextEditingController();
+    confirmPasswordController = TextEditingController();
+  }
+
   @override
   void onClose() {
-    nameController.dispose();
-    phoneController.dispose();
-    streetController.dispose();
-    numberController.dispose();
-    complementController.dispose();
-    neighborhoodController.dispose();
-    cityController.dispose();
-    stateController.dispose();
-    zipCodeController.dispose();
-    currentPasswordController.dispose();
-    newPasswordController.dispose();
-    confirmPasswordController.dispose();
+    _disposeControllers();
     super.onClose();
+  }
+
+  void _disposeControllers() {
+    try {
+      nameController.dispose();
+      phoneController.dispose();
+      streetController.dispose();
+      numberController.dispose();
+      complementController.dispose();
+      neighborhoodController.dispose();
+      cityController.dispose();
+      stateController.dispose();
+      zipCodeController.dispose();
+      currentPasswordController.dispose();
+      newPasswordController.dispose();
+      confirmPasswordController.dispose();
+    } catch (e) {
+      // Ignorar erros se já foram descartados
+    }
   }
 
   void _initializeControllers() {
     final currentUser = user.value;
     if (currentUser != null) {
-      nameController.text = currentUser.name;
-      phoneController.text = currentUser.phone;
-      streetController.text = currentUser.address.street;
-      numberController.text = currentUser.address.number.toString();
-      complementController.text = currentUser.address.complement ?? '';
-      neighborhoodController.text = currentUser.address.neighborhood;
-      cityController.text = currentUser.address.city;
-      stateController.text = currentUser.address.state;
-      zipCodeController.text = currentUser.address.zipCode;
+      try {
+        nameController.text = currentUser.name;
+        phoneController.text = currentUser.phone;
+        streetController.text = currentUser.address.street;
+        numberController.text = currentUser.address.number.toString();
+        complementController.text = currentUser.address.complement ?? '';
+        neighborhoodController.text = currentUser.address.neighborhood;
+        cityController.text = currentUser.address.city;
+        stateController.text = currentUser.address.state;
+        zipCodeController.text = currentUser.address.zipCode;
+      } catch (e) {
+        // Se algum controller foi descartado, recriar todos
+        _createControllers();
+        _initializeControllers();
+      }
     }
   }
 

@@ -4,6 +4,7 @@ import '../controllers/vendor_product_list_controller.dart';
 import '../../cliente/models/product_model.dart';
 import '../widgets/product_card.dart';
 import '../widgets/vendedor_layout.dart';
+import '../../../core/themes/app_colors.dart';
 
 class VendorProductListPage extends GetView<VendedorProductListController> {
   const VendorProductListPage({super.key});
@@ -13,8 +14,11 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
     return VendedorLayout(
       currentIndex: 1,
       child: Scaffold(
+        backgroundColor: AppColors.background(context),
         appBar: AppBar(
           title: const Text('Meus Produtos'),
+          backgroundColor: AppColors.appBarBackground(context),
+          foregroundColor: AppColors.appBarForeground(context),
           actions: [
             IconButton(
               icon: const Icon(Icons.add),
@@ -24,13 +28,17 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
           ],
         ),
         body: Obx(() => controller.isLoading.value
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.loadingIndicator(context),
+                ),
+              )
             : Column(
                 children: [
-                  _buildFilters(),
+                  _buildFilters(context),
                   Expanded(
                     child: controller.products.isEmpty
-                        ? _buildEmptyState()
+                        ? _buildEmptyState(context)
                         : _buildProductList(),
                   ),
                 ],
@@ -39,14 +47,14 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
     );
   }
 
-  Widget _buildFilters() {
+  Widget _buildFilters(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface(context),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.shadow(context),
             spreadRadius: 0,
             blurRadius: 4,
             offset: const Offset(0, 2),
@@ -57,12 +65,28 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
         children: [
           TextField(
             onChanged: controller.searchProducts,
+            style: TextStyle(color: AppColors.onSurface(context)),
             decoration: InputDecoration(
               hintText: 'Buscar produtos...',
-              prefixIcon: const Icon(Icons.search),
+              hintStyle: TextStyle(color: AppColors.onSurfaceVariant(context)),
+              prefixIcon: Icon(
+                Icons.search,
+                color: AppColors.iconSecondary(context),
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: AppColors.border(context)),
               ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: AppColors.border(context)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: AppColors.borderFocused(context)),
+              ),
+              filled: true,
+              fillColor: AppColors.surfaceVariant(context),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 12,
@@ -79,19 +103,38 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
               child: Row(
                 children: [
                   FilterChip(
-                    label: const Text('Todas'),
+                    label: Text(
+                      'Todas',
+                      style: TextStyle(
+                        color: controller.selectedCategory.value.isEmpty
+                            ? Colors.white
+                            : AppColors.chipText(context),
+                      ),
+                    ),
                     selected: controller.selectedCategory.value.isEmpty,
+                    selectedColor: AppColors.chipSelected(context),
+                    backgroundColor: AppColors.chipBackground(context),
                     onSelected: (selected) {
                       if (selected) controller.clearFilters();
                     },
                   ),
                   const SizedBox(width: 8),
                   ...categories.map((category) {
+                    final isSelected = controller.selectedCategory.value == category;
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: FilterChip(
-                        label: Text(category),
-                        selected: controller.selectedCategory.value == category,
+                        label: Text(
+                          category,
+                          style: TextStyle(
+                            color: isSelected
+                                ? Colors.white
+                                : AppColors.chipText(context),
+                          ),
+                        ),
+                        selected: isSelected,
+                        selectedColor: AppColors.chipSelected(context),
+                        backgroundColor: AppColors.chipBackground(context),
                         onSelected: (selected) {
                           if (selected) {
                             controller.filterByCategory(category);
@@ -111,7 +154,7 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -119,7 +162,7 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
           Icon(
             Icons.inventory_2_outlined,
             size: 64,
-            color: Colors.grey[400],
+            color: AppColors.iconSecondary(context),
           ),
           const SizedBox(height: 16),
           Text(
@@ -127,14 +170,14 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.grey[600],
+              color: AppColors.onSurface(context),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Comece adicionando seu primeiro produto',
             style: TextStyle(
-              color: Colors.grey[600],
+              color: AppColors.onSurfaceVariant(context),
             ),
           ),
           const SizedBox(height: 24),
@@ -143,8 +186,9 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
             icon: const Icon(Icons.add),
             label: const Text('Adicionar Produto'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.buttonPrimary(context),
+              foregroundColor: AppColors.buttonOnPrimary(context),
+              elevation: 2,
             ),
           ),
         ],
@@ -215,15 +259,23 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
   void _showDeleteConfirmation(ProductModel product) {
     Get.dialog(
       AlertDialog(
-        title: const Text('Confirmar Exclusão'),
+        backgroundColor: AppColors.surface(Get.context!),
+        title: Text(
+          'Confirmar Exclusão',
+          style: TextStyle(color: AppColors.onSurface(Get.context!)),
+        ),
         content: Text(
           'Tem certeza que deseja excluir o produto "${product.name ?? 'Produto sem nome'}"?\n\n'
           'Esta ação não pode ser desfeita.',
+          style: TextStyle(color: AppColors.onSurface(Get.context!)),
         ),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: const Text('Cancelar'),
+            child: Text(
+              'Cancelar',
+              style: TextStyle(color: AppColors.onSurface(Get.context!)),
+            ),
           ),
           TextButton(
             onPressed: () async {
@@ -231,7 +283,7 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
               await controller.deleteProduct(product.id ?? '');
             },
             style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
+              foregroundColor: AppColors.error(Get.context!),
             ),
             child: const Text('Excluir'),
           ),

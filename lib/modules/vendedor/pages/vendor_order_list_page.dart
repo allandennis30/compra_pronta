@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/vendor_order_list_controller.dart';
 import '../widgets/vendedor_layout.dart';
+import '../../../core/themes/app_colors.dart';
 
 class VendorOrderListPage extends GetView<VendorOrderListController> {
   const VendorOrderListPage({super.key});
@@ -11,8 +12,8 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
     return VendedorLayout(
       currentIndex: 2,
       child: Scaffold(
-        backgroundColor: Colors.grey.shade50,
-        appBar: _buildAppBar(),
+        backgroundColor: AppColors.background(context),
+        appBar: _buildAppBar(context),
         body: Obx(() {
           if (controller.isLoading) {
             return const Center(
@@ -21,18 +22,18 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
           }
 
           if (controller.errorMessage.isNotEmpty) {
-            return _buildErrorState();
+            return _buildErrorState(context);
           }
 
           return RefreshIndicator(
             onRefresh: controller.refreshOrders,
             child: Column(
               children: [
-                _buildFilters(),
+                _buildFilters(context),
                 Expanded(
                   child: controller.orders.isEmpty
-                      ? _buildEmptyState()
-                      : _buildOrdersList(),
+                      ? _buildEmptyState(context)
+                      : _buildOrdersList(context),
                 ),
               ],
             ),
@@ -42,7 +43,7 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
       title: const Text(
         'Pedidos',
@@ -79,7 +80,7 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
                       borderSide: BorderSide.none,
                     ),
                     filled: true,
-                    fillColor: Colors.grey.shade100,
+                    fillColor: AppColors.surfaceVariant(context),
                   ),
                 ),
               ),
@@ -88,50 +89,50 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
     );
   }
 
-  Widget _buildFilters() {
+  Widget _buildFilters(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        child: Row(
+        child: Obx(() => Row(
           children: controller.availableStatuses.map((status) {
-            return Obx(() => Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(controller.getStatusDisplayName(status)),
-                    selected: controller.selectedStatus == status,
-                    onSelected: (_) => controller.filterByStatus(status),
-                    selectedColor:
-                        controller.getStatusColor(status).withOpacity(0.2),
-                    checkmarkColor: controller.getStatusColor(status),
-                    labelStyle: TextStyle(
-                      color: controller.selectedStatus == status
-                          ? controller.getStatusColor(status)
-                          : Colors.grey.shade700,
-                      fontWeight: controller.selectedStatus == status
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                  ),
-                ));
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: FilterChip(
+                label: Text(controller.getStatusDisplayName(status)),
+                selected: controller.selectedStatus == status,
+                onSelected: (_) => controller.filterByStatus(status),
+                selectedColor:
+                    controller.getStatusColor(status).withOpacity(0.2),
+                checkmarkColor: controller.getStatusColor(status),
+                labelStyle: TextStyle(
+                  color: controller.selectedStatus == status
+                      ? controller.getStatusColor(status)
+                      : AppColors.onSurface(context),
+                  fontWeight: controller.selectedStatus == status
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                ),
+              ),
+            );
           }).toList(),
-        ),
+        )),
       ),
     );
   }
 
-  Widget _buildOrdersList() {
+  Widget _buildOrdersList(BuildContext context) {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: controller.orders.length,
       itemBuilder: (context, index) {
         final order = controller.orders[index];
-        return _buildOrderCard(order);
+        return _buildOrderCard(order, context);
       },
     );
   }
 
-  Widget _buildOrderCard(order) {
+  Widget _buildOrderCard(order, BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
@@ -168,7 +169,7 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
                           controller.formatDateTime(order.createdAt),
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey.shade600,
+                            color: AppColors.onSurfaceVariant(context),
                           ),
                         ),
                       ],
@@ -200,7 +201,7 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
                   Icon(
                     Icons.location_on_outlined,
                     size: 16,
-                    color: Colors.grey.shade600,
+                    color: AppColors.iconSecondary(context),
                   ),
                   const SizedBox(width: 4),
                   Expanded(
@@ -208,7 +209,7 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
                       '${order.deliveryAddress.street}, ${order.deliveryAddress.number}${order.deliveryAddress.complement != null && order.deliveryAddress.complement!.isNotEmpty ? ', ${order.deliveryAddress.complement}' : ''}',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey.shade700,
+                        color: AppColors.onSurface(context),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -231,7 +232,7 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
                   Icon(
                     Icons.arrow_forward_ios,
                     size: 16,
-                    color: Colors.grey.shade400,
+                    color: AppColors.iconSecondary(context),
                   ),
                 ],
               ),
@@ -242,7 +243,7 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -250,7 +251,7 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
           Icon(
             Icons.receipt_long_outlined,
             size: 64,
-            color: Colors.grey.shade400,
+            color: AppColors.iconSecondary(context),
           ),
           const SizedBox(height: 16),
           Text(
@@ -258,7 +259,7 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.grey.shade600,
+              color: AppColors.onSurface(context),
             ),
           ),
           const SizedBox(height: 8),
@@ -267,7 +268,7 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey.shade500,
+              color: AppColors.onSurfaceVariant(context),
             ),
           ),
           const SizedBox(height: 24),
@@ -276,7 +277,7 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
             icon: const Icon(Icons.refresh),
             label: const Text('Atualizar'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
+              backgroundColor: AppColors.primary(context),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -288,7 +289,7 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
     );
   }
 
-  Widget _buildErrorState() {
+  Widget _buildErrorState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -304,7 +305,7 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.grey.shade600,
+              color: AppColors.onSurface(context),
             ),
           ),
           const SizedBox(height: 8),
@@ -313,7 +314,7 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey.shade500,
+              color: AppColors.onSurfaceVariant(context),
             ),
           ),
           const SizedBox(height: 24),
@@ -322,7 +323,7 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
             icon: const Icon(Icons.refresh),
             label: const Text('Tentar Novamente'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
+              backgroundColor: AppColors.primary(context),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

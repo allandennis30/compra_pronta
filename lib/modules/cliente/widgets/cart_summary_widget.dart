@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controllers/cart_controller.dart';
 import '../../../constants/app_constants.dart';
 import '../../../routes/app_pages.dart';
+import '../../../core/themes/app_colors.dart';
 
 class CartSummaryWidget extends GetView<CartController> {
   final bool isDesktop;
@@ -14,10 +15,10 @@ class CartSummaryWidget extends GetView<CartController> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface(context),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: AppColors.shadow(context),
             spreadRadius: 1,
             blurRadius: 5,
             offset: const Offset(0, -2),
@@ -28,47 +29,50 @@ class CartSummaryWidget extends GetView<CartController> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _title,
+          _title(context),
           const SizedBox(height: 16),
-          _subtotalRow,
+          _subtotalRow(context),
           const SizedBox(height: 8),
-          _shippingRow,
+          _shippingRow(context),
           const Divider(height: 24),
-          _totalRow,
+          _totalRow(context),
           const SizedBox(height: 16),
-          _checkoutButton,
-          _minOrderMessage,
+          _checkoutButton(context),
+          _minOrderMessage(context),
         ],
       ),
     );
   }
 
-  Widget get _title => Text(
+  Widget _title(BuildContext context) => Text(
         'Resumo do Pedido',
         style: TextStyle(
           fontSize: isDesktop ? 18 : 16,
           fontWeight: FontWeight.bold,
-          color: const Color(0xFF424242),
+          color: AppColors.onSurface(context),
         ),
       );
 
-  Widget get _subtotalRow => Obx(() => _buildSummaryRow(
+  Widget _subtotalRow(BuildContext context) => Obx(() => _buildSummaryRow(
+        context,
         'Subtotal:',
         'R\$ ${controller.subtotal.value.toStringAsFixed(2)}',
       ));
 
-  Widget get _shippingRow => Obx(() => _buildSummaryRow(
+  Widget _shippingRow(BuildContext context) => Obx(() => _buildSummaryRow(
+        context,
         'Frete:',
         'R\$ ${controller.shipping.value.toStringAsFixed(2)}',
       ));
 
-  Widget get _totalRow => Obx(() => _buildSummaryRow(
+  Widget _totalRow(BuildContext context) => Obx(() => _buildSummaryRow(
+        context,
         'Total:',
         'R\$ ${controller.total.value.toStringAsFixed(2)}',
         isTotal: true,
       ));
 
-  Widget get _checkoutButton => SizedBox(
+  Widget _checkoutButton(BuildContext context) => SizedBox(
         width: double.infinity,
         child: Obx(() => ElevatedButton(
               onPressed: controller.canCheckout()
@@ -76,7 +80,7 @@ class CartSummaryWidget extends GetView<CartController> {
                   : null,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: const Color(AppConstants.successColor),
+                backgroundColor: AppColors.success(context),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -92,21 +96,21 @@ class CartSummaryWidget extends GetView<CartController> {
             )),
       );
 
-  Widget get _minOrderMessage => Obx(() => !controller.canCheckout()
+  Widget _minOrderMessage(BuildContext context) => Obx(() => !controller.canCheckout()
       ? Padding(
           padding: const EdgeInsets.only(top: 8),
           child: Text(
             'Valor mínimo: R\$ ${AppConstants.minOrderValue.toStringAsFixed(2)}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: Color(0xFF9E9E9E),
+              color: AppColors.onSurfaceVariant(context),
             ),
             textAlign: TextAlign.center,
           ),
         )
       : const SizedBox());
 
-  Widget _buildSummaryRow(String label, String value, {bool isTotal = false}) {
+  Widget _buildSummaryRow(BuildContext context, String label, String value, {bool isTotal = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -115,7 +119,7 @@ class CartSummaryWidget extends GetView<CartController> {
           style: TextStyle(
             fontSize: isTotal ? 16 : 14,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            color: const Color(0xFF424242),
+            color: AppColors.onSurface(context),
           ),
         ),
         Text(
@@ -124,8 +128,8 @@ class CartSummaryWidget extends GetView<CartController> {
             fontSize: isTotal ? 16 : 14,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
             color: isTotal
-                ? const Color(AppConstants.successColor)
-                : const Color(0xFF424242),
+                ? AppColors.success(context)
+                : AppColors.onSurface(context),
           ),
         ),
       ],

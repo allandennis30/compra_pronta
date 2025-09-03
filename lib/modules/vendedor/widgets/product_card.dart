@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../cliente/models/product_model.dart';
 import '../../../core/widgets/product_image_display.dart';
+import '../../../core/themes/app_colors.dart';
 
 class ProductCard extends StatelessWidget {
   final ProductModel product;
@@ -23,11 +24,15 @@ class ProductCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground(context),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.cardBorder(context),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: AppColors.shadow(context),
             spreadRadius: 0,
             blurRadius: 12,
             offset: const Offset(0, 4),
@@ -49,7 +54,7 @@ class ProductCard extends StatelessWidget {
                   child: _buildProductInfo(context),
                 ),
                 const SizedBox(width: 12),
-                _buildActionButtons(),
+                _buildActionButtons(context),
               ],
             ),
           ),
@@ -75,38 +80,43 @@ class ProductCard extends StatelessWidget {
             Expanded(
               child: Text(
                 product.name ?? 'Produto sem nome',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                  color: AppColors.onSurface(context),
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
             const SizedBox(width: 8),
-            _buildStatusIndicator(),
+            _buildStatusIndicator(context),
           ],
         ),
         const SizedBox(height: 6),
-        _buildPriceInfo(),
+        _buildPriceInfo(context),
         const SizedBox(height: 6),
-        _buildCategoryChip(),
+        _buildCategoryChip(context),
         const SizedBox(height: 8),
-        _buildStockInfo(),
+        _buildStockInfo(context),
       ],
     );
   }
 
-  Widget _buildStatusIndicator() {
+  Widget _buildStatusIndicator(BuildContext context) {
     final isAvailable = product.isAvailable ?? false;
+    final statusColor = isAvailable ? AppColors.success(context) : AppColors.error(context);
+    final statusColorLight = isAvailable 
+        ? AppColors.success(context).withOpacity(0.1)
+        : AppColors.error(context).withOpacity(0.1);
+    
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: isAvailable ? Colors.green.shade50 : Colors.red.shade50,
+        color: statusColorLight,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isAvailable ? Colors.green.shade200 : Colors.red.shade200,
+          color: statusColor.withOpacity(0.3),
           width: 1,
         ),
       ),
@@ -116,7 +126,7 @@ class ProductCard extends StatelessWidget {
           Icon(
             isAvailable ? Icons.check_circle : Icons.cancel,
             size: 14,
-            color: isAvailable ? Colors.green.shade600 : Colors.red.shade600,
+            color: statusColor,
           ),
           const SizedBox(width: 4),
           Text(
@@ -124,7 +134,7 @@ class ProductCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: isAvailable ? Colors.green.shade700 : Colors.red.shade700,
+              color: statusColor,
             ),
           ),
         ],
@@ -132,13 +142,13 @@ class ProductCard extends StatelessWidget {
     );
   }
 
-  Widget _buildPriceInfo() {
+  Widget _buildPriceInfo(BuildContext context) {
     return Row(
       children: [
         Icon(
           (product.isSoldByWeight ?? false) ? Icons.scale : Icons.attach_money,
           size: 16,
-          color: Colors.green.shade600,
+          color: AppColors.success(context),
         ),
         const SizedBox(width: 4),
         Text(
@@ -148,21 +158,21 @@ class ProductCard extends StatelessWidget {
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w700,
-            color: Colors.green.shade700,
+            color: AppColors.success(context),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildCategoryChip() {
+  Widget _buildCategoryChip(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.blue.shade50,
+        color: AppColors.primary(context).withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: Colors.blue.shade200,
+          color: AppColors.primary(context).withOpacity(0.3),
           width: 0.5,
         ),
       ),
@@ -171,27 +181,27 @@ class ProductCard extends StatelessWidget {
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w500,
-          color: Colors.blue.shade700,
+          color: AppColors.primary(context),
         ),
       ),
     );
   }
 
-  Widget _buildStockInfo() {
+  Widget _buildStockInfo(BuildContext context) {
     if (product.isSoldByWeight ?? false) {
       return Row(
         children: [
           Icon(
             Icons.inventory_2_outlined,
             size: 14,
-            color: Colors.grey[600],
+            color: AppColors.iconSecondary(context),
           ),
           const SizedBox(width: 4),
           Text(
             'Vendido por peso',
             style: TextStyle(
               fontSize: 12,
-              color: Colors.grey[600],
+              color: AppColors.onSurfaceVariant(context),
               fontWeight: FontWeight.w400,
             ),
           ),
@@ -199,15 +209,16 @@ class ProductCard extends StatelessWidget {
       );
     }
 
-    final stockColor = (product.stock ?? 0) > 10
-        ? Colors.green.shade600
-        : (product.stock ?? 0) > 0
-            ? Colors.orange.shade600
-            : Colors.red.shade600;
+    final stock = product.stock ?? 0;
+    final stockColor = stock > 10
+        ? AppColors.success(context)
+        : stock > 0
+            ? AppColors.warning(context)
+            : AppColors.error(context);
 
-    final stockIcon = (product.stock ?? 0) > 10
+    final stockIcon = stock > 10
         ? Icons.check_circle_outline
-        : (product.stock ?? 0) > 0
+        : stock > 0
             ? Icons.warning_amber_outlined
             : Icons.error_outline;
 
@@ -220,7 +231,7 @@ class ProductCard extends StatelessWidget {
         ),
         const SizedBox(width: 4),
         Text(
-          'Estoque: ${product.stock ?? 0}',
+          'Estoque: $stock',
           style: TextStyle(
             fontSize: 12,
             color: stockColor,
@@ -231,25 +242,27 @@ class ProductCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildActionButton(
+          context: context,
           icon: Icons.edit_outlined,
           onTap: onEdit,
-          color: Colors.blue.shade600,
+          color: AppColors.primary(context),
           tooltip: 'Editar produto',
         ),
         const SizedBox(height: 8),
         _buildActionButton(
+          context: context,
           icon: (product.isAvailable ?? false)
               ? Icons.visibility_off_outlined
               : Icons.visibility_outlined,
           onTap: onToggleStatus,
           color: (product.isAvailable ?? false)
-              ? Colors.orange.shade600
-              : Colors.green.shade600,
+              ? AppColors.warning(context)
+              : AppColors.success(context),
           tooltip: (product.isAvailable ?? false)
               ? 'Desativar produto'
               : 'Ativar produto',
@@ -257,9 +270,10 @@ class ProductCard extends StatelessWidget {
         if (onDelete != null) ...[
           const SizedBox(height: 8),
           _buildActionButton(
+            context: context,
             icon: Icons.delete_outline,
             onTap: onDelete,
-            color: Colors.red.shade600,
+            color: AppColors.error(context),
             tooltip: 'Excluir produto',
           ),
         ],
@@ -268,6 +282,7 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildActionButton({
+    required BuildContext context,
     required IconData icon,
     required VoidCallback? onTap,
     required Color color,
@@ -281,10 +296,13 @@ class ProductCard extends StatelessWidget {
         onTap: onTap,
         child: Tooltip(
           message: tooltip,
-          child: Icon(
-            icon,
-            size: 18,
-            color: color,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Icon(
+              icon,
+              size: 18,
+              color: color,
+            ),
           ),
         ),
       ),

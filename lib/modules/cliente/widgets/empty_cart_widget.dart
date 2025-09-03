@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../constants/app_constants.dart';
+import '../../../core/themes/app_colors.dart';
 
 class EmptyCartWidget extends StatelessWidget {
   const EmptyCartWidget({super.key});
@@ -16,14 +16,14 @@ class EmptyCartWidget extends StatelessWidget {
             Icon(
               Icons.shopping_cart_outlined,
               size: 80,
-              color: Colors.grey[400],
+              color: AppColors.iconSecondary(context),
             ),
             const SizedBox(height: 16),
             Text(
               'Seu carrinho está vazio',
               style: TextStyle(
                 fontSize: 18,
-                color: Colors.grey[600],
+                color: AppColors.onSurface(context),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -32,7 +32,7 @@ class EmptyCartWidget extends StatelessWidget {
               'Adicione produtos para continuar',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[500],
+                color: AppColors.onSurfaceVariant(context),
               ),
               textAlign: TextAlign.center,
             ),
@@ -44,7 +44,7 @@ class EmptyCartWidget extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                backgroundColor: const Color(AppConstants.primaryColor),
+                backgroundColor: AppColors.primary(context),
                 foregroundColor: Colors.white,
               ),
             ),

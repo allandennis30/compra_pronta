@@ -5,6 +5,7 @@ import '../controllers/cart_controller.dart';
 import '../models/product_model.dart';
 
 import '../../../core/widgets/product_image_display.dart';
+import '../../../core/themes/app_colors.dart';
 
 class ProductListPage extends StatelessWidget {
   final ProductListController controller = Get.put(ProductListController());
@@ -16,26 +17,23 @@ class ProductListPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Produtos'),
-        actions: [
-          _buildCartIcon(),
-        ],
       ),
       body: Column(
         children: [
-          _buildSearchBar(),
-          _buildActiveFiltersIndicator(),
-          _buildFiltersPanel(),
+          _buildSearchBar(context),
+          _buildActiveFiltersIndicator(context),
+          _buildFiltersPanel(context),
           _buildCategoryFilter(),
           Expanded(
-            child: _buildProductGrid(),
+            child: _buildProductGrid(context),
           ),
-          _buildPaginationInfo(),
+          _buildPaginationInfo(context),
         ],
       ),
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -58,7 +56,7 @@ class ProductListPage extends StatelessWidget {
                   controller.showFilters
                       ? Icons.filter_alt
                       : Icons.filter_alt_outlined,
-                  color: controller.hasActiveFilters ? Colors.blue : null,
+                  color: controller.hasActiveFilters ? AppColors.primary(context) : null,
                 ),
                 onPressed: controller.toggleFilters,
                 tooltip: 'Filtros Avançados',
@@ -68,24 +66,24 @@ class ProductListPage extends StatelessWidget {
     );
   }
 
-  Widget _buildActiveFiltersIndicator() {
+  Widget _buildActiveFiltersIndicator(BuildContext context) {
     return Obx(() {
       if (!controller.hasActiveFilters) return const SizedBox.shrink();
 
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        color: Colors.blue.shade50,
+        color: AppColors.highlight(context),
         child: Row(
           children: [
-            Icon(Icons.filter_alt, size: 16, color: Colors.blue.shade700),
+            Icon(Icons.filter_alt, size: 16, color: AppColors.primary(context)),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 '${controller.filteredProductsCount} produto(s) encontrado(s)',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.blue.shade700,
+                  color: AppColors.primary(context),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -105,7 +103,7 @@ class ProductListPage extends StatelessWidget {
     });
   }
 
-  Widget _buildFiltersPanel() {
+  Widget _buildFiltersPanel(BuildContext context) {
     return Obx(() {
       if (!controller.showFilters) return const SizedBox.shrink();
 
@@ -113,9 +111,9 @@ class ProductListPage extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.grey.shade50,
+          color: AppColors.surfaceVariant(context),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: AppColors.border(context)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -303,11 +301,11 @@ class ProductListPage extends StatelessWidget {
                   label: Text(category.isEmpty ? 'Todos' : category),
                   selected: isSelected,
                   onSelected: (_) => controller.setCategory(category),
-                  backgroundColor: Colors.grey[200],
-                  selectedColor: Colors.blue[100],
-                  checkmarkColor: Colors.blue[800],
+                  backgroundColor: AppColors.chipBackground(context),
+                  selectedColor: AppColors.chipSelected(context).withOpacity(0.2),
+                  checkmarkColor: AppColors.chipSelected(context),
                   labelStyle: TextStyle(
-                    color: isSelected ? Colors.blue[800] : Colors.grey[800],
+                    color: isSelected ? AppColors.chipSelected(context) : AppColors.chipText(context),
                     fontWeight:
                         isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
@@ -433,26 +431,40 @@ class ProductListPage extends StatelessWidget {
                       SizedBox(
                         width: double.infinity,
                         height: 36,
-                        child: FilledButton.icon(
-                          onPressed: () {
-                            final cartController = Get.find<CartController>();
-                            cartController.addItem(product, context: context);
-                          },
-                          icon: const Icon(
-                            Icons.add_shopping_cart,
-                            size: 16,
-                          ),
-                          label: const Text(
-                            'Adicionar',
-                            style: TextStyle(fontSize: 15),
-                          ),
-                          style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 6),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4),
+                        child: Obx(() {
+                          final cartController = Get.find<CartController>();
+                          final isInCart = cartController.isProductInCart(product.id ?? '');
+                          
+                          return FilledButton.icon(
+                            onPressed: isInCart ? null : () {
+                              cartController.addItem(product, context: context);
+                            },
+                            icon: Icon(
+                              isInCart ? Icons.check_circle : Icons.add_shopping_cart,
+                              size: 16,
+                              color: isInCart ? const Color(0xFF2E7D32) : null,
                             ),
-                          ),
-                        ),
+                            label: Text(
+                              isInCart ? 'Adicionado' : 'Adicionar',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isInCart ? const Color(0xFF2E7D32) : null,
+                              ),
+                            ),
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              backgroundColor: isInCart 
+                                ? Colors.grey.shade200 // Cinza claro
+                                : null,
+                              foregroundColor: isInCart 
+                                ? const Color(0xFF2E7D32) // Verde escuro
+                                : null,
+                            ),
+                          );
+                        }),
                       ),
                     ],
                   ),
@@ -465,14 +477,14 @@ class ProductListPage extends StatelessWidget {
     );
   }
 
-  Widget _buildProductGrid() {
+  Widget _buildProductGrid(BuildContext context) {
     return Obx(() {
       if (controller.isLoading && !controller.isInitialized) {
         return const Center(child: CircularProgressIndicator());
       }
 
       if (controller.products.isEmpty && controller.isInitialized) {
-        return _buildEmptyState();
+        return _buildEmptyState(context);
       }
 
       return RefreshIndicator(
@@ -565,7 +577,7 @@ class ProductListPage extends StatelessWidget {
     );
   }
 
-  Widget _buildPaginationInfo() {
+  Widget _buildPaginationInfo(BuildContext context) {
     return Obx(() {
       if (controller.totalPages <= 1) return const SizedBox.shrink();
 
@@ -575,7 +587,7 @@ class ProductListPage extends StatelessWidget {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
+              color: AppColors.shadow(context),
               spreadRadius: 1,
               blurRadius: 3,
               offset: const Offset(0, -1),
@@ -588,7 +600,7 @@ class ProductListPage extends StatelessWidget {
             Text(
               '${controller.totalItems} produtos',
               style: TextStyle(
-                color: Colors.grey.shade600,
+                color: AppColors.onSurfaceVariant(context),
                 fontSize: 12,
               ),
             ),
@@ -598,60 +610,18 @@ class ProductListPage extends StatelessWidget {
     });
   }
 
-  Widget _buildCartIcon() {
-    return Obx(() {
-      final cartController = Get.find<CartController>();
-      final itemCount = cartController.itemCount;
-
-      return Stack(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart),
-            onPressed: () => Get.toNamed('/cliente/carrinho'),
-            tooltip: 'Carrinho',
-          ),
-          if (itemCount > 0)
-            Positioned(
-              right: 8,
-              top: 8,
-              child: Container(
-                padding: const EdgeInsets.all(2),
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                constraints: const BoxConstraints(
-                  minWidth: 16,
-                  minHeight: 16,
-                ),
-                child: Text(
-                  itemCount > 99 ? '99+' : itemCount.toString(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-        ],
-      );
-    });
-  }
-
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search_off, size: 60, color: Colors.grey[400]),
+          Icon(Icons.search_off, size: 60, color: AppColors.iconSecondary(context)),
           const SizedBox(height: 16),
           Text(
             'Nenhum produto encontrado',
             style: TextStyle(
               fontSize: 18,
-              color: Colors.grey[600],
+              color: AppColors.onSurface(context),
               fontWeight: FontWeight.w500,
             ),
             textAlign: TextAlign.center,
@@ -661,7 +631,7 @@ class ProductListPage extends StatelessWidget {
             'Tente ajustar seus filtros ou palavras-chave.',
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey[500],
+              color: AppColors.onSurfaceVariant(context),
             ),
             textAlign: TextAlign.center,
           ),

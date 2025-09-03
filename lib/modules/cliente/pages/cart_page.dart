@@ -4,6 +4,7 @@ import '../controllers/cart_controller.dart';
 import '../widgets/empty_cart_widget.dart';
 import '../widgets/cart_item_widget.dart';
 import '../widgets/cart_summary_widget.dart';
+import '../../../core/themes/app_colors.dart';
 
 class CartPage extends GetView<CartController> {
   const CartPage({super.key});
@@ -12,11 +13,11 @@ class CartPage extends GetView<CartController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Carrinho',
+        title: Text('Carrinho',
             style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Colors.black)),
+                color: AppColors.onSurface(context))),
         backgroundColor: Theme.of(context).colorScheme.surface,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 0,

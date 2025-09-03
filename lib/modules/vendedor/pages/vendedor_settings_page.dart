@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/vendor_settings_controller.dart';
-import '../widgets/card_resumo_vendas.dart';
 import '../widgets/botao_logout.dart';
 import '../widgets/perfil_loja/perfil_loja_section.dart';
 import '../widgets/operacao/preferencias_operacao_section.dart';
 import '../widgets/entrega/politica_entrega_section.dart';
-import '../widgets/sincronizacao/sincronizacao_loja_section.dart';
+import '../widgets/configuracoes_adicionais/configuracoes_adicionais_section.dart';
 import '../widgets/vendedor_layout.dart';
 
 class VendedorSettingsPage extends GetView<VendedorSettingsController> {
@@ -46,15 +45,8 @@ class VendedorSettingsPage extends GetView<VendedorSettingsController> {
 
                 const Divider(thickness: 1.5, height: 32),
 
-                // 4. Exportação de Dados
-                CardResumoVendas(
-                  vendasDia: controller.vendasDia.value,
-                  vendasSemana: controller.vendasSemana.value,
-                  vendasMes: controller.vendasMes.value,
-                  totalAcumulado: controller.totalAcumulado.value,
-                  onExportar: controller.exportarRelatorioVendas,
-                  onCompartilhar: controller.enviarRelatorioPorWhatsappOuEmail,
-                ),
+                // 4. Configurações Adicionais
+                ConfiguracoesAdicionaisSection(controller: controller),
 
                 const Divider(thickness: 1.5, height: 32),
 
@@ -64,15 +56,15 @@ class VendedorSettingsPage extends GetView<VendedorSettingsController> {
                   onAlterarSenha: controller.alterarSenha,
                 ),
 
-                const Divider(thickness: 1.5, height: 32),
+                const SizedBox(height: 100), // Espaço para o FloatingActionButton
 
-                // 6. Sincronização e Configurações Offline
-                SincronizacaoLojaSection(controller: controller),
               ],
             ),
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: controller.salvarDadosLoja,
+            backgroundColor: Theme.of(context).primaryColor,
+            foregroundColor: Colors.white,
             tooltip: 'Salvar Configurações',
             child: const Icon(Icons.save),
           ),

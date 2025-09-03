@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/cart_controller.dart';
-import '../../../constants/app_constants.dart';
 import '../../../core/widgets/product_image_display.dart';
+import '../../../core/themes/app_colors.dart';
 
 class CartItemWidget extends GetView<CartController> {
   final dynamic item;
@@ -26,15 +26,24 @@ class CartItemWidget extends GetView<CartController> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            _productImage,
-            const SizedBox(width: 12),
-            _productInfo,
-            _quantityControls,
-          ],
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Get.toNamed('/cliente/produto', arguments: item.product);
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                _productImage,
+                const SizedBox(width: 12),
+                _productInfo(context),
+                _quantityControls(context),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -47,16 +56,16 @@ class CartItemWidget extends GetView<CartController> {
         borderRadius: BorderRadius.circular(8),
       );
 
-  Widget get _productInfo => Expanded(
+  Widget _productInfo(BuildContext context) => Expanded(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               item.product.name,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF424242),
+                color: AppColors.onSurface(context),
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -66,9 +75,9 @@ class CartItemWidget extends GetView<CartController> {
               item.product.isSoldByWeight
                   ? 'R\$ ${item.product.pricePerKg?.toStringAsFixed(2) ?? '0.00'}/kg'
                   : 'R\$ ${item.product.price.toStringAsFixed(2)}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: Color(AppConstants.successColor),
+                color: AppColors.success(context),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -76,9 +85,9 @@ class CartItemWidget extends GetView<CartController> {
               const SizedBox(height: 4),
               Text(
                 item.product.description,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF9E9E9E),
+                  color: AppColors.onSurfaceVariant(context),
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -88,29 +97,34 @@ class CartItemWidget extends GetView<CartController> {
         ),
       );
 
-  Widget get _quantityControls => Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          _quantityButtons,
-          const SizedBox(height: 8),
-          Obx(() {
-            final cartItem = controller.items.firstWhere(
-              (cartItem) => cartItem.product.id == item.product.id,
-              orElse: () => item,
-            );
-            return Text(
-              'R\$ ${cartItem.total.toStringAsFixed(2)}',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Color(AppConstants.successColor),
-              ),
-            );
-          }),
-        ],
+  Widget _quantityControls(BuildContext context) => GestureDetector(
+        onTap: () {
+          // Para a propagação do evento para evitar navegação
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            _quantityButtons(context),
+            const SizedBox(height: 8),
+            Obx(() {
+              final cartItem = controller.items.firstWhere(
+                (cartItem) => cartItem.product.id == item.product.id,
+                orElse: () => item,
+              );
+              return Text(
+                'R\$ ${cartItem.total.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.success(context),
+                ),
+              );
+            }),
+          ],
+        ),
       );
 
-  Widget get _quantityButtons {
+  Widget _quantityButtons(BuildContext context) {
     return Obx(() {
       final cartItem = controller.items.firstWhere(
         (cartItem) => cartItem.product.id == item.product.id,
@@ -122,6 +136,7 @@ class CartItemWidget extends GetView<CartController> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildQuantityButton(
+              context: context,
               icon: Icons.remove,
               onPressed: () => controller.updateQuantity(
                   item.product.id,
@@ -142,6 +157,7 @@ class CartItemWidget extends GetView<CartController> {
               ),
             ),
             _buildQuantityButton(
+              context: context,
               icon: Icons.add,
               onPressed: () => controller.updateQuantity(
                   item.product.id,
@@ -156,6 +172,7 @@ class CartItemWidget extends GetView<CartController> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildQuantityButton(
+              context: context,
               icon: Icons.remove,
               onPressed: () => controller.updateQuantity(
                   item.product.id,
@@ -176,6 +193,7 @@ class CartItemWidget extends GetView<CartController> {
               ),
             ),
             _buildQuantityButton(
+              context: context,
               icon: Icons.add,
               onPressed: () => controller.updateQuantity(
                   item.product.id,
@@ -190,6 +208,7 @@ class CartItemWidget extends GetView<CartController> {
   }
 
   Widget _buildQuantityButton({
+    required BuildContext context,
     required IconData icon,
     required VoidCallback onPressed,
   }) {
@@ -210,7 +229,7 @@ class CartItemWidget extends GetView<CartController> {
         icon: Icon(icon),
         onPressed: onPressed,
         style: IconButton.styleFrom(
-          backgroundColor: Colors.grey[200],
+          backgroundColor: AppColors.surfaceVariant(context),
           minimumSize: const Size(40, 40),
           padding: const EdgeInsets.all(8),
         ),

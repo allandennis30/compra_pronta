@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/themes/app_colors.dart';
 
 class VendedorLayout extends StatelessWidget {
   final Widget child;
@@ -32,10 +33,10 @@ class VendedorBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.bottomNavBackground(context),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: AppColors.shadow(context),
             spreadRadius: 1,
             blurRadius: 10,
             offset: const Offset(0, -2),
@@ -44,7 +45,7 @@ class VendedorBottomNav extends StatelessWidget {
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -119,12 +120,12 @@ class VendedorBottomNav extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           onTap: onTap,
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.symmetric(vertical: 4),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: isActive
                         ? primaryColor.withOpacity(0.1)
@@ -134,16 +135,16 @@ class VendedorBottomNav extends StatelessWidget {
                   child: Icon(
                     icon,
                     size: 24,
-                    color: isActive ? primaryColor : Colors.grey[600],
+                    color: isActive ? primaryColor : AppColors.bottomNavUnselected(context),
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 1),
                 Text(
                   label,
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                    color: isActive ? primaryColor : Colors.grey[600],
+                    color: isActive ? primaryColor : AppColors.bottomNavUnselected(context),
                   ),
                 ),
                 if (isActive)

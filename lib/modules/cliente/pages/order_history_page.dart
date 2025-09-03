@@ -3,8 +3,6 @@ import 'package:get/get.dart';
 import '../controllers/order_history_controller.dart';
 import '../../../core/models/order_model.dart';
 
-import '../../../core/utils/logger.dart';
-
 class OrderHistoryPage extends StatelessWidget {
   final OrderHistoryController controller = Get.put(OrderHistoryController());
 
@@ -77,15 +75,7 @@ class OrderHistoryPage extends StatelessWidget {
     final theme = Theme.of(context);
 
     if (order.items.isNotEmpty) {
-      AppLogger.info('   - Primeiros itens:');
-      for (int i = 0; i < order.items.take(3).length; i++) {
-        final item = order.items[i];
-        AppLogger.info(
-            '     ${i + 1}. ${item.productName} (${item.quantity}x)');
-      }
-    } else {
-      AppLogger.warning(
-          '⚠️ [ORDER_CARD] NENHUM ITEM NO CARD DO PEDIDO ${order.id}!');
+      // Display order items in UI
     }
 
     return Card(
@@ -279,46 +269,6 @@ class OrderHistoryPage extends StatelessWidget {
 
   void _showOrderDetails(OrderModel order) {
     final theme = Theme.of(Get.context!);
-
-    // Logs detalhados do pedido
-    AppLogger.info('🔍 [ORDER_DETAILS] Abrindo detalhes do pedido:');
-    AppLogger.info('   - ID: ${order.id}');
-    AppLogger.info('   - Status: ${order.status}');
-    AppLogger.info('   - Total: R\$ ${order.total}');
-    AppLogger.info('   - Subtotal: R\$ ${order.subtotal}');
-    AppLogger.info('   - Taxa de Entrega: R\$ ${order.deliveryFee}');
-    AppLogger.info('   - Data de Criação: ${order.createdAt}');
-    AppLogger.info('   - Data de Entrega: ${order.deliveredAt}');
-    AppLogger.info('   - Previsão de Entrega: ${order.estimatedDeliveryTime}');
-    AppLogger.info('   - Método de Pagamento: ${order.paymentMethod}');
-    AppLogger.info('   - Instruções de Entrega: ${order.deliveryInstructions}');
-    AppLogger.info('   - Notas: ${order.notes}');
-
-    // Logs do endereço
-    AppLogger.info('📍 [ORDER_DETAILS] Endereço de entrega:');
-    AppLogger.info('   - Rua: ${order.deliveryAddress.street}');
-    AppLogger.info('   - Número: ${order.deliveryAddress.number}');
-    AppLogger.info('   - Complemento: ${order.deliveryAddress.complement}');
-    AppLogger.info('   - Bairro: ${order.deliveryAddress.neighborhood}');
-    AppLogger.info('   - Cidade: ${order.deliveryAddress.city}');
-    AppLogger.info('   - Estado: ${order.deliveryAddress.state}');
-    AppLogger.info('   - CEP: ${order.deliveryAddress.zipCode}');
-
-    // Logs dos itens
-    AppLogger.info(
-        '🛒 [ORDER_DETAILS] Itens do pedido (${order.items.length} itens):');
-    for (int i = 0; i < order.items.length; i++) {
-      final item = order.items[i];
-      AppLogger.info('   ${i + 1}. ${item.productName}');
-      AppLogger.info('      - ID: ${item.productId}');
-      AppLogger.info('      - Preço: R\$ ${item.price}');
-      AppLogger.info('      - Quantidade: ${item.quantity}');
-      AppLogger.info('      - Total: R\$ ${item.price * item.quantity}');
-    }
-
-    if (order.items.isEmpty) {
-      AppLogger.warning('⚠️ [ORDER_DETAILS] NENHUM ITEM ENCONTRADO NO PEDIDO!');
-    }
 
     Get.dialog(
       Dialog(

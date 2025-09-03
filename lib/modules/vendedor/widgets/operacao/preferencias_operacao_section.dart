@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../campo_editavel.dart';
 import '../../controllers/vendor_settings_controller.dart';
-import '../../models/horario_funcionamento.dart';
+import '../../../../core/themes/app_colors.dart';
 
 class PreferenciasOperacaoSection extends StatelessWidget {
   final VendedorSettingsController controller;
@@ -123,7 +123,7 @@ class PreferenciasOperacaoSection extends StatelessWidget {
                 diaSemana,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: ativo ? Colors.black : Colors.grey,
+                  color: ativo ? AppColors.onSurface(context) : AppColors.onSurfaceVariant(context),
                 ),
               ),
             ),
@@ -131,27 +131,27 @@ class PreferenciasOperacaoSection extends StatelessWidget {
               flex: 2,
               child: Text(
                 'Início: ${horaInicio.format(context)}',
-                style: TextStyle(color: ativo ? Colors.black : Colors.grey),
+                style: TextStyle(color: ativo ? AppColors.onSurface(context) : AppColors.onSurfaceVariant(context)),
               ),
             ),
             Expanded(
               flex: 2,
               child: Text(
                 'Fim: ${horaFim.format(context)}',
-                style: TextStyle(color: ativo ? Colors.black : Colors.grey),
+                style: TextStyle(color: ativo ? AppColors.onSurface(context) : AppColors.onSurfaceVariant(context)),
               ),
             ),
             IconButton(
               icon: const Icon(Icons.access_time),
               onPressed: ativo ? onPress : null,
               tooltip: 'Selecionar horário',
-              color: ativo ? null : Colors.grey,
+              color: ativo ? null : AppColors.onSurfaceVariant(context),
             ),
             IconButton(
               icon: Icon(ativo ? Icons.toggle_on : Icons.toggle_off),
               onPressed: onToggle,
               tooltip: ativo ? 'Desativar dia' : 'Ativar dia',
-              color: ativo ? Colors.green : Colors.grey,
+              color: ativo ? AppColors.success(context) : AppColors.onSurfaceVariant(context),
             ),
           ],
         ),

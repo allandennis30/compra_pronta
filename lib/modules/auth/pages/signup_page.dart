@@ -4,6 +4,7 @@ import '../controllers/auth_controller.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/services/cep_service.dart';
 import '../../../core/utils/input_formatters.dart';
+import '../../../core/themes/app_colors.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -393,7 +394,7 @@ class _SignupPageState extends State<SignupPage> {
                                   icon: const Icon(Icons.lock, size: 18),
                                   onPressed: _unlockCityAndState,
                                   tooltip: 'Clique para editar manualmente',
-                                  color: Colors.blue,
+                                  color: AppColors.primary(context),
                                 )
                               : null,
                         ),
@@ -402,7 +403,7 @@ class _SignupPageState extends State<SignupPage> {
                         textInputAction: TextInputAction.next,
                         readOnly: _isCityLocked,
                         style: TextStyle(
-                          color: _isCityLocked ? Colors.grey[600] : null,
+                          color: _isCityLocked ? AppColors.onSurfaceVariant(context) : null,
                         ),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
@@ -427,7 +428,7 @@ class _SignupPageState extends State<SignupPage> {
                                   icon: const Icon(Icons.lock, size: 18),
                                   onPressed: _unlockCityAndState,
                                   tooltip: 'Clique para editar manualmente',
-                                  color: Colors.blue,
+                                  color: AppColors.primary(context),
                                 )
                               : null,
                         ),
@@ -436,7 +437,7 @@ class _SignupPageState extends State<SignupPage> {
                         textInputAction: TextInputAction.done,
                         readOnly: _isStateLocked,
                         style: TextStyle(
-                          color: _isStateLocked ? Colors.grey[600] : null,
+                          color: _isStateLocked ? AppColors.onSurfaceVariant(context) : null,
                         ),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
@@ -458,19 +459,19 @@ class _SignupPageState extends State<SignupPage> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.blue[50],
+                      color: AppColors.highlight(context),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue[200]!),
+                      border: Border.all(color: AppColors.primary(context).withOpacity(0.3)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.info, color: Colors.blue, size: 20),
+                        Icon(Icons.info, color: AppColors.primary(context), size: 20),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             'Cidade e UF foram preenchidos automaticamente pelo CEP. Clique no ícone de cadeado para editar manualmente.',
                             style: TextStyle(
-                              color: Colors.blue[700],
+                              color: AppColors.primary(context),
                               fontSize: 12,
                             ),
                           ),
@@ -568,10 +569,10 @@ class _SignupPageState extends State<SignupPage> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,
-        color: Colors.blue,
+        color: AppColors.primary(context),
       ),
     );
   }

@@ -39,6 +39,36 @@ class PoliticaEntregaSection extends StatelessWidget {
                   double.tryParse(v) ?? 0.0,
               keyboardType: TextInputType.number,
             ),
+            Row(
+              children: [
+                Expanded(
+                  child: CampoEditavel(
+                    label: 'Tempo min. entrega (min)',
+                    valor: controller.tempoEntregaMin.value.toString(),
+                    onChanged: (v) => controller.tempoEntregaMin.value =
+                        int.tryParse(v) ?? 30,
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: CampoEditavel(
+                    label: 'Tempo max. entrega (min)',
+                    valor: controller.tempoEntregaMax.value.toString(),
+                    onChanged: (v) => controller.tempoEntregaMax.value =
+                        int.tryParse(v) ?? 60,
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+              ],
+            ),
+            CampoEditavel(
+              label: 'Pedido mínimo (R\$)',
+              valor: controller.pedidoMinimo.value.toStringAsFixed(2),
+              onChanged: (v) => controller.pedidoMinimo.value =
+                  double.tryParse(v) ?? 0.0,
+              keyboardType: TextInputType.number,
+            ),
             const SizedBox(height: 16),
           ],
         ));

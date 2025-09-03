@@ -31,14 +31,10 @@ class ApiService {
 
   Future<Map<String, dynamic>> get(String endpoint) async {
     try {
-      AppLogger.info('🌐 [API] GET $endpoint');
-
       final response = await http.get(
         Uri.parse('$baseUrl$endpoint'),
         headers: _headers,
       );
-
-      AppLogger.info('📡 [API] Status: ${response.statusCode}');
 
       return _handleResponse(response);
     } catch (e) {
@@ -50,17 +46,11 @@ class ApiService {
   Future<Map<String, dynamic>> post(
       String endpoint, Map<String, dynamic> data) async {
     try {
-      AppLogger.info('🌐 [API] POST $endpoint');
-      AppLogger.info('📤 [API] Dados enviados: ${jsonEncode(data)}');
-
       final response = await http.post(
         Uri.parse('$baseUrl$endpoint'),
         headers: _headers,
         body: jsonEncode(data),
       );
-
-      AppLogger.info('📡 [API] Status: ${response.statusCode}');
-      AppLogger.info('📥 [API] Resposta: ${response.body}');
 
       return _handleResponse(response);
     } catch (e) {
@@ -101,22 +91,15 @@ class ApiService {
 
   Map<String, dynamic> _handleResponse(http.Response response) {
     try {
-      AppLogger.info('🔧 [API] Processando resposta...');
-      AppLogger.info('   - Status Code: ${response.statusCode}');
-      AppLogger.info('   - Body: ${response.body}');
-
       final data = jsonDecode(response.body);
-      AppLogger.info('   - Data decodificada: $data');
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        AppLogger.info('✅ [API] Resposta de sucesso processada');
         return {
           'success': true,
           'data': data,
           ...data,
         };
       } else {
-        AppLogger.warning('⚠️ [API] Resposta de erro processada');
         return {
           'success': false,
           'message': data['message'] ?? 'Erro na requisição',

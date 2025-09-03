@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/vendor_metrics_controller.dart';
 import 'order_card.dart';
+import '../../../../core/themes/app_colors.dart';
 
 class RecentOrdersSection extends StatelessWidget {
   final VendorMetricsController controller;
@@ -15,11 +16,15 @@ class RecentOrdersSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground(context),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.cardBorder(context),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: AppColors.shadow(context),
             spreadRadius: 1,
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -49,12 +54,12 @@ class RecentOrdersSection extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  color: AppColors.primary(context).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   Icons.shopping_bag_outlined,
-                  color: Theme.of(context).primaryColor,
+                  color: AppColors.primary(context),
                   size: 20,
                 ),
               ),
@@ -64,7 +69,7 @@ class RecentOrdersSection extends StatelessWidget {
                   'Pedidos Recentes',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: Colors.grey[800],
+                        color: AppColors.onSurface(context),
                       ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -81,7 +86,7 @@ class RecentOrdersSection extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.w500),
           ),
           style: TextButton.styleFrom(
-            foregroundColor: Theme.of(context).primaryColor,
+            foregroundColor: AppColors.primary(context),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           ),
         ),
@@ -115,7 +120,7 @@ class RecentOrdersSection extends StatelessWidget {
           Icon(
             Icons.inbox_outlined,
             size: 48,
-            color: Colors.grey[400],
+            color: AppColors.iconSecondary(Get.context!),
           ),
           const SizedBox(height: 12),
           Text(
@@ -123,7 +128,7 @@ class RecentOrdersSection extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
-              color: Colors.grey[600],
+              color: AppColors.onSurface(Get.context!),
             ),
           ),
           const SizedBox(height: 4),
@@ -131,7 +136,7 @@ class RecentOrdersSection extends StatelessWidget {
             'Os pedidos aparecerão aqui quando chegarem',
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey[500],
+              color: AppColors.onSurfaceVariant(Get.context!),
             ),
             textAlign: TextAlign.center,
           ),
