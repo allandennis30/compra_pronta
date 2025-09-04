@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import '../../../core/models/order_model.dart';
 import '../../../core/utils/logger.dart';
 import '../../cliente/models/product_model.dart';
@@ -7,6 +8,7 @@ import '../repositories/vendedor_product_repository.dart';
 class OrderBuilderController extends GetxController {
   final VendedorProductRepository _productRepository =
       Get.find<VendedorProductRepository>();
+  final GetStorage _storage = GetStorage();
 
   // Estado reativo dos itens do pedido
   final RxList<OrderItemStatus> orderItems = <OrderItemStatus>[].obs;
@@ -26,6 +28,7 @@ class OrderBuilderController extends GetxController {
     if (arguments != null && arguments['order'] != null) {
       _currentOrder.value = arguments['order'] as OrderModel;
       _initializeOrderItems();
+      _loadProgressFromStorage();
       AppLogger.info(
           '✅ [ORDER_BUILDER] Pedido carregado: ${_currentOrder.value?.id} - Cliente: ${_currentOrder.value?.clientName}');
     } else {
@@ -58,6 +61,61 @@ class OrderBuilderController extends GetxController {
       orderItems.value = [];
     }
   }
+
+  String get _progressStorageKey => _currentOrder.value != null
+      ? 'order_builder_${_currentOrder.value!.id}'
+      : '';
+
+  void _loadProgressFromStorage() {
+    try {
+      if (_currentOrder.value == null) return;
+      final data = _storage.read(_progressStorageKey);
+      if (data is List) {
+        for (final itemData in data) {
+          if (itemData is Map) {
+            final productId = itemData['productId']?.toString();
+            final scanned =
+                int.tryParse(itemData['scannedQuantity']?.toString() ?? '0') ??
+                    0;
+            if (productId == null) continue;
+            final idx = orderItems
+                .indexWhere((e) => e.orderItem.productId == productId);
+            if (idx != -1) {
+              final current = orderItems[idx];
+              orderItems[idx] = current.copyWith(
+                isScanned: scanned > 0,
+                scannedQuantity: scanned,
+              );
+            }
+          }
+        }
+        AppLogger.info('✅ [ORDER_BUILDER] Progresso carregado do cache');
+      }
+    } catch (e) {
+      AppLogger.error(
+          '❌ [ORDER_BUILDER] Erro ao carregar progresso do cache', e);
+    }
+  }
+
+  void _saveProgressToStorage() {
+    try {
+      if (_currentOrder.value == null) return;
+      final payload = orderItems
+          .map((e) => {
+                'productId': e.orderItem.productId,
+                'scannedQuantity': e.scannedQuantity,
+              })
+          .toList();
+      _storage.write(_progressStorageKey, payload);
+      AppLogger.debug(
+          '💾 [ORDER_BUILDER] Progresso salvo (${payload.length} itens)');
+    } catch (e) {
+      AppLogger.error('❌ [ORDER_BUILDER] Erro ao salvar progresso no cache', e);
+    }
+  }
+
+  // Expor método público para a view persistir após mudanças manuais
+  void saveProgress() => _saveProgressToStorage();
 
   // Processar código de barras escaneado
   Future<void> processScannedBarcode(String barcode) async {
@@ -102,6 +160,7 @@ class OrderBuilderController extends GetxController {
             product: product,
             scannedQuantity: newScannedQuantity,
           );
+          _saveProgressToStorage();
 
           if (isNowComplete) {
             Get.snackbar(

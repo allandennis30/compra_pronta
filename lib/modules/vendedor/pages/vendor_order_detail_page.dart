@@ -16,11 +16,7 @@ class VendorOrderDetailPage extends GetView<VendedorOrderDetailController> {
           'Detalhes do Pedido',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Get.back(),
-          tooltip: 'Voltar',
-        ),
+        automaticallyImplyLeading: false,
         actions: [
           Obx(() => controller.order != null
               ? Row(
@@ -809,7 +805,9 @@ class VendorOrderDetailPage extends GetView<VendedorOrderDetailController> {
               ),
             ),
           ),
-          if (order != null && order.status != 'delivered' && order.status != 'cancelled') ...[
+          if (order != null &&
+              order.status != 'delivered' &&
+              order.status != 'cancelled') ...[
             const SizedBox(width: 12),
             Expanded(
               child: ElevatedButton.icon(

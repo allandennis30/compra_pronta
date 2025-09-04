@@ -288,69 +288,110 @@ class OrderBuilderPage extends StatelessWidget {
             bottom: 0,
             left: 0,
             right: 0,
-            child: Container(
-              height: 50,
-              margin: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                gradient: isDark
-                    ? null
-                    : LinearGradient(
-                        colors: [
-                          theme.colorScheme.primary,
-                          theme.colorScheme.primary.withOpacity(0.8),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  height: 50,
+                  margin: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                  decoration: BoxDecoration(
+                    gradient: isDark
+                        ? null
+                        : LinearGradient(
+                            colors: [
+                              theme.colorScheme.primary,
+                              theme.colorScheme.primary.withOpacity(0.8),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                    color: isDark ? theme.colorScheme.primaryContainer : null,
+                    borderRadius: BorderRadius.circular(12),
+                    border: isDark
+                        ? Border.all(
+                            color: theme.colorScheme.outline.withOpacity(0.2),
+                            width: 1,
+                          )
+                        : null,
+                    boxShadow: [
+                      BoxShadow(
+                        color: theme.colorScheme.shadow.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, -2),
                       ),
-                color: isDark ? theme.colorScheme.primaryContainer : null,
-                borderRadius: BorderRadius.circular(12),
-                border: isDark
-                    ? Border.all(
-                        color: theme.colorScheme.outline.withOpacity(0.2),
-                        width: 1,
-                      )
-                    : null,
-                boxShadow: [
-                  BoxShadow(
-                    color: theme.colorScheme.shadow.withOpacity(0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, -2),
+                    ],
                   ),
-                ],
-              ),
-              child: Obx(() {
-                final progress = orderController.progress;
-                final detailedProgress = orderController.detailedProgress;
-                final scannedCount = orderController.scannedItemsCount;
-                final totalCount = orderController.totalItemsCount;
-                final items = orderController.orderItems;
+                  child: Obx(() {
+                    final detailedProgress = orderController.detailedProgress;
+                    final scannedCount = orderController.scannedItemsCount;
+                    final totalCount = orderController.totalItemsCount;
+                    final items = orderController.orderItems;
 
-                // Calcular quantidades totais
-                final totalQuantityNeeded =
-                    items.fold(0, (sum, item) => sum + item.orderItem.quantity);
-                final totalQuantityScanned =
-                    items.fold(0, (sum, item) => sum + item.scannedQuantity);
+                    final totalQuantityNeeded = items.fold(
+                        0, (sum, item) => sum + item.orderItem.quantity);
+                    final totalQuantityScanned = items.fold(
+                        0, (sum, item) => sum + item.scannedQuantity);
 
-                return Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.assignment_outlined,
-                        color: isDark
-                            ? theme.colorScheme.onPrimaryContainer
-                            : theme.colorScheme.onPrimary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.assignment_outlined,
+                            color: isDark
+                                ? theme.colorScheme.onPrimaryContainer
+                                : theme.colorScheme.onPrimary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Itens: $scannedCount/$totalCount • Qtd: $totalQuantityScanned/$totalQuantityNeeded',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: isDark
+                                        ? theme.colorScheme.onPrimaryContainer
+                                        : theme.colorScheme.onPrimary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(3),
+                                  child: LinearProgressIndicator(
+                                    value: detailedProgress,
+                                    backgroundColor: isDark
+                                        ? theme.colorScheme.onPrimaryContainer
+                                            .withOpacity(0.2)
+                                        : theme.colorScheme.onPrimary
+                                            .withOpacity(0.3),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      isDark
+                                          ? theme.colorScheme.onPrimaryContainer
+                                          : theme.colorScheme.onPrimary,
+                                    ),
+                                    minHeight: 4,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (orderController.allItemsScanned)
+                            Icon(
+                              Icons.check_circle,
+                              color: isDark
+                                  ? theme.colorScheme.onPrimaryContainer
+                                  : theme.colorScheme.onPrimary,
+                              size: 20,
+                            )
+                          else
                             Text(
-                              'Itens: $scannedCount/$totalCount • Qtd: $totalQuantityScanned/$totalQuantityNeeded',
+                              '${(detailedProgress * 100).toInt()}%',
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: isDark
                                     ? theme.colorScheme.onPrimaryContainer
@@ -358,50 +399,41 @@ class OrderBuilderPage extends StatelessWidget {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(height: 2),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(3),
-                              child: LinearProgressIndicator(
-                                value: detailedProgress,
-                                backgroundColor: isDark
-                                    ? theme.colorScheme.onPrimaryContainer
-                                        .withOpacity(0.2)
-                                    : theme.colorScheme.onPrimary
-                                        .withOpacity(0.3),
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  isDark
-                                      ? theme.colorScheme.onPrimaryContainer
-                                      : theme.colorScheme.onPrimary,
+                        ],
+                      ),
+                    );
+                  }),
+                ),
+                // Botão "Finalizar Pedido" visível quando todos os itens foram adicionados
+                Obx(() {
+                  final canFinish = orderController.allItemsScanned;
+                  return AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: canFinish
+                        ? Container(
+                            margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () => _showCompletionDialog(
+                                  context, orderController),
+                              icon: const Icon(Icons.check),
+                              label: const Text('Finalizar Pedido'),
+                              style: ElevatedButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                backgroundColor: theme.colorScheme.primary,
+                                foregroundColor: theme.colorScheme.onPrimary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                minHeight: 4,
+                                elevation: 2,
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      if (orderController.allItemsScanned)
-                        Icon(
-                          Icons.check_circle,
-                          color: isDark
-                              ? theme.colorScheme.onPrimaryContainer
-                              : theme.colorScheme.onPrimary,
-                          size: 20,
-                        )
-                      else
-                        Text(
-                          '${(detailedProgress * 100).toInt()}%',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: isDark
-                                ? theme.colorScheme.onPrimaryContainer
-                                : theme.colorScheme.onPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                    ],
-                  ),
-                );
-              }),
+                          )
+                        : const SizedBox.shrink(),
+                  );
+                }),
+              ],
             ),
           ),
         ],
@@ -607,16 +639,6 @@ class OrderBuilderPage extends StatelessWidget {
       // Processar o código de barras do produto
       orderController.processScannedBarcode(itemStatus.product!.barcode ?? '');
     } else {
-      // Se não tem código de barras, simular adição manual
-      Get.snackbar(
-        'Adição Manual',
-        'Produto ${itemStatus.orderItem.productName} adicionado manualmente',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Get.theme.colorScheme.primary,
-        colorText: Get.theme.colorScheme.onPrimary,
-        duration: const Duration(seconds: 2),
-      );
-
       // Incrementar quantidade escaneada diretamente
       final currentItem = itemStatus;
       final newScannedQuantity = currentItem.scannedQuantity + 1;
@@ -631,6 +653,7 @@ class OrderBuilderPage extends StatelessWidget {
             isScanned: newScannedQuantity > 0,
             scannedQuantity: newScannedQuantity,
           );
+          orderController.saveProgress();
         }
       }
     }
@@ -654,6 +677,7 @@ class OrderBuilderPage extends StatelessWidget {
           isScanned: newScannedQuantity > 0,
           scannedQuantity: newScannedQuantity,
         );
+        orderController.saveProgress();
       }
     } else {
       Get.snackbar(
@@ -698,8 +722,15 @@ class OrderBuilderPage extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
+              controller.saveProgress();
               Navigator.of(context).pop();
-              Get.back();
+              // Navegar para a página de detalhes do pedido do vendedor
+              if (controller.currentOrder != null) {
+                Get.offAllNamed(
+                    '/vendor/pedido/${controller.currentOrder!.id}');
+              } else {
+                Get.back();
+              }
             },
             child: const Text('Finalizar'),
           ),
