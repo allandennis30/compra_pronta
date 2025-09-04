@@ -783,6 +783,7 @@ class VendorOrderDetailPage extends GetView<VendedorOrderDetailController> {
 
   Widget _buildBottomActions(BuildContext context) {
     final theme = Theme.of(context);
+    final order = controller.order;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -808,7 +809,21 @@ class VendorOrderDetailPage extends GetView<VendedorOrderDetailController> {
               ),
             ),
           ),
-          // Botão de Montar Pedido removido
+          if (order != null && order.status != 'delivered' && order.status != 'cancelled') ...[
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () => controller.navigateToOrderBuilder(),
+                icon: const Icon(Icons.build),
+                label: const Text('Montar Pedido'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

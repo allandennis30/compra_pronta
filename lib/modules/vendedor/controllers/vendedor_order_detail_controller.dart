@@ -141,6 +141,15 @@ class VendedorOrderDetailController extends GetxController {
     Get.back();
   }
 
+  void navigateToOrderBuilder() {
+    if (_order.value != null) {
+      Get.toNamed('/vendor/order-builder', arguments: {
+        'orderId': _order.value!.id,
+        'order': _order.value!,
+      });
+    }
+  }
+
   void refreshOrder() {
     if (_order.value != null) {
       loadOrderDetails(_order.value!.id);
@@ -252,30 +261,6 @@ class VendedorOrderDetailController extends GetxController {
     if (_order.value == null) return;
 
     final order = _order.value!;
-    final customer = _customer.value;
-
-    String message = '*Detalhes do Pedido #${order.id}*\n\n';
-    message += '*Cliente:* ${customer?.name ?? 'N/A'}\n';
-    message += '*Telefone:* ${customer?.phone ?? 'N/A'}\n\n';
-    message +=
-        '*Endereço de Entrega:*\n${order.deliveryAddress.fullAddress}\n\n';
-    message += '*Itens:*\n';
-
-    for (final item in order.items) {
-      message +=
-          '• ${item.productName} - Qtd: ${item.quantity} - R\$ ${item.price.toStringAsFixed(2)}\n';
-    }
-
-    message += '\n*Subtotal:* R\$ ${order.subtotal.toStringAsFixed(2)}\n';
-    message +=
-        '*Taxa de Entrega:* R\$ ${order.deliveryFee.toStringAsFixed(2)}\n';
-    message += '*Total:* R\$ ${order.total.toStringAsFixed(2)}\n\n';
-    message += '*Status:* ${getStatusDisplayName(order.status)}\n';
-    message += '*Data do Pedido:* ${_formatDateTime(order.createdAt)}';
-
-    if (order.deliveredAt != null) {
-      message += '\n*Data de Entrega:* ${_formatDateTime(order.deliveredAt!)}';
-    }
 
     // Simular compartilhamento (implementar com share_plus)
     Get.snackbar(
