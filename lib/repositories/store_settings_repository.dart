@@ -69,6 +69,12 @@ class StoreSettingsRepository {
         throw Exception('Token não encontrado');
       }
 
+      // Log do payload enviado
+      try {
+        print('📝 [STORE_SETTINGS_REPO] Payload POST /api/store-settings:');
+        print(const JsonEncoder.withIndent('  ').convert(settings));
+      } catch (_) {}
+
       final response = await http.post(
         Uri.parse('$_baseUrl/api/store-settings'),
         headers: {
@@ -77,6 +83,9 @@ class StoreSettingsRepository {
         },
         body: json.encode(settings),
       );
+
+      print('🔍 [STORE_SETTINGS_REPO] POST status: ${response.statusCode}');
+      print('🔍 [STORE_SETTINGS_REPO] POST body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -90,11 +99,17 @@ class StoreSettingsRepository {
           throw Exception('Resposta inválida do servidor');
         }
       } else if (response.statusCode == 403) {
-        final error = json.decode(response.body);
+        // 403: Acesso negado
         throw Exception('Apenas vendedores podem configurar a loja');
       } else {
-        final error = json.decode(response.body);
-        throw Exception(error['message'] ?? 'Erro ao salvar configurações');
+        // Tentar extrair erro detalhado
+        try {
+          final errObj = json.decode(response.body);
+          throw Exception(errObj['message'] ?? 'Erro ao salvar configurações');
+        } catch (_) {
+          throw Exception(
+              'Erro ao salvar configurações (status ${response.statusCode})');
+        }
       }
     } catch (e) {
       print('Erro ao salvar configurações da loja: $e');
@@ -111,6 +126,12 @@ class StoreSettingsRepository {
         throw Exception('Token não encontrado');
       }
 
+      // Log do payload enviado
+      try {
+        print('📝 [STORE_SETTINGS_REPO] Payload PUT /api/store-settings:');
+        print(const JsonEncoder.withIndent('  ').convert(settings));
+      } catch (_) {}
+
       final response = await http.put(
         Uri.parse('$_baseUrl/api/store-settings'),
         headers: {
@@ -119,6 +140,9 @@ class StoreSettingsRepository {
         },
         body: json.encode(settings),
       );
+
+      print('🔍 [STORE_SETTINGS_REPO] PUT status: ${response.statusCode}');
+      print('🔍 [STORE_SETTINGS_REPO] PUT body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -132,11 +156,17 @@ class StoreSettingsRepository {
           throw Exception('Resposta inválida do servidor');
         }
       } else if (response.statusCode == 403) {
-        final error = json.decode(response.body);
+        // 403: Acesso negado
         throw Exception('Apenas vendedores podem configurar a loja');
       } else {
-        final error = json.decode(response.body);
-        throw Exception(error['message'] ?? 'Erro ao atualizar configurações');
+        try {
+          final errObj = json.decode(response.body);
+          throw Exception(
+              errObj['message'] ?? 'Erro ao atualizar configurações');
+        } catch (_) {
+          throw Exception(
+              'Erro ao atualizar configurações (status ${response.statusCode})');
+        }
       }
     } catch (e) {
       print('Erro ao atualizar configurações da loja: $e');

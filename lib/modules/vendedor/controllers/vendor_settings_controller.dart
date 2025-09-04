@@ -65,7 +65,7 @@ class VendedorSettingsController extends GetxController {
       print('🔍 [VENDOR_SETTINGS] Iniciando carregamento de dados...');
       final settings = await _storeSettingsRepository.getStoreSettings();
       print('🔍 [VENDOR_SETTINGS] Dados recebidos: $settings');
-      
+
       // Debug: mostrar todos os campos disponíveis
       if (settings != null) {
         print('🔍 [VENDOR_SETTINGS] Campos disponíveis no backend:');
@@ -77,9 +77,9 @@ class VendedorSettingsController extends GetxController {
       if (settings != null) {
         print('🔍 [VENDOR_SETTINGS] Atribuindo dados aos observables...');
 
-        // Carregar dados da loja
-        nomeLoja.value = settings['nome_empresa']?? '';
-        cnpjCpf.value = settings['cnpj']?? '';
+        // Carregar dados da loja (usar chaves camelCase retornadas pelo backend)
+        nomeLoja.value = settings['nomeLoja'] ?? settings['nome_empresa'] ?? '';
+        cnpjCpf.value = settings['cnpjCpf'] ?? settings['cnpj'] ?? '';
         descricao.value = settings['descricao'] ?? '';
         telefone.value = settings['telefone'] ?? '';
         logoUrl.value = settings['logoUrl'] ?? '';
@@ -92,17 +92,25 @@ class VendedorSettingsController extends GetxController {
           if (enderecoData is Map<String, dynamic>) {
             // Endereço já está em formato de objeto
             rua.value = enderecoData['rua'] ?? enderecoData['street'] ?? '';
-            numero.value = enderecoData['numero']?.toString() ?? enderecoData['number']?.toString() ?? '';
-            complemento.value = enderecoData['complemento'] ?? enderecoData['complement'] ?? '';
-            bairro.value = enderecoData['bairro'] ?? enderecoData['neighborhood'] ?? '';
+            numero.value = enderecoData['numero']?.toString() ??
+                enderecoData['number']?.toString() ??
+                '';
+            complemento.value =
+                enderecoData['complemento'] ?? enderecoData['complement'] ?? '';
+            bairro.value =
+                enderecoData['bairro'] ?? enderecoData['neighborhood'] ?? '';
             cidade.value = enderecoData['cidade'] ?? enderecoData['city'] ?? '';
-            estado.value = enderecoData['estado'] ?? enderecoData['state'] ?? '';
+            estado.value =
+                enderecoData['estado'] ?? enderecoData['state'] ?? '';
             cep.value = enderecoData['cep'] ?? enderecoData['zipCode'] ?? '';
-            
+
             // Se CEP estiver vazio, tentar buscar de outros campos
             if (cep.value.isEmpty) {
               // Verificar se há CEP em outros campos do endereço
-              cep.value = enderecoData['cep'] ?? enderecoData['zipCode'] ?? enderecoData['postalCode'] ?? '';
+              cep.value = enderecoData['cep'] ??
+                  enderecoData['zipCode'] ??
+                  enderecoData['postalCode'] ??
+                  '';
             }
           } else {
             // Endereço está como string, tentar converter
@@ -111,7 +119,6 @@ class VendedorSettingsController extends GetxController {
             _parseEnderecoString(enderecoStr);
           }
         }
-
 
         // Carregar preferências de operação
         if (settings['horarioInicio'] != null) {
@@ -140,7 +147,6 @@ class VendedorSettingsController extends GetxController {
         tempoPreparo.value = settings['tempoPreparo'] ?? 30;
         mensagemBoasVindas.value = settings['mensagemBoasVindas'] ?? '';
 
-
         // Carregar horários de funcionamento
         if (settings['horariosFuncionamento'] != null) {
           final horariosData = settings['horariosFuncionamento'] as List;
@@ -154,21 +160,33 @@ class VendedorSettingsController extends GetxController {
         }
 
         // Carregar política de entrega
-        taxaEntrega.value = (settings['taxa_entrega'] ?? settings['taxaEntrega'] ?? 0.0).toDouble();
+        taxaEntrega.value =
+            (settings['taxa_entrega'] ?? settings['taxaEntrega'] ?? 0.0)
+                .toDouble();
         raioEntrega.value = (settings['raioEntrega'] ?? 5.0).toDouble();
-        limiteEntregaGratis.value = (settings['limiteEntregaGratis'] ?? 100.0).toDouble();
-        tempoEntregaMin.value = (settings['tempo_entrega_min'] ?? settings['tempoEntregaMin'] ?? 30).toInt();
-        tempoEntregaMax.value = (settings['tempo_entrega_max'] ?? settings['tempoEntregaMax'] ?? 60).toInt();
-        pedidoMinimo.value = (settings['pedido_minimo'] ?? settings['pedidoMinimo'] ?? 0.0).toDouble();
+        limiteEntregaGratis.value =
+            (settings['limiteEntregaGratis'] ?? 100.0).toDouble();
+        tempoEntregaMin.value =
+            (settings['tempo_entrega_min'] ?? settings['tempoEntregaMin'] ?? 30)
+                .toInt();
+        tempoEntregaMax.value =
+            (settings['tempo_entrega_max'] ?? settings['tempoEntregaMax'] ?? 60)
+                .toInt();
+        pedidoMinimo.value =
+            (settings['pedido_minimo'] ?? settings['pedidoMinimo'] ?? 0.0)
+                .toDouble();
 
         // Carregar configurações adicionais
-        categoriaLoja.value = settings['categoria_loja'] ?? settings['categoriaLoja'] ?? 'Supermercado';
-        aceitaCartao.value = settings['aceita_cartao'] ?? settings['aceitaCartao'] ?? true;
-        aceitaDinheiro.value = settings['aceita_dinheiro'] ?? settings['aceitaDinheiro'] ?? true;
-        aceitaPix.value = settings['aceita_pix'] ?? settings['aceitaPix'] ?? true;
+        categoriaLoja.value = settings['categoria_loja'] ??
+            settings['categoriaLoja'] ??
+            'Supermercado';
+        aceitaCartao.value =
+            settings['aceita_cartao'] ?? settings['aceitaCartao'] ?? true;
+        aceitaDinheiro.value =
+            settings['aceita_dinheiro'] ?? settings['aceitaDinheiro'] ?? true;
+        aceitaPix.value =
+            settings['aceita_pix'] ?? settings['aceitaPix'] ?? true;
         ativo.value = settings['ativo'] ?? true;
-
-      
       }
 
       // Inicializar horários de funcionamento se estiver vazio
@@ -265,7 +283,7 @@ class VendedorSettingsController extends GetxController {
     try {
       // Tentar fazer parse de string no formato "Rua, Número, Bairro, Cidade, Estado, CEP"
       final parts = enderecoStr.split(',').map((e) => e.trim()).toList();
-      
+
       if (parts.length >= 6) {
         // Padrão: "Rua, Número, Bairro, Cidade, Estado, CEP"
         rua.value = parts[0];
@@ -417,10 +435,11 @@ class VendedorSettingsController extends GetxController {
         'logoUrl': logoUrl.value,
         'latitude': latitude.value,
         'longitude': longitude.value,
+        // Backend espera formato HH:mm:ss (TIME)
         'horarioInicio':
-            '${horarioInicio.value.hour.toString().padLeft(2, '0')}:${horarioInicio.value.minute.toString().padLeft(2, '0')}',
+            '${horarioInicio.value.hour.toString().padLeft(2, '0')}:${horarioInicio.value.minute.toString().padLeft(2, '0')}:00',
         'horarioFim':
-            '${horarioFim.value.hour.toString().padLeft(2, '0')}:${horarioFim.value.minute.toString().padLeft(2, '0')}',
+            '${horarioFim.value.hour.toString().padLeft(2, '0')}:${horarioFim.value.minute.toString().padLeft(2, '0')}:00',
         'aceitaForaHorario': aceitaForaHorario.value,
         'tempoPreparo': tempoPreparo.value,
         'mensagemBoasVindas': mensagemBoasVindas.value,
@@ -429,14 +448,16 @@ class VendedorSettingsController extends GetxController {
         'taxaEntrega': taxaEntrega.value,
         'raioEntrega': raioEntrega.value,
         'limiteEntregaGratis': limiteEntregaGratis.value,
-        'tempoEntregaMin': tempoEntregaMin.value,
-        'tempoEntregaMax': tempoEntregaMax.value,
+        // Enviar pedidoMinimo (suportado no backend e tabela quando coluna existir)
         'pedidoMinimo': pedidoMinimo.value,
-        'categoriaLoja': categoriaLoja.value,
-        'aceitaCartao': aceitaCartao.value,
-        'aceitaDinheiro': aceitaDinheiro.value,
-        'aceitaPix': aceitaPix.value,
-        'ativo': ativo.value,
+        // Campos abaixo não existem na tabela store_settings; enviar apenas se/quando suportados no backend
+        // 'tempoEntregaMin': tempoEntregaMin.value,
+        // 'tempoEntregaMax': tempoEntregaMax.value,
+        // 'categoriaLoja': categoriaLoja.value,
+        // 'aceitaCartao': aceitaCartao.value,
+        // 'aceitaDinheiro': aceitaDinheiro.value,
+        // 'aceitaPix': aceitaPix.value,
+        // 'ativo': ativo.value,
       };
 
       await _storeSettingsRepository.saveStoreSettings(settingsData);
@@ -464,8 +485,6 @@ class VendedorSettingsController extends GetxController {
     // TODO: Obter localização via GPS e atualizar latitude/longitude
   }
 
-
-
   Future<void> alterarSenha(String novaSenha) async {
     // TODO: Chamar backend para alterar senha
   }
@@ -474,10 +493,6 @@ class VendedorSettingsController extends GetxController {
     // TODO: Limpar cache, controllers, sessão e redirecionar para login
     await Get.find<AuthController>().logout();
   }
-
-
-
-
 
   Future<void> selecionarHorario() async {
     // TODO: Abrir diálogo para selecionar horário de funcionamento
