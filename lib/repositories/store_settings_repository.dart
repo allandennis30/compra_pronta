@@ -32,12 +32,13 @@ class StoreSettingsRepository {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         print('🔍 [STORE_SETTINGS_REPO] Dados decodificados: $data');
-        
+
         // Verificar se a resposta tem o formato esperado
         if (data['success'] == true && data['data'] != null) {
           return data['data'];
         } else {
-          print('🔍 [STORE_SETTINGS_REPO] Resposta não tem formato esperado: $data');
+          print(
+              '🔍 [STORE_SETTINGS_REPO] Resposta não tem formato esperado: $data');
           return null;
         }
       } else if (response.statusCode == 404) {
@@ -46,7 +47,8 @@ class StoreSettingsRepository {
       } else if (response.statusCode == 403) {
         final error = json.decode(response.body);
         print('🔍 [STORE_SETTINGS_REPO] Acesso negado (403): $error');
-        throw Exception('Apenas vendedores podem acessar configurações da loja');
+        throw Exception(
+            'Apenas vendedores podem acessar configurações da loja');
       } else {
         final error = json.decode(response.body);
         print('🔍 [STORE_SETTINGS_REPO] Erro na resposta: $error');
@@ -78,12 +80,13 @@ class StoreSettingsRepository {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         // Verificar se a resposta tem o formato esperado
         if (data['success'] == true && data['data'] != null) {
           return data['data'];
         } else {
-          print('🔍 [STORE_SETTINGS_REPO] Resposta não tem formato esperado: $data');
+          print(
+              '🔍 [STORE_SETTINGS_REPO] Resposta não tem formato esperado: $data');
           throw Exception('Resposta inválida do servidor');
         }
       } else if (response.statusCode == 403) {
@@ -119,12 +122,13 @@ class StoreSettingsRepository {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         // Verificar se a resposta tem o formato esperado
         if (data['success'] == true && data['data'] != null) {
           return data['data'];
         } else {
-          print('🔍 [STORE_SETTINGS_REPO] Resposta não tem formato esperado: $data');
+          print(
+              '🔍 [STORE_SETTINGS_REPO] Resposta não tem formato esperado: $data');
           throw Exception('Resposta inválida do servidor');
         }
       } else if (response.statusCode == 403) {
@@ -164,12 +168,13 @@ class StoreSettingsRepository {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         // Verificar se a resposta tem o formato esperado
         if (data['success'] == true && data['data'] != null) {
           return List<Map<String, dynamic>>.from(data['data']);
         } else {
-          print('🔍 [STORE_SETTINGS_REPO] Resposta não tem formato esperado: $data');
+          print(
+              '🔍 [STORE_SETTINGS_REPO] Resposta não tem formato esperado: $data');
           throw Exception('Resposta inválida do servidor');
         }
       } else {
@@ -194,12 +199,13 @@ class StoreSettingsRepository {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         // Verificar se a resposta tem o formato esperado
         if (data['success'] == true && data['data'] != null) {
           return data['data'];
         } else {
-          print('🔍 [STORE_SETTINGS_REPO] Resposta não tem formato esperado: $data');
+          print(
+              '🔍 [STORE_SETTINGS_REPO] Resposta não tem formato esperado: $data');
           return null;
         }
       } else if (response.statusCode == 404) {
@@ -210,6 +216,35 @@ class StoreSettingsRepository {
       }
     } catch (e) {
       print('Erro ao buscar configurações da loja: $e');
+      rethrow;
+    }
+  }
+
+  /// Busca apenas a política de entrega pública da loja
+  Future<Map<String, dynamic>?> getStorePolicy(String sellerId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/api/store-settings/$sellerId/policy'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true && data['policy'] != null) {
+          return Map<String, dynamic>.from(data['policy']);
+        }
+        return null;
+      } else if (response.statusCode == 404) {
+        return null; // Política não encontrada
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(
+            error['message'] ?? 'Erro ao buscar política de entrega');
+      }
+    } catch (e) {
+      print('Erro ao buscar política de entrega: $e');
       rethrow;
     }
   }

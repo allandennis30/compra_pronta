@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../../../core/models/order_model.dart';
 import '../repositories/order_repository.dart';
 import '../../../core/utils/logger.dart';
@@ -9,14 +10,18 @@ class OrderHistoryController extends GetxController {
   final OrderRepository _orderRepository = Get.find<OrderRepository>();
   final RxList<OrderModel> _orders = <OrderModel>[].obs;
   final RxBool _isLoading = false.obs;
+  final RxString _confirmingOrderId = ''.obs;
+  Timer? _pollingTimer;
 
   List<OrderModel> get orders => _orders;
   bool get isLoading => _isLoading.value;
+  bool isConfirming(String orderId) => _confirmingOrderId.value == orderId;
 
   @override
   void onInit() {
     super.onInit();
     _loadOrders();
+    _startPolling();
   }
 
   @override
@@ -25,6 +30,24 @@ class OrderHistoryController extends GetxController {
     // Recarregar pedidos quando a página estiver pronta
     // Isso garante que novos pedidos apareçam imediatamente
     _loadOrders();
+  }
+
+  @override
+  void onClose() {
+    _stopPolling();
+    super.onClose();
+  }
+
+  void _startPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      _refreshOrdersSilently();
+    });
+  }
+
+  void _stopPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
   }
 
   void _loadOrders() async {
@@ -41,6 +64,44 @@ class OrderHistoryController extends GetxController {
     }
   }
 
+  Future<void> _refreshOrdersSilently() async {
+    try {
+      final latest = await _orderRepository.getUserOrders();
+
+      // Se quantidade mudou, substitui tudo
+      if (latest.length != _orders.length) {
+        _orders.value = latest;
+        return;
+      }
+
+      final latestById = {for (final o in latest) o.id: o};
+      bool changed = false;
+
+      for (var i = 0; i < _orders.length; i++) {
+        final current = _orders[i];
+        final updated = latestById[current.id];
+        if (updated == null) {
+          changed = true;
+          break;
+        }
+
+        if (updated.status != current.status ||
+            updated.total != current.total ||
+            updated.updatedAt != current.updatedAt) {
+          _orders[i] = updated;
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        _orders.refresh();
+      }
+    } catch (e) {
+      // Polling silencioso para não incomodar o usuário
+      AppLogger.debug('🔄 [HISTORY] Polling falhou: $e');
+    }
+  }
+
   Future<void> repeatOrder(String orderId, BuildContext context) async {
     try {
       // Verificar se o pedido existe
@@ -49,6 +110,20 @@ class OrderHistoryController extends GetxController {
       SnackBarUtils.showSuccess(context, 'Pedido adicionado ao carrinho!');
     } catch (e) {
       SnackBarUtils.showError(context, 'Erro ao repetir pedido: $e');
+    }
+  }
+
+  Future<void> confirmOrderReceived(
+      String orderId, BuildContext context) async {
+    try {
+      _confirmingOrderId.value = orderId;
+      await _orderRepository.confirmDelivery(orderId);
+      await _refreshOrdersSilently();
+      SnackBarUtils.showSuccess(context, 'Entrega confirmada! Obrigado.');
+    } catch (e) {
+      SnackBarUtils.showError(context, 'Não foi possível confirmar: $e');
+    } finally {
+      _confirmingOrderId.value = '';
     }
   }
 

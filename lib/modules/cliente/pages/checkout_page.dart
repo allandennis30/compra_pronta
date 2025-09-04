@@ -55,7 +55,8 @@ class CheckoutPage extends GetView<CheckoutController> {
         ),
       );
 
-  Widget _buildStep(BuildContext context, int step, String title, IconData icon) {
+  Widget _buildStep(
+      BuildContext context, int step, String title, IconData icon) {
     final isActive = controller.currentStep.value == step;
     final isCompleted = controller.currentStep.value > step;
 
@@ -75,7 +76,9 @@ class CheckoutPage extends GetView<CheckoutController> {
             ),
             child: Icon(
               icon,
-              color: isCompleted || isActive ? Colors.white : AppColors.onSurfaceVariant(context),
+              color: isCompleted || isActive
+                  ? Colors.white
+                  : AppColors.onSurfaceVariant(context),
               size: 20,
             ),
           ),
@@ -389,7 +392,8 @@ class CheckoutPage extends GetView<CheckoutController> {
                 const SizedBox(width: 12),
                 Text(
                   method['label']!,
-                  style: TextStyle(fontSize: 16, color: AppColors.onSurface(context)),
+                  style: TextStyle(
+                      fontSize: 16, color: AppColors.onSurface(context)),
                 ),
               ],
             ),
@@ -399,7 +403,8 @@ class CheckoutPage extends GetView<CheckoutController> {
     });
   }
 
-  Widget _buildReviewSection(BuildContext context, String title, List<String> items) {
+  Widget _buildReviewSection(
+      BuildContext context, String title, List<String> items) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -419,7 +424,8 @@ class CheckoutPage extends GetView<CheckoutController> {
                   padding: const EdgeInsets.only(bottom: 4),
                   child: Text(
                     item,
-                    style: TextStyle(fontSize: 14, color: AppColors.onSurface(context)),
+                    style: TextStyle(
+                        fontSize: 14, color: AppColors.onSurface(context)),
                   ),
                 )),
           ],
@@ -478,14 +484,17 @@ class CheckoutPage extends GetView<CheckoutController> {
                             ),
                             Text(
                               '${item.quantity}x R\$ ${item.price.toStringAsFixed(2)}',
-                              style: TextStyle(color: AppColors.onSurfaceVariant(context)),
+                              style: TextStyle(
+                                  color: AppColors.onSurfaceVariant(context)),
                             ),
                           ],
                         ),
                       ),
                       Text(
                         'R\$ ${item.total.toStringAsFixed(2)}',
-                        style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.onSurface(context)),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.onSurface(context)),
                       ),
                     ],
                   ),
@@ -505,10 +514,11 @@ class CheckoutPage extends GetView<CheckoutController> {
             _buildSummaryRow(context, 'Subtotal',
                 'R\$ ${controller.subtotal.value.toStringAsFixed(2)}'),
             const SizedBox(height: 8),
-            _buildSummaryRow(context,
-                'Frete', 'R\$ ${controller.shipping.value.toStringAsFixed(2)}'),
+            _buildSummaryRow(context, 'Frete',
+                'R\$ ${controller.shipping.value.toStringAsFixed(2)}'),
             const Divider(height: 24),
-            _buildSummaryRow(context,
+            _buildSummaryRow(
+              context,
               'Total',
               'R\$ ${controller.total.value.toStringAsFixed(2)}',
               isTotal: true,
@@ -519,7 +529,8 @@ class CheckoutPage extends GetView<CheckoutController> {
     );
   }
 
-  Widget _buildSummaryRow(BuildContext context, String label, String value, {bool isTotal = false}) {
+  Widget _buildSummaryRow(BuildContext context, String label, String value,
+      {bool isTotal = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -535,7 +546,9 @@ class CheckoutPage extends GetView<CheckoutController> {
           style: TextStyle(
             fontSize: isTotal ? 16 : 14,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            color: isTotal ? AppColors.success(context) : AppColors.onSurface(context),
+            color: isTotal
+                ? AppColors.success(context)
+                : AppColors.onSurface(context),
           ),
         ),
       ],

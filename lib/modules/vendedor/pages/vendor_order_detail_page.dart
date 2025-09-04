@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/vendor_order_detail_controller.dart';
+import '../controllers/vendedor_order_detail_controller.dart';
 
-class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
+class VendorOrderDetailPage extends GetView<VendedorOrderDetailController> {
   const VendorOrderDetailPage({super.key});
 
   @override
@@ -31,11 +31,11 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
                       onPressed: controller.refreshOrder,
                       tooltip: 'Atualizar',
                     ),
-                    IconButton(
+                    /*        IconButton(
                       icon: const Icon(Icons.share),
                       onPressed: controller.shareOrderDetails,
                       tooltip: 'Compartilhar',
-                    ),
+                    ), */
                   ],
                 )
               : const SizedBox()),
@@ -111,6 +111,8 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
                     _buildOrderHeader(context),
                     const SizedBox(height: 16),
                     _buildCustomerAndDeliveryInfo(context),
+                    const SizedBox(height: 16),
+                    _buildDeliveryInstructions(context),
                     const SizedBox(height: 16),
                     _buildOrderItems(context),
                     const SizedBox(height: 16),
@@ -381,6 +383,67 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
     );
   }
 
+  // Seção de Instruções de Entrega
+  Widget _buildDeliveryInstructions(BuildContext context) {
+    final order = controller.order!;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Só exibir se houver instruções
+    if (order.deliveryInstructions == null ||
+        order.deliveryInstructions!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.note,
+                  color: theme.colorScheme.secondary,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Instruções de Entrega',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? theme.colorScheme.surface.withOpacity(0.5)
+                    : theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: theme.colorScheme.outline.withOpacity(0.3),
+                ),
+              ),
+              child: Text(
+                order.deliveryInstructions!,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildOrderItems(BuildContext context) {
     final items = controller.order!.items;
     final theme = Theme.of(context);
@@ -484,21 +547,7 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
                 );
               },
             ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => _navigateToOrderBuilder(context),
-                icon: const Icon(Icons.qr_code),
-                label: const Text('Montar Pedido'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
+            // Botão de montar pedido removido
           ],
         ),
       ),
@@ -553,6 +602,11 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
     final order = controller.order!;
     final theme = Theme.of(context);
 
+    // Ocultar seção de atualização quando entregue
+    if (order.status == 'delivered') {
+      return const SizedBox.shrink();
+    }
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -587,6 +641,12 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
               spacing: 8,
               runSpacing: 8,
               children: controller.availableStatuses
+                  .where((status) => [
+                        'preparing',
+                        'delivering',
+                        'delivered',
+                        'cancelled'
+                      ].contains(status))
                   .where((status) => status != order.status)
                   .map((status) => _buildStatusChip(status))
                   .toList(),
@@ -721,15 +781,6 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
     );
   }
 
-  void _navigateToOrderBuilder(BuildContext context) {
-    Get.toNamed(
-      '/vendor/order-builder',
-      arguments: {
-        'order': controller.order,
-      },
-    );
-  }
-
   Widget _buildBottomActions(BuildContext context) {
     final theme = Theme.of(context);
 
@@ -757,17 +808,7 @@ class VendorOrderDetailPage extends GetView<VendorOrderDetailController> {
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () => _navigateToOrderBuilder(context),
-              icon: const Icon(Icons.edit),
-              label: const Text('Montar Pedido'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
-          ),
+          // Botão de Montar Pedido removido
         ],
       ),
     );

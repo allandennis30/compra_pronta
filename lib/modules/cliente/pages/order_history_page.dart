@@ -144,6 +144,42 @@ class OrderHistoryPage extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
+            if (order.status != 'cancelled' && order.status != 'delivered') ...[
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton.icon(
+                  onPressed: () => _confirmDeliveryDialog(order),
+                  icon: const Icon(Icons.check_circle_outline,
+                      color: Colors.white),
+                  label: Obx(() => controller.isConfirming(order.id)
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Recebi o pedido',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        )),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
         children: [
@@ -235,7 +271,12 @@ class OrderHistoryPage extends StatelessWidget {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () => _showOrderDetails(order),
-                        child: const Text('Ver Detalhes'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: const Text('Ver Detalhes',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
                       ),
                     ),
                   ],
@@ -603,6 +644,41 @@ class OrderHistoryPage extends StatelessWidget {
               textAlign: TextAlign.end,
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeliveryDialog(OrderModel order) {
+    final theme = Theme.of(Get.context!);
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Confirmar recebimento'),
+        content: Text(
+          'Você confirma que recebeu o pedido #${order.id}? Esta ação marcará o pedido como entregue e não poderá ser desfeita.',
+          style: theme.textTheme.bodyMedium,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancelar'),
+          ),
+          Obx(() => ElevatedButton(
+                onPressed: () async {
+                  await controller.confirmOrderReceived(order.id, Get.context!);
+                  if (Get.isDialogOpen == true) Get.back();
+                },
+                child: controller.isConfirming(order.id)
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Confirmar'),
+              )),
         ],
       ),
     );

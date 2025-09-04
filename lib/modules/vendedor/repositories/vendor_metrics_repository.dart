@@ -8,7 +8,8 @@ abstract class VendorMetricsRepository {
   Future<List<OrderModel>> getRecentOrders();
   Future<List<OrderModel>> getAllOrders();
   Future<List<Map<String, dynamic>>> getTopProducts();
-  Future<Map<String, dynamic>> getSalesReport({DateTime? startDate, DateTime? endDate});
+  Future<Map<String, dynamic>> getSalesReport(
+      {DateTime? startDate, DateTime? endDate});
 }
 
 class VendorMetricsRepositoryImpl implements VendorMetricsRepository {
@@ -23,19 +24,19 @@ class VendorMetricsRepositoryImpl implements VendorMetricsRepository {
     try {
       // Buscar pedidos reais para calcular métricas
       final orders = await _orderRepository.getVendorOrders();
-      
+
       // Calcular métricas baseadas nos pedidos reais
       double totalSales = 0.0;
       int totalOrders = orders.length;
       int pendingOrders = 0;
-      
+
       for (final order in orders) {
         totalSales += order.total;
         if (order.status == 'pending') {
           pendingOrders++;
         }
       }
-      
+
       return {
         'totalSales': totalSales,
         'totalOrders': totalOrders,
@@ -58,18 +59,19 @@ class VendorMetricsRepositoryImpl implements VendorMetricsRepository {
   Future<List<OrderModel>> getRecentOrders() async {
     try {
       AppLogger.info('📊 [METRICS] Buscando pedidos recentes reais...');
-      
+
       // Buscar todos os pedidos do vendedor
       final allOrders = await _orderRepository.getVendorOrders();
-      
+
       // Ordenar por data de criação (mais recentes primeiro)
       allOrders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      
-      // Retornar apenas os 5 mais recentes
-      final recentOrders = allOrders.take(5).toList();
-      
-      AppLogger.info('📊 [METRICS] ${recentOrders.length} pedidos recentes encontrados');
-      
+
+      // Retornar apenas os 4 mais recentes
+      final recentOrders = allOrders.take(4).toList();
+
+      AppLogger.info(
+          '📊 [METRICS] ${recentOrders.length} pedidos recentes encontrados');
+
       return recentOrders;
     } catch (e) {
       AppLogger.error('Erro ao buscar pedidos recentes', e);
@@ -81,15 +83,15 @@ class VendorMetricsRepositoryImpl implements VendorMetricsRepository {
   Future<List<OrderModel>> getAllOrders() async {
     try {
       AppLogger.info('📊 [METRICS] Buscando todos os pedidos...');
-      
+
       // Buscar todos os pedidos do vendedor
       final allOrders = await _orderRepository.getVendorOrders();
-      
+
       // Ordenar por data de criação (mais recentes primeiro)
       allOrders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      
+
       AppLogger.info('📊 [METRICS] ${allOrders.length} pedidos encontrados');
-      
+
       return allOrders;
     } catch (e) {
       AppLogger.error('Erro ao buscar todos os pedidos', e);
@@ -101,7 +103,7 @@ class VendorMetricsRepositoryImpl implements VendorMetricsRepository {
   Future<List<Map<String, dynamic>>> getTopProducts() async {
     // Simular delay de rede
     await Future.delayed(Duration(milliseconds: 300));
-    
+
     return [
       {
         'name': 'Maçã Fuji',
@@ -122,13 +124,14 @@ class VendorMetricsRepositoryImpl implements VendorMetricsRepository {
   }
 
   @override
-  Future<Map<String, dynamic>> getSalesReport({DateTime? startDate, DateTime? endDate}) async {
+  Future<Map<String, dynamic>> getSalesReport(
+      {DateTime? startDate, DateTime? endDate}) async {
     // Simular delay de rede
     await Future.delayed(Duration(milliseconds: 800));
-    
+
     final start = startDate ?? DateTime.now().subtract(Duration(days: 30));
     final end = endDate ?? DateTime.now();
-    
+
     return {
       'period': {
         'start': start.toIso8601String(),
@@ -149,4 +152,4 @@ class VendorMetricsRepositoryImpl implements VendorMetricsRepository {
       ],
     };
   }
-} 
+}

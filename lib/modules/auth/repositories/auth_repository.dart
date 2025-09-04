@@ -106,7 +106,15 @@ class AuthRepositoryImpl implements AuthRepository {
           final addressData = userData['endereco'] ?? userData['address'] ?? {};
           final address = AddressModel(
             street: addressData['rua'] ?? addressData['street'] ?? '',
-            number: addressData['numero'] ?? addressData['number'] ?? '',
+            number: addressData['numero'] is int
+                ? addressData['numero']
+                : addressData['numero'] is String
+                    ? int.tryParse(addressData['numero']) ?? 0
+                    : addressData['number'] is int
+                        ? addressData['number']
+                        : addressData['number'] is String
+                            ? int.tryParse(addressData['number']) ?? 0
+                            : addressData['number'] ?? 0,
             complement: addressData['complemento'] ?? addressData['complement'],
             neighborhood:
                 addressData['bairro'] ?? addressData['neighborhood'] ?? '',

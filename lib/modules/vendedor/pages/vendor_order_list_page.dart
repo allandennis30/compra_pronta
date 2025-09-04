@@ -51,11 +51,6 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
           fontWeight: FontWeight.bold,
         ),
       ),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: () => Get.back(),
-        tooltip: 'Voltar',
-      ),
       elevation: 0,
       actions: [
         Obx(() => IconButton(
@@ -95,28 +90,28 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Obx(() => Row(
-          children: controller.availableStatuses.map((status) {
-            return Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: FilterChip(
-                label: Text(controller.getStatusDisplayName(status)),
-                selected: controller.selectedStatus == status,
-                onSelected: (_) => controller.filterByStatus(status),
-                selectedColor:
-                    controller.getStatusColor(status).withOpacity(0.2),
-                checkmarkColor: controller.getStatusColor(status),
-                labelStyle: TextStyle(
-                  color: controller.selectedStatus == status
-                      ? controller.getStatusColor(status)
-                      : AppColors.onSurface(context),
-                  fontWeight: controller.selectedStatus == status
-                      ? FontWeight.bold
-                      : FontWeight.normal,
-                ),
-              ),
-            );
-          }).toList(),
-        )),
+              children: controller.availableStatuses.map((status) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: FilterChip(
+                    label: Text(controller.getStatusDisplayName(status)),
+                    selected: controller.selectedStatus == status,
+                    onSelected: (_) => controller.filterByStatus(status),
+                    selectedColor:
+                        controller.getStatusColor(status).withOpacity(0.2),
+                    checkmarkColor: controller.getStatusColor(status),
+                    labelStyle: TextStyle(
+                      color: controller.selectedStatus == status
+                          ? controller.getStatusColor(status)
+                          : AppColors.onSurface(context),
+                      fontWeight: controller.selectedStatus == status
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
+                  ),
+                );
+              }).toList(),
+            )),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'dart:async';
 import '../../../core/models/order_model.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/utils/logger.dart';
@@ -38,6 +39,27 @@ class VendorOrderListController extends GetxController {
     super.onInit();
     _repository = Get.find<VendorOrderRepository>();
     loadOrders();
+    _startAutoRefresh();
+  }
+
+  @override
+  void onClose() {
+    _stopAutoRefresh();
+    super.onClose();
+  }
+
+  Timer? _autoRefreshTimer;
+
+  void _startAutoRefresh() {
+    _autoRefreshTimer?.cancel();
+    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+      _refreshOrdersSilently();
+    });
+  }
+
+  void _stopAutoRefresh() {
+    _autoRefreshTimer?.cancel();
+    _autoRefreshTimer = null;
   }
 
   Future<void> loadOrders() async {
@@ -177,5 +199,73 @@ class VendorOrderListController extends GetxController {
 
   Future<void> refreshOrders() async {
     await loadOrders();
+  }
+
+  /// Atualiza um pedido específico na lista quando seu status for alterado
+  void updateOrderInList(OrderModel updatedOrder) {
+    try {
+      // Encontrar o índice do pedido na lista
+      final index = _orders.indexWhere((order) => order.id == updatedOrder.id);
+
+      if (index != -1) {
+        // Atualizar o pedido na lista
+        _orders[index] = updatedOrder;
+
+        // Reaplicar filtros para atualizar a lista filtrada
+        _applyFilters();
+
+        AppLogger.info(
+            '✅ [VENDOR_ORDER_LIST] Pedido ${updatedOrder.id} atualizado na lista');
+      } else {
+        AppLogger.warning(
+            '⚠️ [VENDOR_ORDER_LIST] Pedido ${updatedOrder.id} não encontrado na lista');
+      }
+    } catch (e) {
+      AppLogger.error(
+          '❌ [VENDOR_ORDER_LIST] Erro ao atualizar pedido na lista', e);
+    }
+  }
+
+  Future<void> _refreshOrdersSilently() async {
+    try {
+      final latest = await _repository.getVendorOrders();
+
+      if (latest.isEmpty) {
+        if (_orders.isNotEmpty) {
+          _orders.clear();
+          _applyFilters();
+        }
+        return;
+      }
+
+      // Se tamanho mudou, substitui por completo
+      if (latest.length != _orders.length) {
+        _orders.assignAll(latest);
+        _applyFilters();
+        return;
+      }
+
+      final latestById = {for (final o in latest) o.id: o};
+      bool changed = false;
+      for (var i = 0; i < _orders.length; i++) {
+        final current = _orders[i];
+        final updated = latestById[current.id];
+        if (updated == null) {
+          changed = true;
+          break;
+        }
+        if (updated.status != current.status ||
+            updated.total != current.total ||
+            updated.updatedAt != current.updatedAt) {
+          _orders[i] = updated;
+          changed = true;
+        }
+      }
+      if (changed) {
+        _applyFilters();
+      }
+    } catch (e) {
+      AppLogger.debug('🔄 [VENDOR_ORDER] Refresh silencioso falhou: $e');
+    }
   }
 }

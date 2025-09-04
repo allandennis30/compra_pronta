@@ -96,21 +96,23 @@ class CartSummaryWidget extends GetView<CartController> {
             )),
       );
 
-  Widget _minOrderMessage(BuildContext context) => Obx(() => !controller.canCheckout()
-      ? Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text(
-            'Valor mínimo: R\$ ${AppConstants.minOrderValue.toStringAsFixed(2)}',
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColors.onSurfaceVariant(context),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        )
-      : const SizedBox());
+  Widget _minOrderMessage(BuildContext context) =>
+      Obx(() => !controller.canCheckout()
+          ? Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                'Valor mínimo: R\$ ${AppConstants.minOrderValue.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.onSurfaceVariant(context),
+                ),
+                textAlign: TextAlign.center,
+              ),
+            )
+          : const SizedBox());
 
-  Widget _buildSummaryRow(BuildContext context, String label, String value, {bool isTotal = false}) {
+  Widget _buildSummaryRow(BuildContext context, String label, String value,
+      {bool isTotal = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [

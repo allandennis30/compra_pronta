@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../repositories/vendor_metrics_repository.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/models/order_model.dart';
@@ -17,6 +18,27 @@ class VendorMetricsController extends GetxController {
   void onInit() {
     super.onInit();
     _loadMetrics();
+    _startAutoRefresh();
+  }
+
+  @override
+  void onClose() {
+    _stopAutoRefresh();
+    super.onClose();
+  }
+
+  Timer? _autoRefreshTimer;
+
+  void _startAutoRefresh() {
+    _autoRefreshTimer?.cancel();
+    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 20), (_) {
+      _refreshMetricsSilently();
+    });
+  }
+
+  void _stopAutoRefresh() {
+    _autoRefreshTimer?.cancel();
+    _autoRefreshTimer = null;
   }
 
   void _loadMetrics() async {
@@ -46,7 +68,36 @@ class VendorMetricsController extends GetxController {
     }
   }
 
+  /// Atualiza um pedido específico nas métricas quando seu status for alterado
+  void updateOrderInMetrics(OrderModel updatedOrder) {
+    try {
+      // Encontrar o índice do pedido na lista de pedidos recentes
+      final index =
+          _recentOrders.indexWhere((order) => order.id == updatedOrder.id);
 
+      if (index != -1) {
+        // Atualizar o pedido na lista
+        _recentOrders[index] = updatedOrder;
+
+        AppLogger.info(
+            '✅ [VENDOR_METRICS] Pedido ${updatedOrder.id} atualizado nas métricas');
+      } else {
+        AppLogger.warning(
+            '⚠️ [VENDOR_METRICS] Pedido ${updatedOrder.id} não encontrado nas métricas');
+      }
+    } catch (e) {
+      AppLogger.error(
+          '❌ [VENDOR_METRICS] Erro ao atualizar pedido nas métricas', e);
+    }
+  }
+
+  Future<void> _refreshMetricsSilently() async {
+    try {
+      await _loadRecentOrders();
+    } catch (e) {
+      AppLogger.debug('🔄 [VENDOR_METRICS] Refresh silencioso falhou: $e');
+    }
+  }
 
   String getStatusText(String status) {
     switch (status) {

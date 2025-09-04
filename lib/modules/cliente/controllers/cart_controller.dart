@@ -5,6 +5,7 @@ import '../models/product_model.dart';
 import '../../../constants/app_constants.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/utils/snackbar_utils.dart';
+import '../../../repositories/store_settings_repository.dart';
 
 class CartItem {
   final ProductModel product;
@@ -34,11 +35,17 @@ class CartItem {
 
 class CartController extends GetxController {
   final _storage = GetStorage();
+  final StoreSettingsRepository _storeSettingsRepository =
+      StoreSettingsRepository();
   final RxList<CartItem> cartItems = <CartItem>[].obs;
   final RxBool isLoading = false.obs;
   final RxDouble subtotal = 0.0.obs;
   final RxDouble shipping = 0.0.obs;
   final RxDouble total = 0.0.obs;
+  final RxDouble vendorTaxaEntrega = 0.0.obs;
+  final RxDouble vendorLimiteEntregaGratis = 0.0.obs;
+  final RxBool isStoreOpen = true.obs;
+  final RxString storeOpenMessage = ''.obs;
   DateTime? _lastSnackbarTime;
 
   List<CartItem> get items => cartItems;
@@ -64,12 +71,87 @@ class CartController extends GetxController {
     super.onInit();
     _loadCart();
     _calculateTotals();
+    _applyVendorPolicy();
   }
 
   void _calculateTotals() {
     subtotal.value = cartItems.fold(0, (sum, item) => sum + item.total);
     shipping.value = AppConstants.baseDeliveryFee;
     total.value = subtotal.value + shipping.value;
+  }
+
+  Future<void> _applyVendorPolicy() async {
+    try {
+      if (cartItems.isEmpty) {
+        vendorTaxaEntrega.value = 0.0;
+        vendorLimiteEntregaGratis.value = 0.0;
+        isStoreOpen.value = true;
+        storeOpenMessage.value = '';
+        _calculateTotals();
+        return;
+      }
+
+      final firstProduct = cartItems.first.product;
+      final sellerId = firstProduct.sellerId;
+      if (sellerId == null || sellerId.isEmpty) {
+        _calculateTotals();
+        return;
+      }
+
+      final policy = await _storeSettingsRepository.getStorePolicy(sellerId);
+      if (policy != null) {
+        vendorTaxaEntrega.value = (policy['taxaEntrega'] ?? 0.0).toDouble();
+        vendorLimiteEntregaGratis.value =
+            (policy['limiteEntregaGratis'] ?? 0.0).toDouble();
+
+        final bool lojaOffline = policy['lojaOffline'] == true;
+        final bool aceitaForaHorario = policy['aceitaForaHorario'] == true;
+        final String horarioInicio = policy['horarioInicio']?.toString() ?? '';
+        final String horarioFim = policy['horarioFim']?.toString() ?? '';
+
+        if (lojaOffline) {
+          isStoreOpen.value = false;
+          storeOpenMessage.value =
+              'Loja temporariamente offline. O pedido será processado no próximo dia de funcionamento.';
+        } else if (horarioInicio.isNotEmpty && horarioFim.isNotEmpty) {
+          try {
+            final now = DateTime.now();
+            final sp = horarioInicio.split(':');
+            final ep = horarioFim.split(':');
+            final start = DateTime(now.year, now.month, now.day,
+                int.parse(sp[0]), int.parse(sp[1]));
+            final end = DateTime(now.year, now.month, now.day, int.parse(ep[0]),
+                int.parse(ep[1]));
+            final open = now.isAfter(start) && now.isBefore(end);
+            if (open || aceitaForaHorario) {
+              isStoreOpen.value = true;
+              storeOpenMessage.value = '';
+            } else {
+              isStoreOpen.value = false;
+              storeOpenMessage.value =
+                  'Fora do horário de funcionamento. Seu pedido será entregue no próximo dia útil da loja.';
+            }
+          } catch (_) {
+            isStoreOpen.value = true;
+            storeOpenMessage.value = '';
+          }
+        } else {
+          isStoreOpen.value = true;
+          storeOpenMessage.value = '';
+        }
+
+        final applied = subtotal.value >= vendorLimiteEntregaGratis.value
+            ? 0.0
+            : vendorTaxaEntrega.value;
+        shipping.value = applied;
+        total.value = subtotal.value + shipping.value;
+      } else {
+        _calculateTotals();
+      }
+    } catch (e) {
+      AppLogger.warning('⚠️ Falha ao obter política de entrega: $e');
+      _calculateTotals();
+    }
   }
 
   void _loadCart() {
@@ -116,6 +198,7 @@ class CartController extends GetxController {
     }
 
     _calculateTotals();
+    _applyVendorPolicy();
     _saveCart();
 
     // Evitar múltiplas chamadas de snackbar em sequência rápida
@@ -132,6 +215,7 @@ class CartController extends GetxController {
   void removeItem(String productId) {
     cartItems.removeWhere((item) => item.product.id == productId);
     _calculateTotals();
+    _applyVendorPolicy();
     _saveCart();
   }
 
@@ -146,6 +230,7 @@ class CartController extends GetxController {
       cartItems[index].quantity = quantity;
       cartItems.refresh(); // Force refresh the observable list
       _calculateTotals();
+      _applyVendorPolicy();
       _saveCart();
       // Não mostrar snackbar aqui - feedback visual sutil é suficiente
     }
@@ -154,6 +239,7 @@ class CartController extends GetxController {
   void clearCart() {
     cartItems.clear();
     _calculateTotals();
+    _applyVendorPolicy();
     _saveCart();
   }
 

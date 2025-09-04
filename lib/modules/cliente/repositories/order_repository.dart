@@ -13,6 +13,7 @@ abstract class OrderRepository extends BaseRepository<OrderModel> {
   Future<OrderModel?> getOrderById(String orderId);
   Future<OrderModel> createOrder(OrderModel order);
   Future<void> updateOrderStatus(String orderId, String status);
+  Future<void> confirmDelivery(String orderId);
 }
 
 class OrderRepositoryImpl implements OrderRepository {
@@ -174,6 +175,25 @@ class OrderRepositoryImpl implements OrderRepository {
       orders[orderIndex] = updatedOrder;
       await _storage.write(
           AppConstants.ordersKey, orders.map((o) => o.toJson()).toList());
+    }
+  }
+
+  @override
+  Future<void> confirmDelivery(String orderId) async {
+    try {
+      final apiService = Get.find<ApiService>();
+      final response =
+          await apiService.put('/orders/$orderId/confirm-delivery', {});
+      if (response['success'] == true) {
+        // Atualizar localmente
+        await updateOrderStatus(orderId, 'delivered');
+        AppLogger.info('✅ [ORDER] Entrega confirmada pelo cliente: $orderId');
+      } else {
+        throw Exception(response['message'] ?? 'Falha ao confirmar entrega');
+      }
+    } catch (e) {
+      AppLogger.error('❌ [ORDER] Erro ao confirmar entrega', e);
+      rethrow;
     }
   }
 

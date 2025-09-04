@@ -48,16 +48,17 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
               Text(
                 'Dashboard',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.onSurface(context),
-                ),
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.appBarForeground(context),
+                    ),
               ),
               Text(
                 'Painel do Vendedor',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.onSurfaceVariant(context),
-                  fontSize: 12,
-                ),
+                      color:
+                          AppColors.appBarForeground(context).withOpacity(0.85),
+                      fontSize: 12,
+                    ),
               ),
             ],
           ),
@@ -67,13 +68,13 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
         Container(
           margin: const EdgeInsets.only(right: 8),
           decoration: BoxDecoration(
-            color: AppColors.surfaceVariant(context),
+            color: Colors.white.withOpacity(0.12),
             borderRadius: BorderRadius.circular(12),
           ),
           child: IconButton(
             icon: Icon(
               Icons.settings_outlined,
-              color: AppColors.iconSecondary(context),
+              color: AppColors.appBarForeground(context),
             ),
             onPressed: () => Get.toNamed('/vendor/config'),
             tooltip: 'Configurações',

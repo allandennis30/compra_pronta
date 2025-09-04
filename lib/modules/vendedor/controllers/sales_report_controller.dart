@@ -8,7 +8,8 @@ import '../../../core/utils/logger.dart';
 import 'package:intl/intl.dart';
 
 class SalesReportController extends GetxController {
-  final VendorMetricsRepository _metricsRepository = Get.find<VendorMetricsRepository>();
+  final VendorMetricsRepository _metricsRepository =
+      Get.find<VendorMetricsRepository>();
   final PdfReportService _pdfService = PdfReportService();
 
   // Estados reativos
@@ -100,15 +101,39 @@ class SalesReportController extends GetxController {
     }
 
     return _allOrders.where((order) {
-      return order.createdAt.isAfter(_startDate.value!.subtract(const Duration(days: 1))) &&
-             order.createdAt.isBefore(_endDate.value!.add(const Duration(days: 1)));
+      final orderDate = order.createdAt;
+      return orderDate.isAfter(_startDate.value!) &&
+          orderDate.isBefore(_endDate.value!.add(const Duration(days: 1)));
     }).toList();
+  }
+
+  /// Atualiza um pedido específico no relatório quando seu status for alterado
+  void updateOrderInReport(OrderModel updatedOrder) {
+    try {
+      // Encontrar o índice do pedido na lista
+      final index =
+          _allOrders.indexWhere((order) => order.id == updatedOrder.id);
+
+      if (index != -1) {
+        // Atualizar o pedido na lista
+        _allOrders[index] = updatedOrder;
+
+        AppLogger.info(
+            '✅ [SALES_REPORT] Pedido ${updatedOrder.id} atualizado no relatório');
+      } else {
+        AppLogger.warning(
+            '⚠️ [SALES_REPORT] Pedido ${updatedOrder.id} não encontrado no relatório');
+      }
+    } catch (e) {
+      AppLogger.error(
+          '❌ [SALES_REPORT] Erro ao atualizar pedido no relatório', e);
+    }
   }
 
   /// Calcula estatísticas do período
   Map<String, dynamic> getPeriodStats() {
     final filteredOrders = getFilteredOrders();
-    
+
     if (filteredOrders.isEmpty) {
       return {
         'totalOrders': 0,
@@ -118,9 +143,14 @@ class SalesReportController extends GetxController {
       };
     }
 
-    final totalRevenue = filteredOrders.fold<double>(0.0, (sum, order) => sum + order.total);
-    final totalItems = filteredOrders.fold<int>(0, (sum, order) => 
-      sum + order.items.fold<int>(0, (itemSum, item) => itemSum + item.quantity));
+    final totalRevenue =
+        filteredOrders.fold<double>(0.0, (sum, order) => sum + order.total);
+    final totalItems = filteredOrders.fold<int>(
+        0,
+        (sum, order) =>
+            sum +
+            order.items
+                .fold<int>(0, (itemSum, item) => itemSum + item.quantity));
 
     return {
       'totalOrders': filteredOrders.length,
@@ -144,10 +174,10 @@ class SalesReportController extends GetxController {
     }
 
     _isGeneratingPdf.value = true;
-    
+
     try {
       final filteredOrders = getFilteredOrders();
-      
+
       if (filteredOrders.isEmpty) {
         Get.snackbar(
           'Aviso',
@@ -182,7 +212,6 @@ class SalesReportController extends GetxController {
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
-
     } catch (e) {
       AppLogger.error('Erro ao gerar relatório', e);
       Get.snackbar(
@@ -211,10 +240,10 @@ class SalesReportController extends GetxController {
     }
 
     _isGeneratingPdf.value = true;
-    
+
     try {
       final filteredOrders = getFilteredOrders();
-      
+
       if (filteredOrders.isEmpty) {
         Get.snackbar(
           'Aviso',
@@ -235,12 +264,12 @@ class SalesReportController extends GetxController {
       );
 
       // Visualizar PDF na página dedicada
-      final title = 'Relatório de Vendas - ${DateFormat('dd/MM/yyyy').format(_startDate.value!)} a ${DateFormat('dd/MM/yyyy').format(_endDate.value!)}';
+      final title =
+          'Relatório de Vendas - ${DateFormat('dd/MM/yyyy').format(_startDate.value!)} a ${DateFormat('dd/MM/yyyy').format(_endDate.value!)}';
       Get.to(() => PdfViewerPage(
-        pdfBytes: pdfBytes,
-        title: title,
-      ));
-
+            pdfBytes: pdfBytes,
+            title: title,
+          ));
     } catch (e) {
       AppLogger.error('Erro ao visualizar relatório', e);
       Get.snackbar(

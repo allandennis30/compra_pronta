@@ -10,7 +10,7 @@ import '../../modules/auth/repositories/auth_repository.dart';
 import '../../modules/vendedor/controllers/vendor_product_list_controller.dart';
 import '../../modules/vendedor/controllers/vendor_product_form_controller.dart';
 import '../../modules/vendedor/controllers/vendor_order_list_controller.dart';
-import '../../modules/vendedor/controllers/vendor_order_detail_controller.dart';
+import '../../modules/vendedor/controllers/vendedor_order_detail_controller.dart';
 import '../../modules/vendedor/controllers/vendor_scan_controller.dart';
 import '../../modules/vendedor/controllers/vendor_metrics_controller.dart';
 import '../../modules/vendedor/repositories/vendor_metrics_repository.dart';
@@ -48,8 +48,8 @@ class VendedorBinding extends Bindings {
     // TODO: Renomear para VendedorOrderListController após renomear os arquivos
     Get.lazyPut<VendorOrderListController>(() => VendorOrderListController());
     // TODO: Renomear para VendedorOrderDetailController após renomear os arquivos
-    Get.lazyPut<VendorOrderDetailController>(
-        () => VendorOrderDetailController());
+    Get.lazyPut<VendedorOrderDetailController>(
+        () => VendedorOrderDetailController());
     // TODO: Renomear para VendedorScanController após renomear os arquivos
     Get.lazyPut<VendorScanController>(() => VendorScanController());
     // TODO: Renomear para VendedorMetricsController após renomear os arquivos
