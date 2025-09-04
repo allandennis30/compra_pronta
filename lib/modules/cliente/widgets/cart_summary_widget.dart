@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/cart_controller.dart';
-import '../../../constants/app_constants.dart';
 import '../../../routes/app_pages.dart';
 import '../../../core/themes/app_colors.dart';
 
@@ -96,20 +95,21 @@ class CartSummaryWidget extends GetView<CartController> {
             )),
       );
 
-  Widget _minOrderMessage(BuildContext context) =>
-      Obx(() => !controller.canCheckout()
-          ? Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                'Valor mínimo: R\$ ${AppConstants.minOrderValue.toStringAsFixed(2)}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.onSurfaceVariant(context),
-                ),
-                textAlign: TextAlign.center,
-              ),
-            )
-          : const SizedBox());
+  Widget _minOrderMessage(BuildContext context) => Obx(() {
+        final minValue = controller.currentMinOrderValue;
+        if (minValue <= 0 || controller.canCheckout()) return const SizedBox();
+        return Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(
+            'Pedido mínimo do vendedor: R\$ ${minValue.toStringAsFixed(2)}',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.onSurfaceVariant(context),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        );
+      });
 
   Widget _buildSummaryRow(BuildContext context, String label, String value,
       {bool isTotal = false}) {

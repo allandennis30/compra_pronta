@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../constants/app_constants.dart';
 import '../modules/auth/repositories/auth_repository.dart';
+import '../core/utils/logger.dart';
 
 class StoreSettingsRepository {
   final AuthRepository _authRepository = AuthRepositoryImpl();
@@ -253,13 +254,17 @@ class StoreSettingsRepository {
   /// Busca apenas a política de entrega pública da loja
   Future<Map<String, dynamic>?> getStorePolicy(String sellerId) async {
     try {
+      final uri = Uri.parse('$_baseUrl/api/store-settings/$sellerId/policy');
+      AppLogger.debug('[PolicyAPI] GET ' + uri.toString());
       final response = await http.get(
-        Uri.parse('$_baseUrl/api/store-settings/$sellerId/policy'),
+        uri,
         headers: {
           'Content-Type': 'application/json',
         },
       );
 
+      AppLogger.debug('[PolicyAPI] status=' + response.statusCode.toString());
+      AppLogger.debug('[PolicyAPI] body=' + response.body);
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success'] == true && data['policy'] != null) {
@@ -274,7 +279,7 @@ class StoreSettingsRepository {
             error['message'] ?? 'Erro ao buscar política de entrega');
       }
     } catch (e) {
-      print('Erro ao buscar política de entrega: $e');
+      AppLogger.error('Erro ao buscar política de entrega', e);
       rethrow;
     }
   }

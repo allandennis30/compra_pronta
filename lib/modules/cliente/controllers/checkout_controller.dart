@@ -37,6 +37,9 @@ class CheckoutController extends GetxController {
   final RxBool isSubmitting = false.obs;
   final RxInt currentStep = 0.obs;
 
+  // Workers para sincronizar com o carrinho
+  final List<Worker> _workers = [];
+
   // Order data
   final RxList<OrderItemModel> orderItems = <OrderItemModel>[].obs;
   final RxDouble subtotal = 0.0.obs;
@@ -60,6 +63,17 @@ class CheckoutController extends GetxController {
         '📋 Controllers inicializados, carregando dados do usuário...');
     _loadUserData();
     _prepareOrderData();
+
+    // Sincronizar valores com o carrinho de forma reativa
+    _workers.add(ever(cartController.subtotal, (double v) {
+      subtotal.value = v;
+    }));
+    _workers.add(ever(cartController.shipping, (double v) {
+      shipping.value = v;
+    }));
+    _workers.add(ever(cartController.total, (double v) {
+      total.value = v;
+    }));
   }
 
   void _initializeControllers() {
@@ -361,7 +375,7 @@ class CheckoutController extends GetxController {
 
         // Salvar pedido localmente como fallback
         try {
-          final orderRepository = Get.find<OrderRepository>();
+          Get.find<OrderRepository>();
           AppLogger.info('✅ [CHECKOUT] Pedido criado com sucesso na API');
         } catch (e) {
           AppLogger.error('❌ [CHECKOUT] Erro ao salvar pedido localmente:', e);
@@ -443,6 +457,9 @@ class CheckoutController extends GetxController {
 
   @override
   void onClose() {
+    for (final worker in _workers) {
+      worker.dispose();
+    }
     clientNameController.dispose();
     clientEmailController.dispose();
     clientPhoneController.dispose();

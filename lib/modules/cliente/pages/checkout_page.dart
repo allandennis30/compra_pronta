@@ -516,6 +516,8 @@ class CheckoutPage extends GetView<CheckoutController> {
             const SizedBox(height: 8),
             _buildSummaryRow(context, 'Frete',
                 'R\$ ${controller.shipping.value.toStringAsFixed(2)}'),
+            const SizedBox(height: 8),
+            _policyHints(context),
             const Divider(height: 24),
             _buildSummaryRow(
               context,
@@ -552,6 +554,52 @@ class CheckoutPage extends GetView<CheckoutController> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _policyHints(BuildContext context) {
+    return Obx(() {
+      final cart = controller.cartController;
+      final min = cart.currentMinOrderValue;
+      final taxa = cart.vendorTaxaEntrega.value;
+      final gratisAcima = cart.vendorLimiteEntregaGratis.value;
+
+      final List<Widget> lines = [];
+      if (min > 0) {
+        lines.add(_hintLine(context,
+            'Pedido mínimo do vendedor: R\$ ${min.toStringAsFixed(2)}'));
+      }
+      if (taxa > 0) {
+        lines.add(_hintLine(
+            context, 'Taxa de entrega: R\$ ${taxa.toStringAsFixed(2)}'));
+      } else {
+        lines.add(_hintLine(context, 'Entrega grátis'));
+      }
+      if (gratisAcima > 0) {
+        lines.add(_hintLine(context,
+            'Frete grátis acima de R\$ ${gratisAcima.toStringAsFixed(2)}'));
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: lines,
+      );
+    });
+  }
+
+  Widget _hintLine(BuildContext context, String text) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 2),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 12,
+            color: AppColors.onSurfaceVariant(context),
+          ),
+        ),
+      ),
     );
   }
 }
