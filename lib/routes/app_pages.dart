@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../modules/auth/pages/login_page.dart';
 import '../modules/auth/pages/signup_page.dart';
+import '../modules/auth/pages/forgot_password_page.dart';
 import '../modules/cliente/pages/cliente_main_page.dart';
 import '../modules/cliente/pages/product_detail_page.dart';
 import '../modules/cliente/pages/checkout_page.dart';
@@ -33,6 +34,7 @@ class AuthBinding extends Bindings {
 abstract class Routes {
   static const login = '/login';
   static const signup = '/signup';
+  static const forgotPassword = '/forgot-password';
   static const clienteMain = '/cliente';
   static const clienteDetalhe = '/cliente/produto';
   static const clienteCheckout = '/cliente/checkout';
@@ -57,6 +59,11 @@ class AppPages {
     GetPage(
       name: Routes.signup,
       page: () => const SignupPage(),
+      binding: AuthBinding(),
+    ),
+    GetPage(
+      name: Routes.forgotPassword,
+      page: () => const ForgotPasswordPage(),
       binding: AuthBinding(),
     ),
     // Cliente - Página principal com navegação interna

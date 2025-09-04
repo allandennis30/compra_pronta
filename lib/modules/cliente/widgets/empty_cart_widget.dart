@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/themes/app_colors.dart';
+import '../controllers/cliente_main_controller.dart';
 
 class EmptyCartWidget extends StatelessWidget {
   const EmptyCartWidget({super.key});
@@ -38,7 +39,14 @@ class EmptyCartWidget extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () => Get.back(),
+              onPressed: () {
+                if (Get.isRegistered<ClienteMainController>()) {
+                  final mainController = Get.find<ClienteMainController>();
+                  mainController.setCurrentIndex(0);
+                } else {
+                  Get.offAllNamed('/cliente/produtos');
+                }
+              },
               icon: const Icon(Icons.shopping_bag_outlined),
               label: const Text('Ver Produtos'),
               style: ElevatedButton.styleFrom(

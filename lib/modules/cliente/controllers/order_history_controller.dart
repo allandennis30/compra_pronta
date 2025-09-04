@@ -21,15 +21,13 @@ class OrderHistoryController extends GetxController {
   void onInit() {
     super.onInit();
     _loadOrders();
-    _startPolling();
   }
 
   @override
   void onReady() {
     super.onReady();
-    // Recarregar pedidos quando a página estiver pronta
-    // Isso garante que novos pedidos apareçam imediatamente
-    _loadOrders();
+    // Inicia polling apenas se houver pedidos ativos
+    _updatePollingByOrders();
   }
 
   @override
@@ -39,8 +37,8 @@ class OrderHistoryController extends GetxController {
   }
 
   void _startPolling() {
-    _pollingTimer?.cancel();
-    _pollingTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+    if (_pollingTimer != null) return; // já está rodando
+    _pollingTimer = Timer.periodic(const Duration(seconds: 20), (_) {
       _refreshOrdersSilently();
     });
   }
@@ -56,6 +54,7 @@ class OrderHistoryController extends GetxController {
     try {
       final orders = await _orderRepository.getUserOrders();
       _orders.value = orders;
+      _updatePollingByOrders();
     } catch (e) {
       // Log do erro, mas não mostrar snackbar aqui pois não temos contexto
       AppLogger.error('❌ [HISTORY] Erro ao carregar histórico de pedidos', e);
@@ -96,9 +95,26 @@ class OrderHistoryController extends GetxController {
       if (changed) {
         _orders.refresh();
       }
+
+      // Reconfigura polling conforme estado atual
+      _updatePollingByOrders();
     } catch (e) {
       // Polling silencioso para não incomodar o usuário
       AppLogger.debug('🔄 [HISTORY] Polling falhou: $e');
+    }
+  }
+
+  bool _hasActiveOrders(List<OrderModel> list) {
+    if (list.isEmpty) return false;
+    final activeStatuses = {'pending', 'confirmed', 'preparing', 'delivering'};
+    return list.any((o) => activeStatuses.contains(o.status.toLowerCase()));
+  }
+
+  void _updatePollingByOrders() {
+    if (_hasActiveOrders(_orders)) {
+      _startPolling();
+    } else {
+      _stopPolling();
     }
   }
 

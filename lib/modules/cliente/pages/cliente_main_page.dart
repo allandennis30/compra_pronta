@@ -19,6 +19,15 @@ class ClienteMainPage extends StatelessWidget {
 
     final controller = Get.find<ClienteMainController>();
 
+    // Se vier argumento de índice inicial, aplica ao controller
+    final args = Get.arguments;
+    final initialIndex = (args is Map && args['initialIndex'] is int)
+        ? args['initialIndex'] as int
+        : null;
+    if (initialIndex != null) {
+      controller.setCurrentIndex(initialIndex);
+    }
+
     // Lista de páginas que serão exibidas
     final List<Widget> pages = [
       ProductListPage(),
@@ -29,13 +38,13 @@ class ClienteMainPage extends StatelessWidget {
 
     return Scaffold(
       body: Obx(() => IndexedStack(
-        index: controller.currentIndex.value,
-        children: pages,
-      )),
+            index: controller.currentIndex.value,
+            children: pages,
+          )),
       bottomNavigationBar: Obx(() => ClientBottomNav(
-        currentIndex: controller.currentIndex.value,
-        onTabTapped: controller.setCurrentIndex,
-      )),
+            currentIndex: controller.currentIndex.value,
+            onTabTapped: controller.setCurrentIndex,
+          )),
     );
   }
 }

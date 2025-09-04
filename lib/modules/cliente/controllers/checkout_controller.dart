@@ -70,6 +70,18 @@ class CheckoutController extends GetxController {
     deliveryInstructionsController = TextEditingController();
   }
 
+  // Normaliza valores para string não vazia, ignorando nulos, strings vazias e números 0
+  String? _toNonEmptyString(dynamic value) {
+    if (value == null) return null;
+    if (value is num) {
+      if (value == 0) return null;
+      return value.toString();
+    }
+    final String text = value.toString().trim();
+    if (text.isEmpty) return null;
+    return text;
+  }
+
   void _loadUserData() async {
     AppLogger.info('🔄 Iniciando carregamento de dados do usuário...');
 
@@ -95,7 +107,7 @@ class CheckoutController extends GetxController {
           // Montar endereço completo
           final endereco = userData['endereco'];
           if (endereco != null) {
-            final addressParts = [
+            final parts = [
               endereco['street'] ?? endereco['rua'],
               endereco['number'] ?? endereco['numero'],
               endereco['neighborhood'] ?? endereco['bairro'],
@@ -103,7 +115,9 @@ class CheckoutController extends GetxController {
               endereco['state'] ?? endereco['estado'],
               endereco['zipCode'] ?? endereco['cep'],
               endereco['complement'] ?? endereco['complemento'],
-            ].where((part) => part != null && part.isNotEmpty).toList();
+            ];
+            final addressParts =
+                parts.map(_toNonEmptyString).whereType<String>().toList();
 
             deliveryAddress.value = addressParts.join(', ');
           }
@@ -140,7 +154,7 @@ class CheckoutController extends GetxController {
         // Montar endereço completo
         final endereco = userData['endereco'];
         if (endereco != null) {
-          final addressParts = [
+          final parts = [
             endereco['rua'],
             endereco['numero'],
             endereco['bairro'],
@@ -148,7 +162,9 @@ class CheckoutController extends GetxController {
             endereco['estado'],
             endereco['cep'],
             endereco['complemento'], // Adicionar complemento
-          ].where((part) => part != null && part.isNotEmpty).toList();
+          ];
+          final addressParts =
+              parts.map(_toNonEmptyString).whereType<String>().toList();
 
           deliveryAddress.value = addressParts.join(', ');
         }

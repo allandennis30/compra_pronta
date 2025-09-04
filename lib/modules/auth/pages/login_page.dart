@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
+import 'forgot_password_page.dart';
 
 class LoginPage extends StatelessWidget {
   final _emailController = TextEditingController();
@@ -62,6 +63,14 @@ class LoginPage extends StatelessWidget {
                     ],
                   )),
               const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Get.to(() => const ForgotPasswordPage()),
+                  child: const Text('Esqueceu a senha?'),
+                ),
+              ),
+              const SizedBox(height: 8),
               Obx(() => SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(

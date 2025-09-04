@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../models/order_model.dart';
 import '../widgets/client_bottom_nav.dart';
 import '../../../constants/app_constants.dart';
 
@@ -12,7 +11,7 @@ class OrderSuccessPage extends StatelessWidget {
     // Redirecionar automaticamente para o histórico após 2 segundos
     Future.delayed(const Duration(seconds: 2), () {
       print('🔄 [SUCCESS] Redirecionando para histórico de pedidos...');
-      Get.offAllNamed('/cliente');
+      Get.offAllNamed('/cliente', arguments: {'initialIndex': 2});
     });
 
     return Scaffold(
@@ -148,7 +147,8 @@ class OrderSuccessPage extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () => Get.offAllNamed('/cliente/products'),
+              onPressed: () =>
+                  Get.offAllNamed('/cliente', arguments: {'initialIndex': 0}),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 backgroundColor: const Color(AppConstants.primaryColor),
@@ -164,7 +164,8 @@ class OrderSuccessPage extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () => Get.offAllNamed('/cliente/orders'),
+              onPressed: () =>
+                  Get.offAllNamed('/cliente', arguments: {'initialIndex': 2}),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 side: const BorderSide(color: Color(AppConstants.primaryColor)),

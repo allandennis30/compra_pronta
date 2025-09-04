@@ -33,6 +33,13 @@ abstract class AuthRepository {
   Future<Map<String, String>?> getSavedCredentials();
   Future<void> clearSavedCredentials();
   Future<bool> hasSavedCredentials();
+
+  // Recuperação de senha
+  Future<void> requestPasswordReset(String email);
+  Future<void> resetPassword(
+      {required String email,
+      required String code,
+      required String newPassword});
 }
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -511,6 +518,72 @@ class AuthRepositoryImpl implements AuthRepository {
     } catch (e) {
       AppLogger.error('❌ [STORAGE] Erro ao verificar credenciais salvas', e);
       return false;
+    }
+  }
+
+  // ====== Recuperação de senha ======
+  @override
+  Future<void> requestPasswordReset(String email) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse(AppConstants.forgotPasswordEndpoint),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({'email': email}),
+          )
+          .timeout(const Duration(seconds: 30));
+
+      if (response.statusCode != 200) {
+        // Tente extrair mensagem do servidor
+        String message = 'Falha ao solicitar recuperação';
+        if (response.body.isNotEmpty) {
+          try {
+            final data = json.decode(response.body);
+            message = data['error'] ?? data['message'] ?? response.body;
+          } catch (_) {
+            // Se não for JSON válido, use o próprio body como mensagem
+            message = response.body;
+          }
+        }
+        throw Exception(message);
+      }
+    } catch (e) {
+      AppLogger.error('❌ Erro ao solicitar recuperação de senha', e);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> resetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse(AppConstants.resetPasswordEndpoint),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode(
+                {'email': email, 'code': code, 'newPassword': newPassword}),
+          )
+          .timeout(const Duration(seconds: 30));
+
+      if (response.statusCode != 200) {
+        String message = 'Falha ao redefinir senha';
+        if (response.body.isNotEmpty) {
+          try {
+            final data = json.decode(response.body);
+            message = data['error'] ?? data['message'] ?? response.body;
+          } catch (_) {
+            message = response.body;
+          }
+        }
+        throw Exception(message);
+      }
+    } catch (e) {
+      AppLogger.error('❌ Erro ao redefinir senha', e);
+      rethrow;
     }
   }
 }
