@@ -72,7 +72,7 @@ lib/modules/cliente/
 1. **Clone o repositório:**
    ```bash
    git clone <url-do-repositorio>
-   cd compra_pronta
+   cd mercax
    ```
 
 2. **Instale as dependências:**

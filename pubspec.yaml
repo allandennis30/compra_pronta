@@ -1,4 +1,4 @@
-name: compra_pronta
+name: mercax
 description: "A new Flutter project."
 publish_to: 'none'
 version: 1.0.0+1
@@ -40,3 +40,27 @@ dev_dependencies:
     sdk: flutter
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/
+
+# Configuração do flutter_launcher_icons
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/apenasIcone.png"
+  min_sdk_android: 21
+  remove_alpha_ios: true
+  adaptive_icon_background: "#F5F5F5"
+  adaptive_icon_foreground: "assets/images/apenasIcone.png"
+  web:
+    generate: true
+    image_path: "assets/images/apenasIcone.png"
+    background_color: "#F5F5F5"
+    theme_color: "#F5F5F5"
+  windows:
+    generate: true
+    image_path: "assets/images/apenasIcone.png"
+    icon_size: 48
+  macos:
+    generate: true
+    image_path: "assets/images/apenasIcone.png"

@@ -22,6 +22,34 @@ class LoginPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // Logo da empresa
+              Container(
+                margin: const EdgeInsets.only(bottom: 32),
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  height: 120,
+                  width: 120,
+                  fit: BoxFit.contain,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+              Text(
+                'Bem-vindo ao Mercax',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'O mercado que vai até você.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
               TextField(
                 controller: _emailController,
                 decoration: const InputDecoration(

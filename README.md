@@ -1,4 +1,4 @@
-# compra_pronta
+# mercax
 
 A new Flutter project.
 

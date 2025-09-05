@@ -1,4 +1,4 @@
-import 'package:compra_pronta/core/models/user_model.dart';
+import 'package:mercax/core/models/user_model.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../../core/repositories/base_repository.dart';
 import '../../../core/models/order_model.dart';
@@ -37,14 +37,14 @@ class OrderRepositoryImpl implements OrderRepository {
   @override
   Future<OrderModel> update(OrderModel item) async {
     // Simular atualização
-    await Future.delayed(Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 300));
     return item;
   }
 
   @override
   Future<bool> delete(String id) async {
     // Simular exclusão
-    await Future.delayed(Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 300));
     return true;
   }
 
