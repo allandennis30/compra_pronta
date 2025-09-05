@@ -1,38 +1,508 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mercax - Supermercado Virtual</title>
+    <meta name="description" content="Mercax - O aplicativo que conecta vendedores e clientes em um supermercado virtual completo">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
 
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
 
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
-  <base href="$FLUTTER_BASE_HREF">
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
 
-  <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-  <!-- iOS meta tags & icons -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="mercax">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+        .logo img {
+            height: 40px;
+            margin-right: 10px;
+        }
 
-  <title>mercax</title>
-  <link rel="manifest" href="manifest.json">
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+
+        .nav-links a:hover {
+            opacity: 0.8;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 120px 0 80px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            transition: transform 0.3s, box-shadow 0.3s;
+            font-size: 1.1rem;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.3);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 0;
+            background: #f8f9fa;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #2c3e50;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Profiles Section */
+        .profiles {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .profiles h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #2c3e50;
+        }
+
+        .profiles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+
+        .profile-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .profile-card.vendor {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .profile-card h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .profile-card ul {
+            list-style: none;
+            text-align: left;
+            margin: 1.5rem 0;
+        }
+
+        .profile-card li {
+            margin-bottom: 0.8rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .profile-card li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        /* Technology Section */
+        .technology {
+            padding: 80px 0;
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+        }
+
+        .technology h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .tech-item {
+            padding: 1.5rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .tech-item h4 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Footer */
+        footer {
+            background: #1a1a1a;
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            margin-bottom: 1rem;
+            color: #ff6b6b;
+        }
+
+        .footer-section p, .footer-section a {
+            color: #ccc;
+            text-decoration: none;
+        }
+
+        .footer-section a:hover {
+            color: #ff6b6b;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .profiles-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 0 15px;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feature-card, .profile-card {
+            animation: fadeInUp 0.6s ease-out;
+        }
+    </style>
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async></script>
+    <header>
+        <nav class="container">
+            <div class="logo">
+                <img src="../assets/images/logo.png" alt="Mercax Logo" onerror="this.style.display='none'">
+                <span>Mercax</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#inicio">Início</a></li>
+                <li><a href="#funcionalidades">Funcionalidades</a></li>
+                <li><a href="#perfis">Perfis</a></li>
+                <li><a href="#beneficios">Benefícios</a></li>
+                <li><a href="#contato">Contato</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="inicio" class="hero">
+            <div class="container">
+                <h1>Mercax</h1>
+                <p>Suas compras do supermercado entregues no conforto da sua casa</p>
+                <a href="#funcionalidades" class="cta-button">Descobrir Mais</a>
+            </div>
+        </section>
+
+        <section id="funcionalidades" class="features">
+            <div class="container">
+                <h2>Funcionalidades Principais</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📱</div>
+                        <h3>Scanner de Código de Barras</h3>
+                        <p>Leitura rápida de códigos de barras e QR codes para facilitar o cadastro de produtos e identificação automática.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Relatórios e Métricas</h3>
+                        <p>Dashboard completo com vendas, comparativos, alertas de estoque e relatórios exportáveis para WhatsApp.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🛒</div>
+                        <h3>Carrinho Inteligente</h3>
+                        <p>Sistema de carrinho com controle de quantidade, cálculo automático de frete baseado na distância.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📍</div>
+                        <h3>Entrega por Localização</h3>
+                        <p>Definição de zonas de entrega, cálculo de frete por distância e controle de horários de funcionamento.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">💳</div>
+                        <h3>Gestão de Pedidos</h3>
+                        <p>Controle completo de pedidos com status em tempo real, histórico e possibilidade de repetir compras.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🏠</div>
+                         <h3>Compras no Conforto de Casa</h3>
+                         <p>Faça suas compras sem sair de casa, com entrega rápida e produtos sempre frescos na sua porta.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="perfis" class="profiles">
+            <div class="container">
+                <h2>Dois Perfis, Uma Plataforma</h2>
+                <div class="profiles-grid">
+                    <div class="profile-card">
+                        <h3>👥 Para Clientes</h3>
+                        <ul>
+                            <li>Visualização de produtos com filtros por categoria</li>
+                            <li>Adição ao carrinho com controle de quantidade</li>
+                            <li>Cálculo automático de frete por distância</li>
+                            <li>Histórico de pedidos com repetição fácil</li>
+                            <li>Sistema de avaliações e comentários</li>
+                            <li>Notificações de status do pedido</li>
+                        </ul>
+                    </div>
+                    <div class="profile-card vendor">
+                        <h3>🏪 Para Vendedores</h3>
+                        <ul>
+                            <li>Gestão completa de estoque e produtos</li>
+                            <li>Scanner de código de barras integrado</li>
+                            <li>Dashboard com métricas de vendas</li>
+                            <li>Controle de status de pedidos</li>
+                            <li>Configuração de horários e zonas de entrega</li>
+                            <li>Relatórios exportáveis e análises</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="beneficios" class="technology">
+             <div class="container">
+                 <h2>Por que Escolher o Mercax?</h2>
+                 <p>A solução completa para suas compras do dia a dia</p>
+                 <div class="tech-grid">
+                     <div class="tech-item">
+                         <h4>Economia de Tempo</h4>
+                         <p>Sem filas, sem trânsito</p>
+                     </div>
+                     <div class="tech-item">
+                         <h4>Produtos Frescos</h4>
+                         <p>Qualidade garantida</p>
+                     </div>
+                     <div class="tech-item">
+                         <h4>Entrega Rápida</h4>
+                         <p>No horário que você escolher</p>
+                     </div>
+                     <div class="tech-item">
+                         <h4>Preços Justos</h4>
+                         <p>Sem taxas abusivas</p>
+                     </div>
+                     <div class="tech-item">
+                         <h4>Facilidade Total</h4>
+                         <p>Tudo na palma da mão</p>
+                     </div>
+                     <div class="tech-item">
+                         <h4>Segurança</h4>
+                         <p>Compras protegidas</p>
+                     </div>
+                 </div>
+             </div>
+         </section>
+    </main>
+
+    <footer id="contato">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Mercax</h4>
+                    <p>O futuro do comércio digital está aqui. Conectando vendedores e clientes de forma inteligente e segura.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Contato</h4>
+                    <p>Email: contato@mercax.com</p>
+                    <p>Telefone: (11) 9999-9999</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <a href="privacy_policy.html">Política de Privacidade</a><br>
+                    <a href="#">Termos de Uso</a><br>
+                    <a href="#">Suporte</a>
+                </div>
+            </div>
+            <p>&copy; 2024 Mercax. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling para links de navegação
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Animação de entrada dos elementos
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observar elementos para animação
+        document.querySelectorAll('.feature-card, .profile-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+            observer.observe(el);
+        });
+    </script>
 </body>
 </html>
