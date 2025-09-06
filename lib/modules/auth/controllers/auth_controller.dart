@@ -15,6 +15,7 @@ class AuthController extends GetxController {
   final RxBool _isLoggedIn = false.obs;
 
   UserModel? get currentUser => _currentUser.value;
+  Rx<UserModel?> get currentUserRx => _currentUser;
   bool get isLoading => _isLoading.value;
   bool get isLoggedIn => _isLoggedIn.value;
 
@@ -138,12 +139,54 @@ class AuthController extends GetxController {
       if (user != null) {
         _currentUser.value = user;
         _isLoggedIn.value = true;
+        
+        // Buscar dados atualizados do servidor
+        await _fetchUpdatedUserData();
       } else {
         await _authRepository.logout();
       }
     } catch (e) {
       AppLogger.error('❌ Erro ao carregar usuário do storage', e);
       await _authRepository.logout();
+    }
+  }
+
+  /// Busca dados atualizados do usuário no servidor
+  Future<void> _fetchUpdatedUserData() async {
+    try {
+      AppLogger.info('📡 Buscando dados atualizados do servidor...');
+      
+      final token = await _authRepository.getToken();
+      if (token == null) {
+        AppLogger.warning('⚠️ Token não encontrado para buscar dados do servidor');
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse(AppConstants.profileEndpoint),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        if (responseData['user'] != null) {
+          final updatedUser = UserModel.fromJson(responseData['user']);
+          
+          // Atualizar dados no storage e na memória
+          await _authRepository.saveUser(updatedUser);
+          _currentUser.value = updatedUser;
+          
+          AppLogger.success('✅ Dados do usuário atualizados do servidor');
+        }
+      } else {
+        AppLogger.warning('⚠️ Falha ao buscar dados do servidor: ${response.statusCode}');
+      }
+    } catch (e) {
+      AppLogger.error('❌ Erro ao buscar dados atualizados do servidor', e);
+      // Não fazer logout em caso de erro de rede, manter dados locais
     }
   }
 

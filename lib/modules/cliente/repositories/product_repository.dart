@@ -1,12 +1,12 @@
+import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import '../../../core/repositories/base_repository.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../models/product_model.dart';
+import '../../../core/repositories/base_repository.dart';
 import '../../../constants/app_constants.dart';
 import '../../../core/utils/logger.dart';
 import '../../auth/controllers/auth_controller.dart';
-import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 abstract class ProductRepository extends BaseRepository<ProductModel> {
   Future<List<ProductModel>> getProductsByCategory(String category);
@@ -173,10 +173,25 @@ class ProductRepositoryImpl implements ProductRepository {
     bool? sortAscending,
   }) async {
     try {
+      // Obter cidade do cliente atual
+      final authController = Get.find<AuthController>();
+      final currentUser = authController.currentUser;
+      final clientCity = currentUser?.address.city ?? '';
+      
+      // Debug: verificar dados do usuário
+      AppLogger.info('🔍 [DEBUG] Current user: ${currentUser?.name}');
+      AppLogger.info('🔍 [DEBUG] User address: ${currentUser?.address.toJson()}');
+      AppLogger.info('🔍 [DEBUG] Client city: $clientCity');
+      
       final queryParams = <String, String>{
         'page': page.toString(),
         'limit': limit.toString(),
       };
+
+      // Adicionar cidade do cliente (obrigatório)
+      if (clientCity.isNotEmpty) {
+        queryParams['clientCity'] = clientCity;
+      }
 
       if (category != null && category.isNotEmpty) {
         queryParams['category'] = category;
@@ -206,7 +221,7 @@ class ProductRepositoryImpl implements ProductRepository {
         queryParams['sortAscending'] = sortAscending.toString();
       }
 
-      final uri = Uri.parse('${AppConstants.publicProductsEndpoint}')
+      final uri = Uri.parse(AppConstants.publicProductsEndpoint)
           .replace(queryParameters: queryParams);
 
       final response = await http.get(uri);
@@ -234,7 +249,25 @@ class ProductRepositoryImpl implements ProductRepository {
   @override
   Future<Map<String, dynamic>> getAvailableFilters() async {
     try {
-      final uri = Uri.parse(AppConstants.publicProductsFiltersEndpoint);
+      // Obter cidade do cliente atual
+      final authController = Get.find<AuthController>();
+      final currentUser = authController.currentUser;
+      final clientCity = currentUser?.address.city ?? '';
+      
+      // Debug: verificar dados do usuário nos filtros
+      AppLogger.info('🔍 [DEBUG FILTERS] Current user: ${currentUser?.name}');
+      AppLogger.info('🔍 [DEBUG FILTERS] User address: ${currentUser?.address.toJson()}');
+      AppLogger.info('🔍 [DEBUG FILTERS] Client city: $clientCity');
+      
+      final queryParams = <String, String>{};
+      
+      // Adicionar cidade do cliente (obrigatório)
+      if (clientCity.isNotEmpty) {
+        queryParams['clientCity'] = clientCity;
+      }
+      
+      final uri = Uri.parse(AppConstants.publicProductsFiltersEndpoint)
+          .replace(queryParameters: queryParams);
 
       final response = await http.get(uri);
 

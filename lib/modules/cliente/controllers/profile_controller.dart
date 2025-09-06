@@ -35,6 +35,14 @@ class ProfileController extends GetxController {
     _createControllers();
     user.value = _authController.currentUser;
     _initializeControllers();
+    
+    // Escutar mudanças no currentUser do AuthController
+    ever(_authController.currentUserRx, (UserModel? updatedUser) {
+      if (updatedUser != null) {
+        user.value = updatedUser;
+        _initializeControllers();
+      }
+    });
   }
 
   void _createControllers() {
@@ -90,6 +98,10 @@ class ProfileController extends GetxController {
         cityController.text = currentUser.address.city;
         stateController.text = currentUser.address.state;
         zipCodeController.text = currentUser.address.zipCode;
+        
+        // Resetar estados de bloqueio ao inicializar
+        isCityLocked.value = false;
+        isStateLocked.value = false;
       } catch (e) {
         // Se algum controller foi descartado, recriar todos
         _createControllers();
@@ -102,6 +114,9 @@ class ProfileController extends GetxController {
     if (isEditing.value) {
       // Cancelar edição - restaurar valores originais
       _initializeControllers();
+      // Desbloquear campos após cancelar edição
+      isCityLocked.value = false;
+      isStateLocked.value = false;
     }
     isEditing.toggle();
   }
@@ -136,7 +151,7 @@ class ProfileController extends GetxController {
       );
 
       _authController.updateUser(updatedUser);
-      user.value = updatedUser;
+      // O listener do ever() já atualizará user.value automaticamente
       isEditing.value = false;
 
       Get.snackbar(
