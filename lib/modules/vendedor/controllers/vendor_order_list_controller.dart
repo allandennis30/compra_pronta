@@ -67,23 +67,15 @@ class VendorOrderListController extends GetxController {
       _isLoading.value = true;
       _errorMessage.value = '';
 
-      AppLogger.info(
-          '🔄 [VENDOR_ORDER] Carregando pedidos reais do vendedor...');
+
 
       final orders = await _repository.getVendorOrders();
       _orders.assignAll(orders);
       _applyFilters();
 
-      if (orders.isEmpty) {
-        AppLogger.info(
-            '📭 [VENDOR_ORDER] Nenhum pedido encontrado para o vendedor');
-      } else {
-        AppLogger.info(
-            '✅ [VENDOR_ORDER] ${orders.length} pedidos carregados com sucesso');
-      }
+
     } catch (e) {
       _errorMessage.value = 'Erro ao carregar pedidos: $e';
-      AppLogger.error('❌ [VENDOR_ORDER] Erro ao carregar pedidos', e);
     } finally {
       _isLoading.value = false;
     }
@@ -265,7 +257,7 @@ class VendorOrderListController extends GetxController {
         _applyFilters();
       }
     } catch (e) {
-      AppLogger.debug('🔄 [VENDOR_ORDER] Refresh silencioso falhou: $e');
+      // Refresh silencioso falhou
     }
   }
 }

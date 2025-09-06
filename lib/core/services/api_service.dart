@@ -38,7 +38,6 @@ class ApiService {
 
       return _handleResponse(response);
     } catch (e) {
-      AppLogger.error('❌ [API] Erro na requisição GET $endpoint', e);
       return {'success': false, 'message': 'Erro de conexão'};
     }
   }
@@ -54,7 +53,6 @@ class ApiService {
 
       return _handleResponse(response);
     } catch (e) {
-      AppLogger.error('❌ [API] Erro na requisição POST $endpoint', e);
       return {'success': false, 'message': 'Erro de conexão'};
     }
   }

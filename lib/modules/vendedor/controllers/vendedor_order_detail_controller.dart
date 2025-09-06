@@ -76,7 +76,7 @@ class VendedorOrderDetailController extends GetxController {
       loadOrderDetails(orderId);
     } else {
       _errorMessage.value = 'ID do pedido não fornecido';
-      AppLogger.error('ID do pedido não fornecido na navegação');
+
     }
   }
 
@@ -85,8 +85,7 @@ class VendedorOrderDetailController extends GetxController {
       _isLoading.value = true;
       _errorMessage.value = '';
 
-      AppLogger.info(
-          '🔄 [VENDOR_ORDER] Carregando detalhes do pedido: $orderId');
+
 
       final order = await _repository.getOrderById(orderId);
       if (order != null) {
@@ -106,32 +105,14 @@ class VendedorOrderDetailController extends GetxController {
             longitude: 0.0, // Não disponível no pedido
             istore: false,
           );
-          AppLogger.info(
-              '✅ [VENDOR_ORDER] Cliente carregado: ${_customer.value?.name}');
-        } else {
-          AppLogger.warning(
-              '⚠️ [VENDOR_ORDER] Informações do cliente não disponíveis no pedido');
         }
-
-        AppLogger.info(
-            '✅ [VENDOR_ORDER] Pedido carregado com sucesso: ${order.id}');
-        AppLogger.info('📍 [VENDOR_ORDER] Endereço do pedido:');
-        AppLogger.info('   - Street: ${order.deliveryAddress.street}');
-        AppLogger.info('   - Number: ${order.deliveryAddress.number}');
-        AppLogger.info(
-            '   - Neighborhood: ${order.deliveryAddress.neighborhood}');
-        AppLogger.info('   - City: ${order.deliveryAddress.city}');
-        AppLogger.info('   - State: ${order.deliveryAddress.state}');
-        AppLogger.info('   - ZipCode: ${order.deliveryAddress.zipCode}');
-        AppLogger.info(
-            '   - FullAddress: ${order.deliveryAddress.fullAddress}');
       } else {
         _errorMessage.value = 'Pedido não encontrado';
-        AppLogger.warning('⚠️ [VENDOR_ORDER] Pedido não encontrado: $orderId');
+
       }
     } catch (e) {
       _errorMessage.value = 'Erro ao carregar detalhes do pedido: $e';
-      AppLogger.error('❌ [VENDOR_ORDER] Erro ao carregar pedido', e);
+
     } finally {
       _isLoading.value = false;
     }
@@ -164,12 +145,11 @@ class VendedorOrderDetailController extends GetxController {
       if (latest.status != _order.value!.status ||
           latest.updatedAt != _order.value!.updatedAt) {
         _order.value = latest;
-        AppLogger.info(
-            '🔄 [VENDOR_ORDER] Detalhe do pedido atualizado silenciosamente: ${latest.status}');
+
       }
     } catch (e) {
       // silencioso
-      AppLogger.debug('🔄 [VENDOR_ORDER] Silent refresh falhou: $e');
+
     }
   }
 
@@ -179,8 +159,7 @@ class VendedorOrderDetailController extends GetxController {
     try {
       _isUpdatingStatus.value = true;
 
-      AppLogger.info(
-          '🔄 [VENDOR_ORDER] Atualizando status do pedido ${_order.value!.id} para $newStatus');
+
 
       await _repository.updateOrderStatus(_order.value!.id, newStatus);
 
@@ -202,7 +181,7 @@ class VendedorOrderDetailController extends GetxController {
 
       _order.value = updatedOrder;
 
-      AppLogger.info('✅ [VENDOR_ORDER] Status atualizado com sucesso');
+
       Get.snackbar(
         'Sucesso',
         'Status atualizado com sucesso!',
@@ -212,7 +191,7 @@ class VendedorOrderDetailController extends GetxController {
       );
       _notifyOrderStatusChanged(updatedOrder);
     } catch (e) {
-      AppLogger.error('❌ [VENDOR_ORDER] Erro ao atualizar status do pedido', e);
+
       Get.snackbar(
         'Erro',
         'Erro ao atualizar status: $e',
@@ -270,7 +249,7 @@ class VendedorOrderDetailController extends GetxController {
       backgroundColor: Colors.green,
       colorText: Colors.white,
     );
-    AppLogger.info('Compartilhando pedido: ${order.id}');
+
   }
 
   String formatDateTime(DateTime dateTime) {
@@ -302,10 +281,9 @@ class VendedorOrderDetailController extends GetxController {
         salesReportController.updateOrderInReport(updatedOrder);
       }
 
-      AppLogger.info(
-          '📢 [VENDOR_ORDER] Controllers notificados sobre mudança de status');
+
     } catch (e) {
-      AppLogger.error('⚠️ [VENDOR_ORDER] Erro ao notificar controllers', e);
+
     }
   }
 }

@@ -58,7 +58,7 @@ class VendorMetricsRepositoryImpl implements VendorMetricsRepository {
   @override
   Future<List<OrderModel>> getRecentOrders() async {
     try {
-      AppLogger.info('📊 [METRICS] Buscando pedidos recentes reais...');
+  
 
       // Buscar todos os pedidos do vendedor
       final allOrders = await _orderRepository.getVendorOrders();
@@ -69,8 +69,7 @@ class VendorMetricsRepositoryImpl implements VendorMetricsRepository {
       // Retornar apenas os 4 mais recentes
       final recentOrders = allOrders.take(4).toList();
 
-      AppLogger.info(
-          '📊 [METRICS] ${recentOrders.length} pedidos recentes encontrados');
+      
 
       return recentOrders;
     } catch (e) {
@@ -82,7 +81,7 @@ class VendorMetricsRepositoryImpl implements VendorMetricsRepository {
   @override
   Future<List<OrderModel>> getAllOrders() async {
     try {
-      AppLogger.info('📊 [METRICS] Buscando todos os pedidos...');
+  
 
       // Buscar todos os pedidos do vendedor
       final allOrders = await _orderRepository.getVendorOrders();
@@ -90,7 +89,7 @@ class VendorMetricsRepositoryImpl implements VendorMetricsRepository {
       // Ordenar por data de criação (mais recentes primeiro)
       allOrders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-      AppLogger.info('📊 [METRICS] ${allOrders.length} pedidos encontrados');
+  
 
       return allOrders;
     } catch (e) {
