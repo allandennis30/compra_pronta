@@ -72,7 +72,7 @@ class CartItemWidget extends GetView<CartController> {
             ),
             const SizedBox(height: 4),
             Text(
-              item.product.isSoldByWeight
+              (item.product.isSoldByWeight ?? false)
                   ? 'R\$ ${item.product.pricePerKg?.toStringAsFixed(2) ?? '0.00'}/kg'
                   : 'R\$ ${item.product.price.toStringAsFixed(2)}',
               style: TextStyle(
@@ -140,14 +140,14 @@ class CartItemWidget extends GetView<CartController> {
               icon: Icons.remove,
               onPressed: () => controller.updateQuantity(
                   item.product.id,
-                  item.product.isSoldByWeight
+                  (item.product.isSoldByWeight ?? false)
                       ? cartItem.quantity - 1 // Decrementa 0.1kg
                       : cartItem.quantity - 1),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                item.product.isSoldByWeight
+                (item.product.isSoldByWeight ?? false)
                     ? '${cartItem.displayQuantity.toStringAsFixed(1)}kg'
                     : '${cartItem.quantity}',
                 style: const TextStyle(
@@ -161,7 +161,7 @@ class CartItemWidget extends GetView<CartController> {
               icon: Icons.add,
               onPressed: () => controller.updateQuantity(
                   item.product.id,
-                  item.product.isSoldByWeight
+                  (item.product.isSoldByWeight ?? false)
                       ? cartItem.quantity + 1 // Incrementa 0.1kg
                       : cartItem.quantity + 1),
             ),

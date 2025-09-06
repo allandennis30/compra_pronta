@@ -413,7 +413,41 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> updateUser(UserModel user) async {
-    await saveUser(user);
+    try {
+      final token = await getToken();
+      if (token == null || token.isEmpty) {
+        throw Exception('Token de autenticação não encontrado');
+      }
+
+      final response = await http.put(
+        Uri.parse(AppConstants.updateProfileEndpoint),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+           'nome': user.name,
+           'telefone': user.phone,
+           'endereco': user.address.toJson(),
+           'latitude': user.latitude,
+           'longitude': user.longitude,
+         }),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        final updatedUser = UserModel.fromJson(responseData['user']);
+        await saveUser(updatedUser);
+        AppLogger.info('✅ Perfil atualizado com sucesso');
+      } else {
+        final errorData = jsonDecode(response.body);
+        AppLogger.error('❌ Erro ao atualizar perfil: ${response.statusCode}', errorData);
+        throw Exception(errorData['message'] ?? 'Erro ao atualizar perfil');
+      }
+    } catch (e) {
+      AppLogger.error('❌ Erro ao atualizar usuário', e);
+      throw e;
+    }
   }
 
   /// Obtém o timestamp do último login

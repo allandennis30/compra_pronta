@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -11,6 +12,13 @@ import 'core/repositories/repository_factory.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Bloquear rotação do app - apenas portrait
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  
   await GetStorage.init();
   await Hive.initFlutter();
 

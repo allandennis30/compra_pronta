@@ -73,6 +73,8 @@ class AppConstants {
       '$baseUrl$apiVersion$authEndpoint/refresh';
   static String get profileEndpoint =>
       '$baseUrl$apiVersion$authEndpoint/profile';
+  static String get updateProfileEndpoint =>
+      '$baseUrl$apiVersion$authEndpoint/profile';
   static String get logoutEndpoint => '$baseUrl$apiVersion$authEndpoint/logout';
   static String get usersEndpoint => '$baseUrl$apiVersion$authEndpoint/users';
   static String get forgotPasswordEndpoint =>

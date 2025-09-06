@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/profile_controller.dart';
 import '../../../core/themes/app_colors.dart';
+import '../../../core/utils/input_formatters.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -150,34 +151,98 @@ class ProfilePage extends StatelessWidget {
                         children: [
                           Expanded(
                             flex: 2,
-                            child: _buildTextField(
-                              context: context,
-                              label: 'Cidade',
+                            child: Obx(() => TextFormField(
                               controller: controller.cityController,
-                              readOnly: !controller.isEditing.value,
-                            ),
+                              readOnly: !controller.isEditing.value || controller.isCityLocked.value,
+                              inputFormatters: [InputFormatters.onlyLettersFormatter],
+                              decoration: InputDecoration(
+                                labelText: 'Cidade',
+                                prefixIcon: const Icon(Icons.location_city),
+                                border: const OutlineInputBorder(),
+                                filled: !controller.isEditing.value || controller.isCityLocked.value,
+                                fillColor: !controller.isEditing.value || controller.isCityLocked.value ? AppColors.surfaceVariant(context) : null,
+                                suffixIcon: controller.isEditing.value && controller.isCityLocked.value
+                                    ? IconButton(
+                                        icon: const Icon(Icons.lock, size: 18),
+                                        onPressed: controller.unlockCityAndState,
+                                        tooltip: 'Clique para editar manualmente',
+                                        color: AppColors.primary(context),
+                                      )
+                                    : null,
+                              ),
+                              style: TextStyle(
+                                color: controller.isCityLocked.value ? AppColors.onSurfaceVariant(context) : null,
+                              ),
+                            )),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
                             flex: 1,
-                            child: _buildTextField(
-                              context: context,
-                              label: 'Estado',
+                            child: Obx(() => TextFormField(
                               controller: controller.stateController,
-                              readOnly: !controller.isEditing.value,
-                            ),
+                              readOnly: !controller.isEditing.value || controller.isStateLocked.value,
+                              inputFormatters: [InputFormatters.onlyLettersFormatter],
+                              decoration: InputDecoration(
+                                labelText: 'Estado',
+                                prefixIcon: const Icon(Icons.map),
+                                border: const OutlineInputBorder(),
+                                hintText: 'SP',
+                                filled: !controller.isEditing.value || controller.isStateLocked.value,
+                                fillColor: !controller.isEditing.value || controller.isStateLocked.value ? AppColors.surfaceVariant(context) : null,
+                                suffixIcon: controller.isEditing.value && controller.isStateLocked.value
+                                    ? IconButton(
+                                        icon: const Icon(Icons.lock, size: 18),
+                                        onPressed: controller.unlockCityAndState,
+                                        tooltip: 'Clique para editar manualmente',
+                                        color: AppColors.primary(context),
+                                      )
+                                    : null,
+                              ),
+                              style: TextStyle(
+                                color: controller.isStateLocked.value ? AppColors.onSurfaceVariant(context) : null,
+                              ),
+                            )),
                           ),
                         ],
                       ),
                       const SizedBox(height: 16),
-                      _buildTextField(
-                        context: context,
-                        label: 'CEP',
+                      // Campo CEP com busca automática
+                      Obx(() => TextFormField(
                         controller: controller.zipCodeController,
                         readOnly: !controller.isEditing.value,
-                        icon: Icons.mail,
                         keyboardType: TextInputType.number,
-                      ),
+                        inputFormatters: [InputFormatters.cepFormatter],
+                        onChanged: controller.isEditing.value ? (value) {
+                          // Busca automaticamente quando CEP estiver completo
+                          if (value.replaceAll(RegExp(r'[^0-9]'), '').length == 8) {
+                            controller.searchCep();
+                          }
+                        } : null,
+                        decoration: InputDecoration(
+                          labelText: 'CEP',
+                          prefixIcon: const Icon(Icons.location_on),
+                          border: const OutlineInputBorder(),
+                          hintText: '00000-000',
+                          filled: !controller.isEditing.value,
+                          fillColor: !controller.isEditing.value ? AppColors.surfaceVariant(context) : null,
+                          suffixIcon: controller.isEditing.value
+                              ? (controller.isLoadingCep.value
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: Padding(
+                                        padding: EdgeInsets.all(8.0),
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                      ),
+                                    )
+                                  : IconButton(
+                                      icon: const Icon(Icons.search),
+                                      onPressed: controller.searchCep,
+                                      tooltip: 'Buscar endereço pelo CEP',
+                                    ))
+                              : null,
+                        ),
+                      )),
                     ],
                   ),
                 ),

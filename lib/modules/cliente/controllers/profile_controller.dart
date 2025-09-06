@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../../core/models/user_model.dart';
+import '../../../core/services/cep_service.dart';
 
 class ProfileController extends GetxController {
   final AuthController _authController = Get.find<AuthController>();
   final Rx<UserModel?> user = Rx<UserModel?>(null);
   final RxBool isEditing = false.obs;
   final RxBool isLoading = false.obs;
+  final RxBool isLoadingCep = false.obs;
+  final RxBool isCityLocked = false.obs;
+  final RxBool isStateLocked = false.obs;
 
   // Controllers para os campos editáveis
   late TextEditingController nameController;
@@ -277,6 +281,66 @@ class ProfileController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// Busca dados do endereço pelo CEP
+  Future<void> searchCep() async {
+    final cep = zipCodeController.text;
+    if (cep.length < 8) return;
+
+    isLoadingCep.value = true;
+
+    try {
+      final cepData = await CepService.searchCep(cep);
+
+      if (cepData != null) {
+        streetController.text = cepData['logradouro'] ?? '';
+        neighborhoodController.text = cepData['bairro'] ?? '';
+        cityController.text = cepData['localidade'] ?? '';
+        stateController.text = cepData['uf'] ?? '';
+
+        // Bloqueia os campos cidade e UF quando preenchidos automaticamente
+        isCityLocked.value = cepData['localidade']?.isNotEmpty == true;
+        isStateLocked.value = cepData['uf']?.isNotEmpty == true;
+
+        Get.snackbar(
+          'Sucesso',
+          'Endereço encontrado e preenchido automaticamente',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+      } else {
+        // Desbloqueia os campos se o CEP não for encontrado
+        isCityLocked.value = false;
+        isStateLocked.value = false;
+
+        Get.snackbar(
+          'CEP não encontrado',
+          'Verifique o CEP informado',
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      // Desbloqueia os campos em caso de erro
+      isCityLocked.value = false;
+      isStateLocked.value = false;
+
+      Get.snackbar(
+        'Erro',
+        'Erro ao buscar CEP. Tente novamente.',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isLoadingCep.value = false;
+    }
+  }
+
+  /// Desbloqueia os campos cidade e UF para edição manual
+  void unlockCityAndState() {
+    isCityLocked.value = false;
+    isStateLocked.value = false;
   }
 
   void logout() async {
