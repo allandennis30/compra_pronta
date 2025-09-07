@@ -4,10 +4,14 @@ import '../../../core/models/order_model.dart';
 import '../../../core/utils/logger.dart';
 import '../../cliente/models/product_model.dart';
 import '../repositories/vendedor_product_repository.dart';
+import '../repositories/vendor_order_repository.dart';
+import 'vendor_order_list_controller.dart';
 
 class OrderBuilderController extends GetxController {
   final VendedorProductRepository _productRepository =
       Get.find<VendedorProductRepository>();
+  final VendorOrderRepository _orderRepository =
+      Get.find<VendorOrderRepository>();
   final GetStorage _storage = GetStorage();
 
   // Estado reativo dos itens do pedido
@@ -116,6 +120,54 @@ class OrderBuilderController extends GetxController {
 
   // Expor método público para a view persistir após mudanças manuais
   void saveProgress() => _saveProgressToStorage();
+
+  // Finalizar pedido e atualizar status para 'preparing'
+  Future<void> finishOrder() async {
+    try {
+      if (_currentOrder.value == null) {
+        AppLogger.error('❌ [ORDER_BUILDER] Pedido não disponível para finalizar');
+        return;
+      }
+
+      AppLogger.info('🔄 [ORDER_BUILDER] Finalizando pedido ${_currentOrder.value!.id}');
+      
+      // Atualizar status do pedido para 'preparing'
+      await _orderRepository.updateOrderStatus(_currentOrder.value!.id, 'preparing');
+      
+      // Atualizar a lista de pedidos se o controller estiver disponível
+      try {
+        final orderListController = Get.find<VendorOrderListController>();
+        await orderListController.refreshOrders();
+      } catch (e) {
+        AppLogger.warning('⚠️ [ORDER_BUILDER] Controller de lista não encontrado: $e');
+      }
+      
+      // Limpar progresso do storage
+      _storage.remove(_progressStorageKey);
+      
+      AppLogger.info('✅ [ORDER_BUILDER] Pedido finalizado com sucesso');
+      
+      Get.snackbar(
+        'Sucesso',
+        'Pedido finalizado! Status alterado para "Preparando"',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Get.theme.colorScheme.primary,
+        colorText: Get.theme.colorScheme.onPrimary,
+        duration: const Duration(seconds: 3),
+      );
+      
+    } catch (e) {
+      AppLogger.error('❌ [ORDER_BUILDER] Erro ao finalizar pedido:', e);
+      Get.snackbar(
+        'Erro',
+        'Erro ao finalizar pedido: $e',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Get.theme.colorScheme.error,
+        colorText: Get.theme.colorScheme.onError,
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
 
   // Processar código de barras escaneado
   Future<void> processScannedBarcode(String barcode) async {

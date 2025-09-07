@@ -317,7 +317,7 @@ class CheckoutPage extends GetView<CheckoutController> {
                                 ),
                               )
                             : const Text(
-                                'Finalizar Pedido',
+                                'Finalizar Montagem do Pedido',
                                 style: TextStyle(
                                     fontSize: 16, fontWeight: FontWeight.bold),
                               ),

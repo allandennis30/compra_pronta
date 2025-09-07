@@ -17,6 +17,13 @@ class OrderBuilderPage extends StatelessWidget {
       backgroundColor:
           isDark ? theme.colorScheme.surface : theme.colorScheme.surface,
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: theme.colorScheme.onSurface,
+          ),
+          onPressed: () => Get.back(),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -59,26 +66,7 @@ class OrderBuilderPage extends StatelessWidget {
         elevation: isDark ? 1 : 0,
         shadowColor: isDark ? theme.colorScheme.shadow.withOpacity(0.1) : null,
         actions: [
-          Obx(() {
-            final allItemsScanned = orderController.allItemsScanned;
-            return Container(
-              margin: const EdgeInsets.only(right: 8),
-              child: IconButton(
-                onPressed: allItemsScanned
-                    ? () => _showCompletionDialog(context, orderController)
-                    : null,
-                icon: Icon(
-                  Icons.check_circle,
-                  color: allItemsScanned
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.onSurface.withOpacity(0.3),
-                ),
-                tooltip: allItemsScanned
-                    ? 'Finalizar pedido'
-                    : 'Escaneie todos os itens',
-              ),
-            );
-          }),
+         
         ],
       ),
       body: Stack(
@@ -417,7 +405,7 @@ class OrderBuilderPage extends StatelessWidget {
                               onPressed: () => _showCompletionDialog(
                                   context, orderController),
                               icon: const Icon(Icons.check),
-                              label: const Text('Finalizar Pedido'),
+                              label: const Text('Finalizar Montagem do Pedido'),
                               style: ElevatedButton.styleFrom(
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 12),
@@ -721,16 +709,14 @@ class OrderBuilderPage extends StatelessWidget {
             child: const Text('Continuar'),
           ),
           ElevatedButton(
-            onPressed: () {
-              controller.saveProgress();
+            onPressed: () async {
               Navigator.of(context).pop();
-              // Navegar para a página de detalhes do pedido do vendedor
-              if (controller.currentOrder != null) {
-                Get.offAllNamed(
-                    '/vendor/pedido/${controller.currentOrder!.id}');
-              } else {
-                Get.back();
-              }
+              
+              // Finalizar pedido e atualizar status
+              await controller.finishOrder();
+              
+              // Navegar para a tela de pedidos do vendedor
+              Get.offAllNamed('/vendor/pedidos');
             },
             child: const Text('Finalizar'),
           ),

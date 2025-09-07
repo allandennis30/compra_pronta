@@ -189,10 +189,6 @@ class VendorOrderListController extends GetxController {
     return '${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year} às ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
-  Future<void> refreshOrders() async {
-    await loadOrders();
-  }
-
   /// Atualiza um pedido específico na lista quando seu status for alterado
   void updateOrderInList(OrderModel updatedOrder) {
     try {
@@ -216,6 +212,10 @@ class VendorOrderListController extends GetxController {
       AppLogger.error(
           '❌ [VENDOR_ORDER_LIST] Erro ao atualizar pedido na lista', e);
     }
+  }
+
+  Future<void> refreshOrders() async {
+    await loadOrders();
   }
 
   Future<void> _refreshOrdersSilently() async {

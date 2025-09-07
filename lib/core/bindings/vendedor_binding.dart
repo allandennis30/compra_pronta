@@ -5,6 +5,7 @@
 // 2. Atualizar as importações em todos os arquivos
 // 3. Atualizar as referências de classe nos bindings
 
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import '../../modules/auth/repositories/auth_repository.dart';
 import '../../modules/vendedor/controllers/vendor_product_list_controller.dart';
@@ -19,12 +20,17 @@ import '../../modules/vendedor/repositories/vendor_order_repository.dart';
 import '../repositories/repository_factory.dart';
 import '../services/api_service.dart';
 import '../../modules/auth/controllers/auth_controller.dart';
+import 'notification_binding.dart';
 
 class VendedorBinding extends Bindings {
   @override
   void dependencies() {
     // Services
     Get.lazyPut<ApiService>(() => ApiService());
+    
+    // Inicializar serviços de notificação
+    final notificationBinding = NotificationBinding();
+    notificationBinding.dependencies();
 
     // Controllers
     Get.lazyPut<AuthController>(() => AuthController());
@@ -54,5 +60,21 @@ class VendedorBinding extends Bindings {
     Get.lazyPut<VendorScanController>(() => VendorScanController());
     // TODO: Renomear para VendedorMetricsController após renomear os arquivos
     Get.lazyPut<VendorMetricsController>(() => VendorMetricsController());
+    
+    // Inicializar serviços de notificação após todas as dependências
+    _initializeNotificationServices();
+  }
+  
+  /// Inicializa os serviços de notificação de forma assíncrona
+  void _initializeNotificationServices() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        await NotificationBinding.initializeServices();
+        await NotificationBinding.startOrderMonitoring();
+        print('✅ Sistema de notificações ativado para vendedor');
+      } catch (e) {
+        print('❌ Erro ao inicializar notificações: $e');
+      }
+    });
   }
 }

@@ -16,7 +16,11 @@ class VendorOrderDetailPage extends GetView<VendedorOrderDetailController> {
           'Detalhes do Pedido',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
-        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, size: 20),
+          onPressed: () => controller.goBack(),
+          tooltip: 'Voltar',
+        ),
         actions: [
           Obx(() => controller.order != null
               ? Row(
@@ -781,6 +785,13 @@ class VendorOrderDetailPage extends GetView<VendedorOrderDetailController> {
     final theme = Theme.of(context);
     final order = controller.order;
 
+    // Se não há pedido ou pedido está finalizado/cancelado, não mostrar botões
+    if (order == null || 
+        order.status == 'delivered' || 
+        order.status == 'cancelled') {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -793,36 +804,18 @@ class VendorOrderDetailPage extends GetView<VendedorOrderDetailController> {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: () => controller.goBack(),
-              icon: const Icon(Icons.arrow_back),
-              label: const Text('Voltar'),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: () => controller.navigateToOrderBuilder(),
+          icon: const Icon(Icons.build),
+          label: const Text('Montar Pedido'),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            backgroundColor: theme.colorScheme.primary,
+            foregroundColor: Colors.white,
           ),
-          if (order != null &&
-              order.status != 'delivered' &&
-              order.status != 'cancelled') ...[
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () => controller.navigateToOrderBuilder(),
-                icon: const Icon(Icons.build),
-                label: const Text('Montar Pedido'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  backgroundColor: theme.colorScheme.primary,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }

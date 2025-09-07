@@ -46,6 +46,14 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	
+	<!-- Background Modes para notificações -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>background-fetch</string>
+		<string>background-processing</string>
+		<string>remote-notification</string>
+	</array>
+	
 	<!-- Permitir requisições HTTP para desenvolvimento -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
