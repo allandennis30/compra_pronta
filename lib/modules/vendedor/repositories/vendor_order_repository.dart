@@ -23,32 +23,59 @@ class VendorOrderRepositoryImpl implements VendorOrderRepository {
         return [];
       }
 
-      // Buscar pedidos da API
+      // Buscar TODOS os pedidos da API (todas as páginas)
+      final allOrders = <OrderModel>[];
+      int currentPage = 1;
+      int totalPages = 1;
+      const int itemsPerPage = 50; // Usar um limite maior para reduzir número de chamadas
+
       try {
         final apiService = Get.find<ApiService>();
-        final response = await apiService.get('/orders/seller');
+        
+        do {
+          AppLogger.info('🔄 [VENDOR_ORDER] Buscando página $currentPage de $totalPages');
+          
+          final response = await apiService.get('/orders/seller?page=$currentPage&limit=$itemsPerPage');
 
-        if (response['success'] == true && response['orders'] != null) {
-          final ordersData = response['orders'] as List<dynamic>;
-          final orders = ordersData
-              .map((json) {
-                try {
-                  // Converter o formato da API para o formato do modelo
-                  final convertedJson = _convertApiOrderToModel(json);
-                  final order = OrderModel.fromJson(convertedJson);
-                  return order;
-                } catch (e) {
-                  return null;
-                }
-              })
-              .where((order) => order != null)
-              .cast<OrderModel>()
-              .toList();
-          return orders;
-        } else {
-          return [];
-        }
+          if (response['success'] == true && response['orders'] != null) {
+            final ordersData = response['orders'] as List<dynamic>;
+            final pageOrders = ordersData
+                .map((json) {
+                  try {
+                    // Converter o formato da API para o formato do modelo
+                    final convertedJson = _convertApiOrderToModel(json);
+                    final order = OrderModel.fromJson(convertedJson);
+                    return order;
+                  } catch (e) {
+                    AppLogger.error('Erro ao converter pedido', e);
+                    return null;
+                  }
+                })
+                .where((order) => order != null)
+                .cast<OrderModel>()
+                .toList();
+            
+            allOrders.addAll(pageOrders);
+            
+            // Atualizar informações de paginação
+            if (response['pagination'] != null) {
+              final pagination = response['pagination'];
+              totalPages = pagination['totalPages'] ?? 1;
+              AppLogger.info('📊 [VENDOR_ORDER] Página $currentPage/$totalPages - ${pageOrders.length} pedidos adicionados');
+            }
+            
+            currentPage++;
+          } else {
+            AppLogger.warning('⚠️ [VENDOR_ORDER] Resposta inválida na página $currentPage');
+            break;
+          }
+        } while (currentPage <= totalPages);
+        
+        AppLogger.info('✅ [VENDOR_ORDER] Total de ${allOrders.length} pedidos carregados de $totalPages páginas');
+        return allOrders;
+        
       } catch (apiError) {
+        AppLogger.error('❌ [VENDOR_ORDER] Erro na API ao buscar pedidos', apiError);
         return [];
       }
     } catch (e) {
