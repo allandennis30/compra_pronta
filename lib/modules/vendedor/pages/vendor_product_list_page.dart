@@ -121,16 +121,34 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
                   const SizedBox(width: 8),
                   ...categories.map((category) {
                     final isSelected = controller.selectedCategory.value == category;
+                    final isCustomCategory = controller.vendorCategories
+                        .any((vendorCat) => vendorCat.name == category);
+                    
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: FilterChip(
-                        label: Text(
-                          category,
-                          style: TextStyle(
-                            color: isSelected
-                                ? Colors.white
-                                : AppColors.chipText(context),
-                          ),
+                        label: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              category,
+                              style: TextStyle(
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppColors.chipText(context),
+                              ),
+                            ),
+                            if (isCustomCategory) ...[
+                               const SizedBox(width: 4),
+                               Icon(
+                                 Icons.star,
+                                 size: 14,
+                                 color: isSelected
+                                     ? Colors.white
+                                     : Colors.amber.shade600,
+                               ),
+                             ]
+                          ],
                         ),
                         selected: isSelected,
                         selectedColor: AppColors.chipSelected(context),

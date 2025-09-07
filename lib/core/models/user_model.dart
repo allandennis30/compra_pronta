@@ -6,7 +6,7 @@ class UserModel {
   final AddressModel address;
   final double latitude;
   final double longitude;
-  final bool istore;
+  final bool isSeller;
 
   UserModel({
     required this.id,
@@ -16,18 +16,29 @@ class UserModel {
     required this.address,
     required this.latitude,
     required this.longitude,
-    this.istore = false,
+    this.isSeller = false,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
-        id: json['id'],
-        name: json['name'],
-        email: json['email'],
-        phone: json['phone'],
-        address: AddressModel.fromJson(json['address']),
-        latitude: json['latitude'],
-        longitude: json['longitude'],
-        istore: json['istore'] ?? false,
+        id: json['id']?.toString() ?? '',
+        name: json['name']?.toString() ?? json['nome']?.toString() ?? '',
+        email: json['email']?.toString() ?? '',
+        phone: json['phone']?.toString() ?? json['telefone']?.toString() ?? '',
+        address: json['address'] != null 
+            ? AddressModel.fromJson(json['address'])
+            : json['endereco'] != null
+                ? AddressModel.fromJson(json['endereco'])
+                : AddressModel(
+                    street: '',
+                    number: 0,
+                    neighborhood: '',
+                    city: '',
+                    state: '',
+                    zipCode: '',
+                  ),
+        latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
+        longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
+        isSeller: json['isSeller'] ?? json['istore'] ?? false,
       );
 
   Map<String, dynamic> toJson() => {
@@ -38,7 +49,7 @@ class UserModel {
         'address': address.toJson(),
         'latitude': latitude,
         'longitude': longitude,
-        'istore': istore,
+        'isSeller': isSeller,
       };
 }
 

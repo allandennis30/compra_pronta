@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controllers/vendor_product_form_controller.dart';
 import '../widgets/image_picker_widget.dart';
 import '../widgets/barcode_scanner.dart';
+import '../../../models/vendor_category.dart';
 
 class VendorProductFormPage extends GetView<VendorProductFormController> {
   const VendorProductFormPage({super.key});
@@ -25,27 +26,38 @@ class VendorProductFormPage extends GetView<VendorProductFormController> {
           ),
         ],
       ),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        return _buildForm();
-      }),
+      body: _buildBody(),
     );
   }
 
-  Widget _buildForm() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isTablet = constraints.maxWidth > 600;
-        final isDesktop = constraints.maxWidth > 900;
+  Widget _buildBody() {
+    return Obx(() {
+      if (controller.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      return _buildForm();
+    });
+  }
 
-        return SingleChildScrollView(
-          padding: EdgeInsets.all(isTablet ? 24.0 : 16.0),
-          child: isDesktop ? _buildDesktopLayout() : _buildMobileLayout(),
-        );
-      },
+  Widget _buildForm() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth == 0 || constraints.maxHeight == 0) {
+            return const SizedBox.shrink();
+          }
+          
+          final isTablet = constraints.maxWidth > 600;
+          final isDesktop = constraints.maxWidth > 900;
+          final padding = isTablet ? 24.0 : 16.0;
+
+          return Padding(
+            padding: EdgeInsets.all(padding),
+            child: isDesktop ? _buildDesktopLayout() : _buildMobileLayout(),
+          );
+        },
+      ),
     );
   }
 
@@ -278,28 +290,103 @@ class VendorProductFormPage extends GetView<VendorProductFormController> {
   }
 
   Widget _buildCategoryDropdown() {
-    return DropdownButtonFormField<String>(
-      decoration: const InputDecoration(
-        labelText: 'Categoria',
-        border: OutlineInputBorder(),
-        prefixIcon: Icon(Icons.category),
-      ),
-      value: controller.selectedCategory.value.isEmpty
-          ? null
-          : controller.selectedCategory.value,
-      items: controller.categories.map((category) {
-        return DropdownMenuItem<String>(
-          value: category,
-          child: Text(category),
-        );
-      }).toList(),
-      onChanged: (value) {
-        if (value != null) {
-          controller.onCategorySelected(value);
-        }
-      },
-      hint: const Text('Selecione uma categoria'),
-    );
+    return Obx(() {
+      final isLoading = controller.isLoadingCategories.value;
+      final categories = controller.categories;
+      final selectedCategory = controller.selectedCategory.value;
+      
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DropdownButtonFormField<String>(
+            decoration: InputDecoration(
+              labelText: 'Categoria',
+              border: const OutlineInputBorder(),
+              prefixIcon: isLoading 
+                  ? const Padding(
+                      padding: EdgeInsets.all(12.0),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : const Icon(Icons.category),
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (selectedCategory.isNotEmpty && controller.isCustomCategory(selectedCategory))
+                    IconButton(
+                      icon: const Icon(Icons.edit, size: 20),
+                      onPressed: () => _showEditCategoryDialog(selectedCategory),
+                      tooltip: 'Editar categoria',
+                    ),
+                  IconButton(
+                    icon: const Icon(Icons.add_circle_outline),
+                    onPressed: _showCreateCategoryDialog,
+                    tooltip: 'Criar nova categoria',
+                  ),
+                ],
+              ),
+            ),
+            value: selectedCategory.isEmpty ? null : selectedCategory,
+            items: isLoading 
+                ? []
+                : categories.map((category) {
+                    return DropdownMenuItem<String>(
+                      value: category,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            fit: FlexFit.loose,
+                            child: Text(
+                              category,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (controller.isCustomCategory(category)) ...[
+                            const SizedBox(width: 8),
+                            Icon(
+                              Icons.star,
+                              size: 16,
+                              color: Colors.amber.shade600,
+                            ),
+                          ],
+                        ],
+                      ),
+                    );
+                  }).toList(),
+            onChanged: isLoading 
+                ? null
+                : (value) {
+                    if (value != null) {
+                      controller.onCategorySelected(value);
+                    }
+                  },
+            hint: Text(isLoading ? 'Carregando categorias...' : 'Selecione uma categoria'),
+          ),
+          if (isLoading)
+            const Padding(
+              padding: EdgeInsets.only(top: 8.0),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Carregando suas categorias personalizadas...',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      );
+    });
   }
 
   Widget _buildSoldByWeightToggle() {
@@ -428,5 +515,205 @@ class VendorProductFormPage extends GetView<VendorProductFormController> {
         );
       },
     );
+  }
+
+  void _showCreateCategoryDialog() {
+    final TextEditingController categoryController = TextEditingController();
+    
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Nova Categoria'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Digite o nome da nova categoria:',
+              style: TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: categoryController,
+              decoration: const InputDecoration(
+                labelText: 'Nome da categoria',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.category),
+              ),
+              textCapitalization: TextCapitalization.words,
+              autofocus: true,
+              onFieldSubmitted: (value) {
+                if (value.trim().isNotEmpty) {
+                  _createCategory(categoryController.text.trim());
+                }
+              },
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'A primeira letra será automaticamente maiúscula e erros de digitação serão corrigidos.',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancelar'),
+          ),
+          Obx(() => ElevatedButton(
+            onPressed: controller.isCreatingCategory.value
+                ? null
+                : () {
+                    final categoryName = categoryController.text.trim();
+                    if (categoryName.isNotEmpty) {
+                      _createCategory(categoryName);
+                    }
+                  },
+            child: controller.isCreatingCategory.value
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Criar'),
+          )),
+        ],
+      ),
+    );
+  }
+
+  void _showEditCategoryDialog(String currentCategoryName) {
+    final TextEditingController categoryController = TextEditingController(text: currentCategoryName);
+    final category = controller.getVendorCategoryByName(currentCategoryName);
+    
+    if (category == null) return;
+    
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Editar Categoria'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Digite o novo nome da categoria:',
+              style: TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: categoryController,
+              decoration: const InputDecoration(
+                labelText: 'Nome da categoria',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.edit),
+              ),
+              textCapitalization: TextCapitalization.words,
+              autofocus: true,
+              onFieldSubmitted: (value) {
+                if (value.trim().isNotEmpty && value.trim() != currentCategoryName) {
+                  _editCategory(category, categoryController.text.trim());
+                }
+              },
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'A primeira letra será automaticamente maiúscula e erros de digitação serão corrigidos.',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => _showDeleteCategoryConfirmation(category),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Excluir'),
+          ),
+          Obx(() => ElevatedButton(
+            onPressed: controller.isCreatingCategory.value
+                ? null
+                : () {
+                    final newCategoryName = categoryController.text.trim();
+                    if (newCategoryName.isNotEmpty && newCategoryName != currentCategoryName) {
+                      _editCategory(category, newCategoryName);
+                    }
+                  },
+            child: controller.isCreatingCategory.value
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Salvar'),
+          )),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteCategoryConfirmation(VendorCategory category) {
+    Get.back(); // Fechar o diálogo de edição
+    
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Confirmar Exclusão'),
+        content: Text(
+          'Tem certeza que deseja excluir a categoria "${category.name}"?\n\nEsta ação não pode ser desfeita.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              _deleteCategory(category);
+              Get.back();
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _createCategory(String categoryName) async {
+    print('🔄 [UI_CREATE_CATEGORY] Iniciando criação de categoria na UI: "$categoryName"');
+    
+    // Fechar o teclado
+    FocusScope.of(Get.context!).unfocus();
+    print('⌨️ [UI_CREATE_CATEGORY] Teclado fechado');
+    
+    print('🔄 [UI_CREATE_CATEGORY] Chamando controller.createVendorCategory');
+    final success = await controller.createVendorCategory(categoryName);
+    print('📊 [UI_CREATE_CATEGORY] Resultado do controller: $success');
+    
+    // Fechar o diálogo apenas se a criação foi bem-sucedida
+    if (success) {
+      print('✅ [UI_CREATE_CATEGORY] Sucesso! Aguardando 1 segundo para exibir popup de sucesso');
+      // Aguardar 1 segundo para o popup de sucesso ser exibido antes de fechar
+      await Future.delayed(const Duration(seconds: 1));
+      Get.back();
+      print('🔙 [UI_CREATE_CATEGORY] Get.back() executado após 1 segundo');
+    } else {
+      print('❌ [UI_CREATE_CATEGORY] Falha na criação - popup permanece aberto');
+    }
+  }
+
+  Future<void> _editCategory(VendorCategory category, String newName) async {
+    // Fechar o teclado
+    FocusScope.of(Get.context!).unfocus();
+    
+    final success = await controller.updateVendorCategory(category, newName);
+    
+    // Fechar o diálogo apenas se a edição foi bem-sucedida
+    if (success) {
+      Get.back();
+    }
+  }
+
+  Future<void> _deleteCategory(VendorCategory category) async {
+    await controller.deleteVendorCategory(category);
   }
 }

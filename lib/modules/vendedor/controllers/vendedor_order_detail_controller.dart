@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'dart:async';
 import '../../../core/models/order_model.dart';
 import '../../../core/models/user_model.dart';
-import '../../../core/utils/logger.dart';
 import '../repositories/vendor_order_repository.dart';
 import 'vendor_order_list_controller.dart';
 import 'vendor_metrics_controller.dart';
@@ -103,7 +102,7 @@ class VendedorOrderDetailController extends GetxController {
             address: order.deliveryAddress,
             latitude: 0.0, // Não disponível no pedido
             longitude: 0.0, // Não disponível no pedido
-            istore: false,
+            isSeller: false,
           );
         }
       } else {

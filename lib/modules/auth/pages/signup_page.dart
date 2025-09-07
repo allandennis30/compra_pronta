@@ -519,7 +519,7 @@ class _SignupPageState extends State<SignupPage> {
                                     latitude: latitude,
                                     longitude: longitude,
                                     context: context,
-                                    istore: false,
+                                    isSeller: false,
                                   );
                                   if (ok) {
                                     Get.offAllNamed('/cliente');

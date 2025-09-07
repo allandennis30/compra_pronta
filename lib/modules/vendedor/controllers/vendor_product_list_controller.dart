@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../cliente/models/product_model.dart';
 import '../repositories/vendedor_product_repository.dart';
+import '../../../models/vendor_category.dart';
+import '../../../repositories/vendor_category_repository.dart';
+import '../../auth/repositories/auth_repository.dart';
 
 class VendedorProductListController extends GetxController {
   final VendedorProductRepository _repository;
+  late final VendorCategoryRepository _vendorCategoryRepository;
   final RxList<ProductModel> products = <ProductModel>[].obs;
   final RxList<ProductModel> _allProducts = <ProductModel>[].obs;
   final RxBool isLoading = false.obs;
@@ -13,6 +17,22 @@ class VendedorProductListController extends GetxController {
   final RxString searchQuery = ''.obs;
   final RxString selectedCategory = ''.obs;
   final RxBool isSearching = false.obs;
+  
+  // Categorias personalizadas do vendedor
+  final RxList<VendorCategory> vendorCategories = <VendorCategory>[].obs;
+  final RxBool isLoadingCategories = false.obs;
+  
+  // Categorias padrão do sistema
+  final List<String> _defaultCategories = [
+    'Frutas e Verduras',
+    'Carnes',
+    'Pães e Massas',
+    'Bebidas',
+    'Laticínios',
+    'Limpeza',
+    'Higiene',
+    'Outros'
+  ];
 
   VendedorProductListController({required VendedorProductRepository repository})
       : _repository = repository;
@@ -20,7 +40,12 @@ class VendedorProductListController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // Inicializar o repository de categorias do vendedor
+    final authRepo = Get.find<AuthRepository>();
+    _vendorCategoryRepository = VendorCategoryRepository(authRepo);
+    
     loadProducts();
+    loadVendorCategories();
   }
 
   Future<void> loadProducts() async {
@@ -181,12 +206,35 @@ class VendedorProductListController extends GetxController {
   }
 
   List<String> get availableCategories {
-    return _allProducts
+    // Combinar categorias dos produtos existentes com categorias personalizadas
+    final productCategories = _allProducts
         .map((product) => product.category ?? '')
         .where((category) => category.isNotEmpty)
-        .toSet()
-        .toList()
-      ..sort();
+        .toSet();
+    
+    final vendorCategoryNames = vendorCategories.map((cat) => cat.name).toSet();
+    final defaultCategoriesSet = _defaultCategories.toSet();
+    
+    // Unir todas as categorias e remover duplicatas
+    final allCategories = <String>{};
+    allCategories.addAll(defaultCategoriesSet);
+    allCategories.addAll(vendorCategoryNames);
+    allCategories.addAll(productCategories);
+    
+    return allCategories.toList()..sort();
+  }
+
+  /// Carrega as categorias personalizadas do vendedor
+  Future<void> loadVendorCategories() async {
+    try {
+      isLoadingCategories.value = true;
+      final categories = await _vendorCategoryRepository.getVendorCategories();
+      vendorCategories.assignAll(categories);
+    } catch (e) {
+      print('Erro ao carregar categorias do vendedor: $e');
+    } finally {
+      isLoadingCategories.value = false;
+    }
   }
 
   void toggleSearch() {

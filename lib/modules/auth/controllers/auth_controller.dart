@@ -137,12 +137,19 @@ class AuthController extends GetxController {
     try {
       final user = await _authRepository.getCurrentUser();
       if (user != null) {
+        AppLogger.info('🔍 [RELOAD DEBUG] Usuário carregado do storage:');
+        AppLogger.info('   - ID: ${user.id}');
+        AppLogger.info('   - Nome: ${user.name}');
+        AppLogger.info('   - Email: ${user.email}');
+        AppLogger.info('   - isSeller: ${user.isSeller}');
+        
         _currentUser.value = user;
         _isLoggedIn.value = true;
         
         // Buscar dados atualizados do servidor
         await _fetchUpdatedUserData();
       } else {
+        AppLogger.warning('⚠️ [RELOAD DEBUG] Nenhum usuário encontrado no storage');
         await _authRepository.logout();
       }
     } catch (e) {
@@ -173,7 +180,17 @@ class AuthController extends GetxController {
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         if (responseData['user'] != null) {
+          AppLogger.info('🔍 [RELOAD DEBUG] Dados recebidos do servidor:');
+          AppLogger.info('   - Raw data: ${responseData['user']}');
+          AppLogger.info('   - isSeller no JSON: ${responseData['user']['isSeller']}');
+          
           final updatedUser = UserModel.fromJson(responseData['user']);
+          
+          AppLogger.info('🔍 [RELOAD DEBUG] Usuário após fromJson:');
+          AppLogger.info('   - ID: ${updatedUser.id}');
+          AppLogger.info('   - Nome: ${updatedUser.name}');
+          AppLogger.info('   - Email: ${updatedUser.email}');
+          AppLogger.info('   - isSeller: ${updatedUser.isSeller}');
           
           // Atualizar dados no storage e na memória
           await _authRepository.saveUser(updatedUser);
@@ -279,7 +296,7 @@ class AuthController extends GetxController {
     required double latitude,
     required double longitude,
     required BuildContext context,
-    bool istore = false,
+    bool isSeller = false,
   }) async {
     _isLoading.value = true;
 
@@ -292,7 +309,7 @@ class AuthController extends GetxController {
         address: address,
         latitude: latitude,
         longitude: longitude,
-        istore: istore,
+        isSeller: isSeller,
       );
 
       _currentUser.value = user;
@@ -336,16 +353,31 @@ class AuthController extends GetxController {
     }
   }
 
-  void updateUser(UserModel user) async {
+  Future<void> updateUser(UserModel user) async {
     try {
       await _authRepository.updateUser(user);
       _currentUser.value = user;
     } catch (e) {
       AppLogger.error('Erro ao atualizar usuário', e);
+      rethrow;
     }
   }
 
-  bool get isVendor => currentUser?.istore ?? false;
+  /// Recarrega dados do usuário atual do repositório
+  Future<void> reloadCurrentUser() async {
+    try {
+      final user = await _authRepository.getCurrentUser();
+      if (user != null) {
+        _currentUser.value = user;
+        AppLogger.info('✅ Dados do usuário recarregados');
+      }
+    } catch (e) {
+      AppLogger.error('❌ Erro ao recarregar dados do usuário', e);
+      rethrow;
+    }
+  }
+
+  bool get isVendor => currentUser?.isSeller ?? false;
   bool get isClient => !isVendor;
 
   /// Obtém o token JWT para requisições autenticadas

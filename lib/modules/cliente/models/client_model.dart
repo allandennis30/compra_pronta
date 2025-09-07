@@ -15,7 +15,7 @@ class ClientModel extends UserModel {
     required super.address,
     required super.latitude,
     required super.longitude,
-    required super.istore,
+    required super.isSeller,
     this.cpf,
     required this.ativo,
     required this.dataCriacao,
@@ -49,7 +49,7 @@ class ClientModel extends UserModel {
       longitude: (json['longitude'] is int)
           ? (json['longitude'] as int).toDouble()
           : (json['longitude'] as double? ?? 0.0),
-      istore: json['isSeller'] ?? false,
+      isSeller: json['isSeller'] ?? false,
       cpf: json['cpf'],
       ativo: json['ativo'] ?? true,
       dataCriacao: json['data_criacao'] != null
@@ -78,7 +78,7 @@ class ClientModel extends UserModel {
   // Getters específicos do cliente
   String get nome => name;
   String get telefone => phone;
-  bool get isSeller => istore;
+  bool get isSellerUser => isSeller;
 }
 
 class ClientAddressModel extends AddressModel {

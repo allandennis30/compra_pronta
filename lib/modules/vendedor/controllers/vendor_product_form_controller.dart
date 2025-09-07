@@ -6,11 +6,15 @@ import '../../cliente/models/product_model.dart';
 import '../repositories/vendedor_product_repository.dart';
 import '../../../core/services/supabase_image_service.dart';
 import '../../auth/controllers/auth_controller.dart';
+import '../../../repositories/vendor_category_repository.dart';
+import '../../../models/vendor_category.dart';
+import '../../auth/repositories/auth_repository.dart';
 import 'package:uuid/uuid.dart';
 
 class VendorProductFormController extends GetxController {
   final VendedorProductRepository _repository;
   final AuthController _authController = Get.find<AuthController>();
+  late final VendorCategoryRepository _vendorCategoryRepository;
   final TextEditingController nameController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
@@ -31,7 +35,9 @@ class VendorProductFormController extends GetxController {
   final RxBool isUploadingImage = false.obs;
 
   final ImagePicker _picker = ImagePicker();
-  final categories = [
+  
+  // Categorias padrão do sistema
+  final List<String> _defaultCategories = [
     'Frutas e Verduras',
     'Carnes',
     'Pães e Massas',
@@ -41,13 +47,36 @@ class VendorProductFormController extends GetxController {
     'Higiene',
     'Outros'
   ];
+  
+  // Categorias personalizadas do vendedor
+  final RxList<VendorCategory> vendorCategories = <VendorCategory>[].obs;
+  final RxBool isLoadingCategories = false.obs;
+  final RxBool isCreatingCategory = false.obs;
+  
+  // Lista combinada de todas as categorias disponíveis
+  List<String> get categories {
+    final vendorCategoryNames = vendorCategories.map((cat) => cat.name).toList();
+    final allCategories = [..._defaultCategories, ...vendorCategoryNames];
+    // Remover duplicatas e ordenar
+    return allCategories.toSet().toList()..sort();
+  }
 
   VendorProductFormController({required VendedorProductRepository repository})
-      : _repository = repository;
+      : _repository = repository {
+    // Inicializar o repository de categorias do vendedor
+    final authRepo = Get.find<AuthRepository>();
+    _vendorCategoryRepository = VendorCategoryRepository(authRepo);
+  }
 
   @override
   void onInit() {
     super.onInit();
+    
+    // Inicializar com estado de carregamento
+    isLoadingCategories.value = true;
+    
+    // Carregar categorias personalizadas do vendedor
+    loadVendorCategories();
 
     // Verificar se estamos editando um produto existente
     if (Get.arguments != null && Get.arguments is ProductModel) {
@@ -338,6 +367,207 @@ class VendorProductFormController extends GetxController {
       return false;
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  /// Carregar categorias personalizadas do vendedor
+  Future<void> loadVendorCategories() async {
+    try {
+      isLoadingCategories.value = true;
+      final categories = await _vendorCategoryRepository.getVendorCategories();
+      vendorCategories.value = categories;
+    } catch (e) {
+      print('Erro ao carregar categorias do vendedor: $e');
+      // Não mostrar erro para o usuário, apenas log
+    } finally {
+      isLoadingCategories.value = false;
+    }
+  }
+
+  /// Criar nova categoria personalizada
+  Future<bool> createVendorCategory(String categoryName) async {
+    print('🔄 [CATEGORY_CREATE] Iniciando criação de categoria: "$categoryName"');
+    
+    if (categoryName.trim().isEmpty) {
+      print('❌ [CATEGORY_CREATE] Nome da categoria vazio');
+      Get.snackbar(
+        'Erro',
+        'Nome da categoria não pode estar vazio',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return false;
+    }
+
+    try {
+      print('🔄 [CATEGORY_CREATE] Definindo isCreatingCategory = true');
+      isCreatingCategory.value = true;
+      
+      // Verificar se a categoria já existe (incluindo padrões)
+      final normalizedName = categoryName.trim();
+      print('🔍 [CATEGORY_CREATE] Verificando se categoria "$normalizedName" já existe');
+      print('📋 [CATEGORY_CREATE] Categorias existentes: ${categories.join(", ")}');
+      
+      if (categories.any((cat) => cat.toLowerCase() == normalizedName.toLowerCase())) {
+        print('⚠️ [CATEGORY_CREATE] Categoria já existe: "$normalizedName"');
+        Get.snackbar(
+          'Aviso',
+          'Categoria "$normalizedName" já existe',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+        return false;
+      }
+
+      print('🌐 [CATEGORY_CREATE] Chamando repository para criar categoria');
+      final newCategory = await _vendorCategoryRepository.createVendorCategory(normalizedName);
+      print('✅ [CATEGORY_CREATE] Categoria criada no backend: ${newCategory.toJson()}');
+      
+      vendorCategories.add(newCategory);
+      print('📝 [CATEGORY_CREATE] Categoria adicionada à lista local');
+      
+      // Selecionar a nova categoria automaticamente
+      selectedCategory.value = newCategory.name;
+      print('🎯 [CATEGORY_CREATE] Categoria selecionada automaticamente: "${newCategory.name}"');
+      
+      print('🎉 [CATEGORY_CREATE] Exibindo snackbar de sucesso');
+      Get.snackbar(
+        'Sucesso',
+        'Categoria "${newCategory.name}" criada com sucesso!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+      
+      print('✅ [CATEGORY_CREATE] Retornando true - sucesso');
+      return true;
+    } catch (e) {
+      print('❌ [CATEGORY_CREATE] Erro capturado: $e');
+      print('📊 [CATEGORY_CREATE] Tipo do erro: ${e.runtimeType}');
+      Get.snackbar(
+        'Erro',
+        'Erro ao criar categoria: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return false;
+    } finally {
+      print('🔄 [CATEGORY_CREATE] Definindo isCreatingCategory = false');
+      isCreatingCategory.value = false;
+    }
+  }
+
+  /// Editar categoria personalizada
+  Future<bool> updateVendorCategory(VendorCategory category, String newName) async {
+    if (newName.trim().isEmpty) {
+      Get.snackbar(
+        'Erro',
+        'Nome da categoria não pode estar vazio',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return false;
+    }
+
+    try {
+      isCreatingCategory.value = true;
+      
+      // Verificar se o novo nome já existe (incluindo padrões)
+      final normalizedName = newName.trim();
+      if (categories.any((cat) => cat.toLowerCase() == normalizedName.toLowerCase() && cat != category.name)) {
+        Get.snackbar(
+          'Aviso',
+          'Categoria "$normalizedName" já existe',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+        return false;
+      }
+
+      final updatedCategory = await _vendorCategoryRepository.updateVendorCategory(category.id, normalizedName);
+      
+      // Atualizar na lista local
+      final index = vendorCategories.indexWhere((cat) => cat.id == category.id);
+      if (index != -1) {
+        vendorCategories[index] = updatedCategory;
+      }
+      
+      // Se a categoria editada estava selecionada, atualizar seleção
+      if (selectedCategory.value == category.name) {
+        selectedCategory.value = updatedCategory.name;
+      }
+      
+      Get.snackbar(
+        'Sucesso',
+        'Categoria atualizada para "${updatedCategory.name}" com sucesso!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+      
+      return true;
+    } catch (e) {
+      Get.snackbar(
+        'Erro',
+        'Erro ao atualizar categoria: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return false;
+    } finally {
+      isCreatingCategory.value = false;
+    }
+  }
+
+  /// Deletar categoria personalizada
+  Future<bool> deleteVendorCategory(VendorCategory category) async {
+    try {
+      await _vendorCategoryRepository.deleteVendorCategory(category.id);
+      vendorCategories.removeWhere((cat) => cat.id == category.id);
+      
+      // Se a categoria deletada estava selecionada, limpar seleção
+      if (selectedCategory.value == category.name) {
+        selectedCategory.value = '';
+      }
+      
+      Get.snackbar(
+        'Sucesso',
+        'Categoria "${category.name}" removida com sucesso!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+      
+      return true;
+    } catch (e) {
+      Get.snackbar(
+        'Erro',
+        'Erro ao remover categoria: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return false;
+    }
+  }
+
+  /// Verificar se uma categoria é personalizada do vendedor
+  bool isCustomCategory(String categoryName) {
+    return vendorCategories.any((cat) => cat.name == categoryName);
+  }
+
+  /// Buscar categoria do vendedor pelo nome
+  VendorCategory? getVendorCategoryByName(String categoryName) {
+    try {
+      return vendorCategories.firstWhere((cat) => cat.name == categoryName);
+    } catch (e) {
+      return null;
     }
   }
 

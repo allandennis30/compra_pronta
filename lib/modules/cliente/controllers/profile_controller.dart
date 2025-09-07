@@ -121,12 +121,14 @@ class ProfileController extends GetxController {
     isEditing.toggle();
   }
 
+  /// Salva as alterações do perfil
   Future<void> saveProfile() async {
-    if (user.value == null) return;
+    if (!isEditing.value) return;
+
+    isLoading.value = true;
 
     try {
-      isLoading.value = true;
-
+      // Criar modelo de endereço atualizado
       final updatedAddress = AddressModel(
         street: streetController.text.trim(),
         number: int.parse(numberController.text.trim()),
@@ -139,6 +141,7 @@ class ProfileController extends GetxController {
         zipCode: zipCodeController.text.trim(),
       );
 
+      // Criar modelo de usuário atualizado
       final updatedUser = UserModel(
         id: user.value!.id,
         name: nameController.text.trim(),
@@ -147,16 +150,21 @@ class ProfileController extends GetxController {
         address: updatedAddress,
         latitude: user.value!.latitude,
         longitude: user.value!.longitude,
-        istore: user.value!.istore,
+        isSeller: user.value!.isSeller,
       );
 
-      _authController.updateUser(updatedUser);
-      // O listener do ever() já atualizará user.value automaticamente
+      // Atualizar no backend - o AuthRepository já limpa cache e recarrega dados
+      await _authController.updateUser(updatedUser);
+
+      // Recarregar dados do usuário atual para garantir sincronização
+      await _reloadUserData();
+
+      // Atualizar estado local
       isEditing.value = false;
 
       Get.snackbar(
         'Sucesso',
-        'Perfil atualizado com sucesso!',
+        'Perfil e endereço atualizados com sucesso!',
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
@@ -169,6 +177,36 @@ class ProfileController extends GetxController {
       );
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  /// Recarrega dados do usuário após atualização
+  Future<void> _reloadUserData() async {
+    try {
+      // Força recarregamento dos dados do usuário
+      await _authController.reloadCurrentUser();
+      
+      // Atualiza os controllers com os novos dados
+      _updateControllersFromUser();
+    } catch (e) {
+      // Log do erro - substituir por AppLogger em produção
+      debugPrint('Erro ao recarregar dados do usuário: $e');
+    }
+  }
+
+  /// Atualiza os controllers com dados do usuário atual
+  void _updateControllersFromUser() {
+    if (user.value != null) {
+      final currentUserData = user.value!;
+      nameController.text = currentUserData.name;
+      phoneController.text = currentUserData.phone;
+      streetController.text = currentUserData.address.street;
+      numberController.text = currentUserData.address.number.toString();
+      complementController.text = currentUserData.address.complement ?? '';
+      neighborhoodController.text = currentUserData.address.neighborhood;
+      cityController.text = currentUserData.address.city;
+      stateController.text = currentUserData.address.state;
+      zipCodeController.text = currentUserData.address.zipCode;
     }
   }
 

@@ -16,12 +16,13 @@ abstract class AuthRepository {
     required AddressModel address,
     required double latitude,
     required double longitude,
-    bool istore = false,
+    bool isSeller = false,
   });
   Future<UserModel?> getCurrentUser();
   Future<void> saveUser(UserModel user);
   Future<void> logout();
   Future<void> updateUser(UserModel user);
+  Future<void> clearUserCacheKeepingLogin();
   Future<String?> getToken();
   Future<bool> isAuthenticated();
   Future<void> saveToken(String token);
@@ -103,33 +104,32 @@ class AuthRepositoryImpl implements AuthRepository {
 
         // Verificar se é um cliente ou vendedor
         final isSeller = userData['isSeller'] == true ||
-            userData['tipo'] == 'vendedor' ||
-            userData['istore'] == true;
+            userData['tipo'] == 'vendedor';
+
+        // Criar AddressModel a partir dos dados do backend
+        final addressData = userData['endereco'] ?? userData['address'] ?? {};
+        final address = AddressModel(
+          street: addressData['rua'] ?? addressData['street'] ?? '',
+          number: addressData['numero'] is int
+              ? addressData['numero']
+              : addressData['numero'] is String
+                  ? int.tryParse(addressData['numero']) ?? 0
+                  : addressData['number'] is int
+                      ? addressData['number']
+                      : addressData['number'] is String
+                          ? int.tryParse(addressData['number']) ?? 0
+                          : addressData['number'] ?? 0,
+          complement: addressData['complemento'] ?? addressData['complement'],
+          neighborhood:
+              addressData['bairro'] ?? addressData['neighborhood'] ?? '',
+          city: addressData['cidade'] ?? addressData['city'] ?? '',
+          state: addressData['estado'] ?? addressData['state'] ?? '',
+          zipCode: addressData['cep'] ?? addressData['zipCode'] ?? '',
+        );
 
         UserModel user;
 
         if (isSeller) {
-          // Criar AddressModel a partir dos dados do backend para vendedor
-          final addressData = userData['endereco'] ?? userData['address'] ?? {};
-          final address = AddressModel(
-            street: addressData['rua'] ?? addressData['street'] ?? '',
-            number: addressData['numero'] is int
-                ? addressData['numero']
-                : addressData['numero'] is String
-                    ? int.tryParse(addressData['numero']) ?? 0
-                    : addressData['number'] is int
-                        ? addressData['number']
-                        : addressData['number'] is String
-                            ? int.tryParse(addressData['number']) ?? 0
-                            : addressData['number'] ?? 0,
-            complement: addressData['complemento'] ?? addressData['complement'],
-            neighborhood:
-                addressData['bairro'] ?? addressData['neighborhood'] ?? '',
-            city: addressData['cidade'] ?? addressData['city'] ?? '',
-            state: addressData['estado'] ?? addressData['state'] ?? '',
-            zipCode: addressData['cep'] ?? addressData['zipCode'] ?? '',
-          );
-
           user = UserModel(
             id: userData['id'].toString(),
             name: userData['nome'] ?? userData['name'] ?? '',
@@ -138,7 +138,7 @@ class AuthRepositoryImpl implements AuthRepository {
             address: address,
             latitude: userData['latitude']?.toDouble() ?? 0.0,
             longitude: userData['longitude']?.toDouble() ?? 0.0,
-            istore: true,
+            isSeller: true,
           );
         } else {
           // Para cliente, usar ClientModel diretamente
@@ -147,21 +147,6 @@ class AuthRepositoryImpl implements AuthRepository {
           } catch (e) {
             AppLogger.error('💥 Erro ao criar ClientModel: $e', e);
             // Fallback para UserModel básico se falhar
-            final addressData =
-                userData['endereco'] ?? userData['address'] ?? {};
-            final address = AddressModel(
-              street: addressData['rua'] ?? addressData['street'] ?? '',
-              number:
-                  int.tryParse(addressData['numero']?.toString() ?? '0') ?? 0,
-              complement:
-                  addressData['complemento'] ?? addressData['complement'],
-              neighborhood:
-                  addressData['bairro'] ?? addressData['neighborhood'] ?? '',
-              city: addressData['cidade'] ?? addressData['city'] ?? '',
-              state: addressData['estado'] ?? addressData['state'] ?? '',
-              zipCode: addressData['cep'] ?? addressData['zipCode'] ?? '',
-            );
-
             user = UserModel(
               id: userData['id'].toString(),
               name: userData['nome'] ?? userData['name'] ?? '',
@@ -170,7 +155,7 @@ class AuthRepositoryImpl implements AuthRepository {
               address: address,
               latitude: userData['latitude']?.toDouble() ?? 0.0,
               longitude: userData['longitude']?.toDouble() ?? 0.0,
-              istore: false,
+              isSeller: false,
             );
           }
         }
@@ -232,7 +217,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required AddressModel address,
     required double latitude,
     required double longitude,
-    bool istore = false,
+    bool isSeller = false,
   }) async {
     try {
       final response = await http
@@ -298,9 +283,9 @@ class AuthRepositoryImpl implements AuthRepository {
           address: addressModel,
           latitude: userData['latitude']?.toDouble() ?? 0.0,
           longitude: userData['longitude']?.toDouble() ?? 0.0,
-          istore: userData['isSeller'] == true ||
-              userData['tipo'] == 'vendedor' ||
-              userData['istore'] == true,
+          isSeller: userData['isSeller'] == true ||
+            userData['tipo'] == 'vendedor' ||
+            userData['istore'] == true,
         );
 
         await saveUser(user);
@@ -344,7 +329,15 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final userData = _storage.read(AppConstants.userKey);
       if (userData != null) {
-        return UserModel.fromJson(userData);
+        AppLogger.info('🔍 [STORAGE DEBUG] Dados do usuário no storage:');
+        AppLogger.info('   - Raw JSON: $userData');
+        AppLogger.info('   - isSeller no storage: ${userData['isSeller']}');
+        
+        final user = UserModel.fromJson(userData);
+        AppLogger.info('🔍 [STORAGE DEBUG] Usuário após fromJson do storage:');
+        AppLogger.info('   - isSeller: ${user.isSeller}');
+        
+        return user;
       }
     } catch (e) {
       AppLogger.error('Erro ao carregar usuário do storage', e);
@@ -355,9 +348,18 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> saveUser(UserModel user) async {
     try {
-      await _storage.write(AppConstants.userKey, user.toJson());
+      final userJson = user.toJson();
+      AppLogger.info('🔍 [STORAGE DEBUG] Salvando usuário no storage:');
+      AppLogger.info('   - ID: ${user.id}');
+      AppLogger.info('   - Nome: ${user.name}');
+      AppLogger.info('   - Email: ${user.email}');
+      AppLogger.info('   - isSeller: ${user.isSeller}');
+      AppLogger.info('   - JSON a ser salvo: $userJson');
+      
+      await _storage.write(AppConstants.userKey, userJson);
+      AppLogger.success('✅ Usuário salvo no storage com sucesso');
     } catch (e) {
-      AppLogger.error('Erro ao salvar usuário', e);
+      AppLogger.error('❌ Erro ao salvar usuário', e);
       rethrow;
     }
   }
@@ -411,6 +413,22 @@ class AuthRepositoryImpl implements AuthRepository {
     return token != null && token.isNotEmpty;
   }
 
+  /// Limpa dados de cache do usuário preservando dados de login
+  @override
+  Future<void> clearUserCacheKeepingLogin() async {
+    try {
+      // Remove apenas dados do usuário, preservando token e credenciais
+      await _storage.remove(AppConstants.userKey);
+      await _storage.remove('user_id');
+      await _storage.remove(AppConstants.cartKey);
+      
+      AppLogger.info('🗑️ Cache do usuário limpo, dados de login preservados');
+    } catch (e) {
+      AppLogger.error('❌ Erro ao limpar cache do usuário', e);
+      rethrow;
+    }
+  }
+
   @override
   Future<void> updateUser(UserModel user) async {
     try {
@@ -418,6 +436,10 @@ class AuthRepositoryImpl implements AuthRepository {
       if (token == null || token.isEmpty) {
         throw Exception('Token de autenticação não encontrado');
       }
+
+      // Limpar cache antes da atualização para garantir dados frescos
+      await clearUserCacheKeepingLogin();
+      AppLogger.info('🗑️ Cache limpo antes da atualização do perfil');
 
       final response = await http.put(
         Uri.parse(AppConstants.updateProfileEndpoint),
@@ -437,8 +459,10 @@ class AuthRepositoryImpl implements AuthRepository {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         final updatedUser = UserModel.fromJson(responseData['user']);
+        
+        // Salvar dados atualizados após confirmação do backend
         await saveUser(updatedUser);
-        AppLogger.info('✅ Perfil atualizado com sucesso');
+        AppLogger.info('✅ Perfil atualizado e dados recarregados com sucesso');
       } else {
         final errorData = jsonDecode(response.body);
         AppLogger.error('❌ Erro ao atualizar perfil: ${response.statusCode}', errorData);
@@ -446,7 +470,7 @@ class AuthRepositoryImpl implements AuthRepository {
       }
     } catch (e) {
       AppLogger.error('❌ Erro ao atualizar usuário', e);
-      throw e;
+      rethrow;
     }
   }
 
