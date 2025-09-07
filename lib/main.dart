@@ -10,6 +10,8 @@ import 'modules/auth/controllers/auth_controller.dart';
 import 'modules/auth/repositories/auth_repository.dart';
 import 'modules/cliente/controllers/cart_controller.dart';
 import 'core/repositories/repository_factory.dart';
+import 'core/controllers/update_controller.dart';
+import 'core/services/app_update_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,9 +57,13 @@ class MyApp extends StatelessWidget {
         // Repositories globais usando factory
         Get.put<AuthRepository>(RepositoryFactory.createAuthRepository());
 
+        // Services globais
+        Get.put(AppUpdateService());
+
         // Controllers globais
         Get.put(AuthController());
         Get.put(CartController());
+        Get.put(UpdateController());
       }),
       home: _InitialRouteDecider(),
     );
@@ -68,6 +74,8 @@ class _InitialRouteDecider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AuthController authController = Get.find<AuthController>();
+    final UpdateController updateController = Get.find<UpdateController>();
+    
     // O controller já carrega o usuário do storage no onInit
     return Obx(() {
       if (authController.isLoading) {
@@ -92,6 +100,12 @@ class _InitialRouteDecider extends StatelessWidget {
           ),
         );
       }
+      
+      // Verificar atualizações após autenticação
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        updateController.checkForUpdates(showLoading: false);
+      });
+      
       if (authController.isLoggedIn) {
         if (authController.isVendor) {
           // Vendedor

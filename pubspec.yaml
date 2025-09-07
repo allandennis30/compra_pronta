@@ -36,6 +36,11 @@ dependencies:
   flutter_local_notifications: ^18.0.1
   audioplayers: ^6.1.0
   workmanager: ^0.5.2
+  # Dependência para informações do app
+  package_info_plus: ^8.0.2
+  # Dependências para Play Store API
+  crypto: ^3.0.3
+  googleapis_auth: ^1.4.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
