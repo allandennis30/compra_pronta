@@ -62,6 +62,8 @@ class DeliveryStatsPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _buildPeriodFilter(controller),
+                const SizedBox(height: 24),
                 _buildOverviewCards(controller),
                 const SizedBox(height: 24),
                 _buildMonthlyChart(controller),
@@ -73,6 +75,127 @@ class DeliveryStatsPage extends StatelessWidget {
         );
       }),
     );
+  }
+
+  Widget _buildPeriodFilter(DeliveryStatsController controller) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Período',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Row(
+                   children: [
+                     Obx(() => controller.isLoading.value
+                       ? const SizedBox(
+                           width: 20,
+                           height: 20,
+                           child: CircularProgressIndicator(
+                             strokeWidth: 2,
+                             valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                           ),
+                         )
+                       : const SizedBox.shrink(),
+                     ),
+                     const SizedBox(width: 8),
+                     IconButton(
+                       icon: const Icon(Icons.calendar_today),
+                       onPressed: () => _showCustomDatePicker(controller),
+                       tooltip: 'Selecionar período personalizado',
+                     ),
+                   ],
+                 ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Obx(() => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.blue.withOpacity(0.3)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.date_range,
+                    size: 16,
+                    color: Colors.blue[700],
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    controller.currentPeriodText,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.blue[700],
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            )),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: controller.availablePeriods.map((period) {
+                return Obx(() => FilterChip(
+                  label: Text(period),
+                  selected: controller.selectedPeriod.value == period,
+                  onSelected: (selected) {
+                    if (selected) {
+                      controller.applyPredefinedPeriod(period);
+                    }
+                  },
+                  selectedColor: Colors.blue.withOpacity(0.2),
+                  checkmarkColor: Colors.blue,
+                ));
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showCustomDatePicker(DeliveryStatsController controller) async {
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: Get.context!,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      initialDateRange: DateTimeRange(
+        start: controller.startDate.value ?? DateTime.now().subtract(const Duration(days: 30)),
+        end: controller.endDate.value ?? DateTime.now(),
+      ),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Colors.blue,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      await controller.applyCustomPeriod(picked.start, picked.end);
+    }
   }
 
   Widget _buildOverviewCards(DeliveryStatsController controller) {
