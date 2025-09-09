@@ -58,11 +58,48 @@ class CartSummaryWidget extends GetView<CartController> {
         'R\$ ${controller.subtotal.value.toStringAsFixed(2)}',
       ));
 
-  Widget _shippingRow(BuildContext context) => Obx(() => _buildSummaryRow(
-        context,
-        'Frete:',
-        'R\$ ${controller.shipping.value.toStringAsFixed(2)}',
-      ));
+  Widget _shippingRow(BuildContext context) => Obx(() {
+        final isShippingFree = controller.shipping.value == 0.0;
+        final shippingColor = isShippingFree ? Colors.green : AppColors.onSurface(context);
+        
+        return Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Frete:',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.normal,
+                    color: AppColors.onSurface(context),
+                  ),
+                ),
+                Text(
+                  isShippingFree ? 'GRÁTIS' : 'R\$ ${controller.shipping.value.toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: isShippingFree ? FontWeight.bold : FontWeight.normal,
+                    color: shippingColor,
+                  ),
+                ),
+              ],
+            ),
+            if (!isShippingFree && controller.vendorLimiteEntregaGratis.value > 0)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  'Frete grátis a partir de R\$ ${controller.vendorLimiteEntregaGratis.value.toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.onSurfaceVariant(context),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+          ],
+        );
+      });
 
   Widget _totalRow(BuildContext context) => Obx(() => _buildSummaryRow(
         context,

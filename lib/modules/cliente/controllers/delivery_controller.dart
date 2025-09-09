@@ -10,10 +10,19 @@ class DeliveryController extends GetxController {
   final AuthController _authController = Get.find<AuthController>();
 
   final RxBool isLoading = false.obs;
+  final RxBool isLoadingMore = false.obs;
   final RxBool isDeliveryUser = false.obs;
   final RxList<Map<String, dynamic>> deliveryStores = <Map<String, dynamic>>[].obs;
   final RxList<Map<String, dynamic>> deliveryOrders = <Map<String, dynamic>>[].obs;
   final Rx<Map<String, dynamic>?> deliveryStats = Rx<Map<String, dynamic>?>(null);
+  
+  // Variáveis de paginação
+  final RxInt currentPage = 1.obs;
+  final RxInt totalPages = 1.obs;
+  final RxBool hasNextPage = true.obs;
+  final RxString currentStoreFilter = ''.obs;
+  final RxString currentStatusFilter = ''.obs;
+  static const int itemsPerPage = 20;
 
   @override
   void onInit() {
@@ -120,34 +129,101 @@ class DeliveryController extends GetxController {
     }
   }
 
-  /// Carregar pedidos para entrega
-  Future<void> loadDeliveryOrders({String? storeId, String? status}) async {
+  /// Carregar pedidos para entrega (primeira página)
+  Future<void> loadDeliveryOrders({String? storeId, String? status, bool refresh = false}) async {
     try {
       isLoading.value = true;
+      
+      // Resetar paginação se for refresh ou novos filtros
+      if (refresh || storeId != currentStoreFilter.value || status != currentStatusFilter.value) {
+        currentPage.value = 1;
+        deliveryOrders.clear();
+      }
+      
+      // Atualizar filtros atuais
+      currentStoreFilter.value = storeId ?? '';
+      currentStatusFilter.value = status ?? '';
       
       // Debug: verificar parâmetros
       print('🔍 [DELIVERY_CONTROLLER] Carregando pedidos de entrega:');
       print('   - storeId: $storeId');
       print('   - status: $status');
+      print('   - página: ${currentPage.value}');
       print('   - isDeliveryUser: ${isDeliveryUser.value}');
       
-      final orders = await _deliveryRepository.getDeliveryOrders(
+      final result = await _deliveryRepository.getDeliveryOrders(
         storeId: storeId,
         status: status,
+        page: currentPage.value,
+        limit: itemsPerPage,
       );
+      
+      final orders = List<Map<String, dynamic>>.from(result['orders'] ?? []);
+      
+      // Atualizar informações de paginação
+      currentPage.value = result['currentPage'] ?? 1;
+      totalPages.value = result['totalPages'] ?? 1;
+      hasNextPage.value = result['hasNextPage'] ?? false;
       
       // Debug: verificar resultado
       print('   - Pedidos carregados: ${orders.length}');
+      print('   - Página atual: ${currentPage.value}');
+      print('   - Total de páginas: ${totalPages.value}');
+      print('   - Tem próxima página: ${hasNextPage.value}');
       if (orders.isNotEmpty) {
         print('   - Primeiro pedido: ${orders.first}');
       }
       
-      deliveryOrders.value = orders;
+      if (refresh || currentPage.value == 1) {
+        deliveryOrders.value = orders;
+      } else {
+        deliveryOrders.addAll(orders);
+      }
     } catch (e) {
       print('❌ [DELIVERY_CONTROLLER] Erro ao carregar pedidos: $e');
       Get.snackbar('Erro', 'Erro ao carregar pedidos: $e', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
       isLoading.value = false;
+    }
+  }
+  
+  /// Carregar mais pedidos (próxima página)
+  Future<void> loadMoreDeliveryOrders() async {
+    if (isLoadingMore.value || !hasNextPage.value) return;
+    
+    try {
+      isLoadingMore.value = true;
+      
+      final nextPage = currentPage.value + 1;
+      
+      print('🔍 [DELIVERY_CONTROLLER] Carregando mais pedidos - página $nextPage');
+      
+      final result = await _deliveryRepository.getDeliveryOrders(
+        storeId: currentStoreFilter.value.isEmpty ? null : currentStoreFilter.value,
+        status: currentStatusFilter.value.isEmpty ? null : currentStatusFilter.value,
+        page: nextPage,
+        limit: itemsPerPage,
+      );
+      
+      final orders = List<Map<String, dynamic>>.from(result['orders'] ?? []);
+      
+      // Atualizar informações de paginação
+      currentPage.value = result['currentPage'] ?? nextPage;
+      totalPages.value = result['totalPages'] ?? 1;
+      hasNextPage.value = result['hasNextPage'] ?? false;
+      
+      print('   - Novos pedidos carregados: ${orders.length}');
+      print('   - Página atual: ${currentPage.value}');
+      print('   - Tem próxima página: ${hasNextPage.value}');
+      
+      // Adicionar novos pedidos à lista existente
+      deliveryOrders.addAll(orders);
+      
+    } catch (e) {
+      print('❌ [DELIVERY_CONTROLLER] Erro ao carregar mais pedidos: $e');
+      Get.snackbar('Erro', 'Erro ao carregar mais pedidos: $e', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+    } finally {
+      isLoadingMore.value = false;
     }
   }
 

@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 
 abstract class OrderRepository extends BaseRepository<OrderModel> {
   Future<List<OrderModel>> getUserOrders();
+  Future<Map<String, dynamic>> getUserOrdersPaginated({int page = 1, int limit = 20});
   Future<OrderModel?> getOrderById(String orderId);
   Future<OrderModel> createOrder(OrderModel order);
   Future<void> updateOrderStatus(String orderId, String status);
@@ -121,6 +122,45 @@ class OrderRepositoryImpl implements OrderRepository {
     } catch (e) {
       AppLogger.error('Erro ao carregar pedidos do usuário', e);
       return [];
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getUserOrdersPaginated({int page = 1, int limit = 20}) async {
+    try {
+      final allOrders = await getUserOrders();
+      
+      final totalItems = allOrders.length;
+      final totalPages = (totalItems / limit).ceil();
+      final startIndex = (page - 1) * limit;
+      final endIndex = (startIndex + limit).clamp(0, totalItems);
+      
+      final paginatedOrders = allOrders.sublist(startIndex, endIndex);
+      
+      return {
+        'orders': paginatedOrders,
+        'pagination': {
+          'currentPage': page,
+          'totalPages': totalPages,
+          'totalItems': totalItems,
+          'itemsPerPage': limit,
+          'hasNextPage': page < totalPages,
+          'hasPreviousPage': page > 1,
+        }
+      };
+    } catch (e) {
+      AppLogger.error('Erro ao carregar pedidos paginados do usuário', e);
+      return {
+        'orders': <OrderModel>[],
+        'pagination': {
+          'currentPage': 1,
+          'totalPages': 0,
+          'totalItems': 0,
+          'itemsPerPage': limit,
+          'hasNextPage': false,
+          'hasPreviousPage': false,
+        }
+      };
     }
   }
 

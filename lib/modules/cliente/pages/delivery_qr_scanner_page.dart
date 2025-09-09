@@ -281,7 +281,7 @@ class _DeliveryQRScannerPageState extends State<DeliveryQRScannerPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Deseja confirmar a entrega do pedido?'),
+            const Text('Deseja confirmar a entrega do pedido?'),
             const SizedBox(height: 8),
             Text(
               'Pedido: #${orderId.substring(0, 8)}...',

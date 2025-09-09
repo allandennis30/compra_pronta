@@ -77,13 +77,34 @@ class CartController extends GetxController {
   void onInit() {
     super.onInit();
     _loadCart();
-    _calculateTotals();
+    // Calcular subtotal primeiro
+    subtotal.value = cartItems.fold(0, (sum, item) => sum + item.total);
+    // Aplicar política do vendedor que definirá o frete correto
     _applyVendorPolicy();
   }
 
   void _calculateTotals() {
     subtotal.value = cartItems.fold(0, (sum, item) => sum + item.total);
-    shipping.value = AppConstants.baseDeliveryFee;
+    // Não definir valor inicial do frete - aguardar política do vendedor
+    // shipping.value será definido em _applyVendorPolicy
+    if (shipping.value == 0.0) {
+      shipping.value = AppConstants.baseDeliveryFee;
+    }
+    total.value = subtotal.value + shipping.value;
+  }
+
+  void _calculateShippingWithPolicy() {
+    // Verificar se o pedido atende ao valor mínimo
+    if (subtotal.value < vendorPedidoMinimo.value) {
+      // Pedido abaixo do mínimo - aplicar taxa de entrega
+      shipping.value = vendorTaxaEntrega.value;
+    } else if (subtotal.value >= vendorLimiteEntregaGratis.value) {
+      // Pedido atinge limite para frete grátis
+      shipping.value = 0.0;
+    } else {
+      // Pedido entre o mínimo e o limite para frete grátis - aplicar taxa
+      shipping.value = vendorTaxaEntrega.value;
+    }
     total.value = subtotal.value + shipping.value;
   }
 
@@ -116,6 +137,9 @@ class CartController extends GetxController {
             (policy['pedidoMinimo'] ?? policy['pedido_minimo'] ?? 0.0)
                 .toDouble();
         // Configurações de entrega aplicadas
+        
+        // Aplicar imediatamente o cálculo do frete com base na política
+        _calculateShippingWithPolicy();
 
         final bool lojaOffline = policy['lojaOffline'] == true;
         final bool aceitaForaHorario = policy['aceitaForaHorario'] == true;
@@ -155,12 +179,7 @@ class CartController extends GetxController {
           storeOpenMessage.value = '';
         }
 
-        final applied = subtotal.value >= vendorLimiteEntregaGratis.value
-            ? 0.0
-            : vendorTaxaEntrega.value;
-        shipping.value = applied;
-        total.value = subtotal.value + shipping.value;
-        // Totais calculados após aplicar política
+        // Lógica de frete movida para _calculateShippingWithPolicy()
       } else {
         _calculateTotals();
       }

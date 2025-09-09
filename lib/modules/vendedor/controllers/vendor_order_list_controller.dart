@@ -10,13 +10,20 @@ class VendorOrderListController extends GetxController {
   final RxList<OrderModel> _orders = <OrderModel>[].obs;
   final RxList<OrderModel> _filteredOrders = <OrderModel>[].obs;
   final RxBool _isLoading = false.obs;
+  final RxBool _isLoadingMore = false.obs;
+  final RxBool _hasMorePages = true.obs;
+  final RxInt _currentPage = 1.obs;
   final RxString _errorMessage = ''.obs;
   final RxString _selectedStatus = 'all'.obs;
   final RxString _searchQuery = ''.obs;
   final RxBool _isSearching = false.obs;
+  final ScrollController scrollController = ScrollController();
 
   List<OrderModel> get orders => _filteredOrders;
   bool get isLoading => _isLoading.value;
+  bool get isLoadingMore => _isLoadingMore.value;
+  bool get hasMorePages => _hasMorePages.value;
+  int get currentPage => _currentPage.value;
   String get errorMessage => _errorMessage.value;
   String get selectedStatus => _selectedStatus.value;
   String get searchQuery => _searchQuery.value;
@@ -37,6 +44,7 @@ class VendorOrderListController extends GetxController {
   void onInit() {
     super.onInit();
     _repository = Get.find<VendorOrderRepository>();
+    _setupScrollController();
     loadOrders();
     _startAutoRefresh();
   }
@@ -44,7 +52,18 @@ class VendorOrderListController extends GetxController {
   @override
   void onClose() {
     _stopAutoRefresh();
+    scrollController.dispose();
     super.onClose();
+  }
+
+  void _setupScrollController() {
+    scrollController.addListener(() {
+      if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 200) {
+        if (!_isLoadingMore.value && _hasMorePages.value) {
+          loadMoreOrders();
+        }
+      }
+    });
   }
 
   Timer? _autoRefreshTimer;
@@ -61,22 +80,69 @@ class VendorOrderListController extends GetxController {
     _autoRefreshTimer = null;
   }
 
-  Future<void> loadOrders() async {
+  Future<void> loadOrders({bool refresh = false}) async {
     try {
       _isLoading.value = true;
       _errorMessage.value = '';
 
+      if (refresh) {
+        _currentPage.value = 1;
+        _hasMorePages.value = true;
+        _orders.clear();
+      }
 
-
-      final orders = await _repository.getVendorOrders();
-      _orders.assignAll(orders);
+      final orders = await _repository.getVendorOrdersPaginated(
+        page: _currentPage.value,
+        limit: 20,
+      );
+      
+      if (refresh) {
+        _orders.assignAll(orders);
+      } else {
+        _orders.addAll(orders);
+      }
+      
+      // Se retornou menos que o limite, não há mais páginas
+      if (orders.length < 20) {
+        _hasMorePages.value = false;
+      } else {
+        // Se retornou exatamente o limite, pode haver mais páginas
+        _hasMorePages.value = true;
+      }
+      
       _applyFilters();
-
-
     } catch (e) {
       _errorMessage.value = 'Erro ao carregar pedidos: $e';
     } finally {
       _isLoading.value = false;
+    }
+  }
+
+  Future<void> loadMoreOrders() async {
+    if (_isLoadingMore.value || !_hasMorePages.value) return;
+    
+    try {
+      _isLoadingMore.value = true;
+      _currentPage.value++;
+      
+      final orders = await _repository.getVendorOrdersPaginated(
+        page: _currentPage.value,
+        limit: 20,
+      );
+      
+      _orders.addAll(orders);
+      
+      // Se retornou menos que o limite, não há mais páginas
+      if (orders.length < 20) {
+        _hasMorePages.value = false;
+      }
+      
+      _applyFilters();
+    } catch (e) {
+      AppLogger.error('Erro ao carregar mais pedidos', e);
+      _currentPage.value--; // Reverter página em caso de erro
+    } finally {
+      _isLoadingMore.value = false;
     }
   }
 
@@ -214,7 +280,7 @@ class VendorOrderListController extends GetxController {
   }
 
   Future<void> refreshOrders() async {
-    await loadOrders();
+    await loadOrders(refresh: true);
   }
 
   Future<void> _refreshOrdersSilently() async {

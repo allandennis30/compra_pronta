@@ -3,10 +3,43 @@ import 'package:get/get.dart';
 import '../controllers/order_history_controller.dart';
 import '../../../core/models/order_model.dart';
 
-class OrderHistoryPage extends StatelessWidget {
-  final OrderHistoryController controller = Get.put(OrderHistoryController());
+class OrderHistoryPage extends StatefulWidget {
+  const OrderHistoryPage({super.key});
 
-  OrderHistoryPage({super.key});
+  @override
+  State<OrderHistoryPage> createState() => _OrderHistoryPageState();
+}
+
+class _OrderHistoryPageState extends State<OrderHistoryPage> {
+  final OrderHistoryController controller = Get.put(OrderHistoryController());
+  late ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    _setupScrollListener();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _setupScrollListener() {
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent * 0.8) {
+        if (controller.hasNextPage && !controller.isLoadingMore) {
+          controller.loadMoreOrders();
+        }
+      }
+    });
+  }
+
+  Future<void> _refreshData() async {
+    controller.refreshOrders(refresh: true);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,11 +90,39 @@ class OrderHistoryPage extends StatelessWidget {
         }
 
         return RefreshIndicator(
-          onRefresh: () async => controller.refreshOrders(),
+          onRefresh: _refreshData,
           child: ListView.builder(
+            controller: _scrollController,
             padding: const EdgeInsets.all(16),
-            itemCount: controller.orders.length,
+            itemCount: controller.orders.length + 1,
             itemBuilder: (context, index) {
+              if (index == controller.orders.length) {
+                // Indicador de carregamento de mais itens
+                if (controller.isLoadingMore) {
+                  return const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+                // Indicador de fim da lista
+                if (controller.orders.isNotEmpty && !controller.hasNextPage) {
+                  return Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Center(
+                      child: Text(
+                        'Todos os pedidos foram carregados',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              }
+              
               final order = controller.orders[index];
               return _buildOrderCard(context, order);
             },

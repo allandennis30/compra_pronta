@@ -13,8 +13,19 @@ class OrderHistoryController extends GetxController {
   final RxString _confirmingOrderId = ''.obs;
   Timer? _pollingTimer;
 
+  // Variáveis de paginação
+  final RxBool _isLoadingMore = false.obs;
+  final RxInt _currentPage = 1.obs;
+  final RxInt _totalPages = 1.obs;
+  final RxBool _hasNextPage = true.obs;
+  final int _itemsPerPage = 20;
+
   List<OrderModel> get orders => _orders;
   bool get isLoading => _isLoading.value;
+  bool get isLoadingMore => _isLoadingMore.value;
+  bool get hasNextPage => _hasNextPage.value;
+  int get currentPage => _currentPage.value;
+  int get totalPages => _totalPages.value;
   bool isConfirming(String orderId) => _confirmingOrderId.value == orderId;
 
   @override
@@ -48,18 +59,66 @@ class OrderHistoryController extends GetxController {
     _pollingTimer = null;
   }
 
-  void _loadOrders() async {
+  void _loadOrders({bool refresh = false}) async {
+    if (refresh) {
+      _currentPage.value = 1;
+      _orders.clear();
+    }
+    
     _isLoading.value = true;
 
     try {
-      final orders = await _orderRepository.getUserOrders();
-      _orders.value = orders;
+      final result = await _orderRepository.getUserOrdersPaginated(
+        page: _currentPage.value,
+        limit: _itemsPerPage,
+      );
+      
+      final orders = result['orders'] as List<OrderModel>;
+      final pagination = result['pagination'] as Map<String, dynamic>;
+      
+      if (refresh) {
+        _orders.value = orders;
+      } else {
+        _orders.addAll(orders);
+      }
+      
+      _currentPage.value = pagination['currentPage'];
+      _totalPages.value = pagination['totalPages'];
+      _hasNextPage.value = pagination['hasNextPage'];
+      
       _updatePollingByOrders();
     } catch (e) {
       // Log do erro, mas não mostrar snackbar aqui pois não temos contexto
       AppLogger.error('❌ [HISTORY] Erro ao carregar histórico de pedidos', e);
     } finally {
       _isLoading.value = false;
+    }
+  }
+
+  Future<void> loadMoreOrders() async {
+    if (_isLoadingMore.value || !_hasNextPage.value) return;
+    
+    _isLoadingMore.value = true;
+    
+    try {
+      final nextPage = _currentPage.value + 1;
+      final result = await _orderRepository.getUserOrdersPaginated(
+        page: nextPage,
+        limit: _itemsPerPage,
+      );
+      
+      final orders = result['orders'] as List<OrderModel>;
+      final pagination = result['pagination'] as Map<String, dynamic>;
+      
+      _orders.addAll(orders);
+      _currentPage.value = pagination['currentPage'];
+      _totalPages.value = pagination['totalPages'];
+      _hasNextPage.value = pagination['hasNextPage'];
+      
+    } catch (e) {
+      AppLogger.error('❌ [HISTORY] Erro ao carregar mais pedidos', e);
+    } finally {
+      _isLoadingMore.value = false;
     }
   }
 
@@ -134,8 +193,16 @@ class OrderHistoryController extends GetxController {
     try {
       _confirmingOrderId.value = orderId;
       await _orderRepository.confirmDelivery(orderId);
-      await _refreshOrdersSilently();
+      
+      // Recarregar lista paginada de pedidos
+      _loadOrders(refresh: true);
+      
       SnackBarUtils.showSuccess(context, 'Entrega confirmada! Obrigado.');
+      
+      // Voltar para a lista de pedidos se estiver em uma tela de detalhes
+      if (Get.currentRoute != '/cliente') {
+        Get.back();
+      }
     } catch (e) {
       SnackBarUtils.showError(context, 'Não foi possível confirmar: $e');
     } finally {
@@ -183,7 +250,7 @@ class OrderHistoryController extends GetxController {
     }
   }
 
-  void refreshOrders() {
-    _loadOrders();
+  void refreshOrders({bool refresh = true}) {
+    _loadOrders(refresh: refresh);
   }
 }

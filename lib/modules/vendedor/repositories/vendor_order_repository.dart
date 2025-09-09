@@ -6,12 +6,67 @@ import '../../auth/controllers/auth_controller.dart';
 
 abstract class VendorOrderRepository {
   Future<List<OrderModel>> getVendorOrders();
+  Future<List<OrderModel>> getVendorOrdersPaginated({int page = 1, int limit = 20});
   Future<OrderModel?> getOrderById(String orderId);
   Future<void> updateOrderStatus(String orderId, String status);
   Future<Map<String, dynamic>> generateDeliveryQRCode(String orderId);
 }
 
 class VendorOrderRepositoryImpl implements VendorOrderRepository {
+  @override
+  Future<List<OrderModel>> getVendorOrdersPaginated({int page = 1, int limit = 20}) async {
+    try {
+      // Obter usuário atual
+      final authController = Get.find<AuthController>();
+      final currentUser = authController.currentUser;
+
+      if (currentUser == null) {
+        AppLogger.error('Vendedor não autenticado');
+        return [];
+      }
+
+      try {
+        final apiService = Get.find<ApiService>();
+        
+        AppLogger.info('🔄 [VENDOR_ORDER] Buscando página $page com limite $limit');
+        
+        final response = await apiService.get('/orders/seller?page=$page&limit=$limit');
+
+        if (response['success'] == true && response['orders'] != null) {
+          final ordersData = response['orders'] as List<dynamic>;
+          final pageOrders = ordersData
+              .map((json) {
+                try {
+                  // Converter o formato da API para o formato do modelo
+                  final convertedJson = _convertApiOrderToModel(json);
+                  final order = OrderModel.fromJson(convertedJson);
+                  return order;
+                } catch (e) {
+                  AppLogger.error('Erro ao converter pedido', e);
+                  return null;
+                }
+              })
+              .where((order) => order != null)
+              .cast<OrderModel>()
+              .toList();
+          
+          AppLogger.info('✅ [VENDOR_ORDER] ${pageOrders.length} pedidos carregados da página $page');
+          return pageOrders;
+        } else {
+          AppLogger.warning('⚠️ [VENDOR_ORDER] Resposta inválida na página $page');
+          return [];
+        }
+        
+      } catch (apiError) {
+        AppLogger.error('❌ [VENDOR_ORDER] Erro na API ao buscar pedidos paginados', apiError);
+        return [];
+      }
+    } catch (e) {
+      AppLogger.error('Erro ao carregar pedidos do vendedor paginados', e);
+      return [];
+    }
+  }
+
   @override
   Future<List<OrderModel>> getVendorOrders() async {
     try {

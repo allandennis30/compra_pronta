@@ -4,6 +4,7 @@ import '../controllers/delivery_controller.dart';
 import 'qr_scanner_page.dart';
 import 'cliente_main_page.dart';
 import '../../auth/controllers/auth_controller.dart';
+import '../../../routes/app_pages.dart';
 
 class DeliveryMainPage extends StatefulWidget {
   const DeliveryMainPage({Key? key}) : super(key: key);
@@ -14,18 +15,33 @@ class DeliveryMainPage extends StatefulWidget {
 
 class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBindingObserver {
   final DeliveryController _deliveryController = Get.find<DeliveryController>();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _setupScrollListener();
     _refreshData();
   }
 
   @override
   void dispose() {
+    _scrollController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+  
+  void _setupScrollListener() {
+    _scrollController.addListener(() {
+      // Verificar se chegou próximo ao final da lista (80% do scroll)
+      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent * 0.8) {
+        // Carregar mais pedidos se houver próxima página
+        if (_deliveryController.hasNextPage.value && !_deliveryController.isLoadingMore.value) {
+          _deliveryController.loadMoreDeliveryOrders();
+        }
+      }
+    });
   }
 
   @override
@@ -68,6 +84,7 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
         return RefreshIndicator(
           onRefresh: _refreshData,
           child: SingleChildScrollView(
+            controller: _scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -104,7 +121,7 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
     try {
       await Future.wait([
         _deliveryController.loadDeliveryStores(),
-        _deliveryController.loadDeliveryOrders(),
+        _deliveryController.loadDeliveryOrders(refresh: true),
         _deliveryController.loadDeliveryStats(),
       ]);
     } catch (e) {
@@ -433,6 +450,30 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
                     ),
                   ),
                 )),
+          // Indicador de carregamento de mais itens
+          if (_deliveryController.isLoadingMore.value)
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: Colors.orange,
+                ),
+              ),
+            ),
+          // Indicador de fim da lista
+          if (_deliveryController.deliveryOrders.isNotEmpty && !_deliveryController.hasNextPage.value && !_deliveryController.isLoadingMore.value)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Center(
+                child: Text(
+                  'Todos os pedidos foram carregados',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
         ],
       );
     });
@@ -547,10 +588,8 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
                                 Expanded(
                                   child: ElevatedButton.icon(
                                     onPressed: () async {
-                                      // Navegar para scanner QR e aguardar resultado
-                                      final result = await Get.to(() => const QRScannerPage(
-                                        scanType: 'confirm',
-                                      ));
+                                      // Navegar para confirmação de entrega e aguardar resultado
+                                      final result = await Get.toNamed(Routes.deliveryConfirmation);
                                       
                                       // Se houve sucesso na confirmação, atualizar dados
                                       if (result == true) {
@@ -587,6 +626,30 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
                     ],
                   ),
                 )),
+          // Indicador de carregamento de mais itens
+          if (_deliveryController.isLoadingMore.value)
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: Colors.orange,
+                ),
+              ),
+            ),
+          // Indicador de fim da lista
+          if (_deliveryController.deliveryOrders.isNotEmpty && !_deliveryController.hasNextPage.value && !_deliveryController.isLoadingMore.value)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Center(
+                child: Text(
+                  'Todos os pedidos foram carregados',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
         ],
       );
     });

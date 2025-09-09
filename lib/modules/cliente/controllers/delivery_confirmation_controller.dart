@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:get/get.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../repositories/delivery_repository.dart';
+import '../controllers/delivery_controller.dart';
 import '../../../utils/logger.dart';
 
 class DeliveryConfirmationController extends GetxController {
@@ -45,8 +46,12 @@ class DeliveryConfirmationController extends GetxController {
       // Aguardar um pouco para mostrar a mensagem de sucesso
       await Future.delayed(const Duration(seconds: 2));
       
-      // Voltar para a tela anterior
-      Get.back();
+      // Recarregar dados do entregador
+      final deliveryController = Get.find<DeliveryController>();
+      await deliveryController.loadDeliveryOrders(refresh: true);
+      
+      // Voltar para a tela da lista de pedidos
+      Get.back(result: true);
       
     } catch (e) {
       errorMessage.value = e.toString().replaceAll('Exception: ', '');

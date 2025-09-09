@@ -66,10 +66,12 @@ class DeliveryRepository {
     }
   }
 
-  /// Buscar pedidos para entrega
-  Future<List<Map<String, dynamic>>> getDeliveryOrders({
+  /// Buscar pedidos para entrega com paginação
+  Future<Map<String, dynamic>> getDeliveryOrders({
     String? storeId,
     String? status,
+    int page = 1,
+    int limit = 20,
   }) async {
     try {
       final token = await _authRepository.getToken();
@@ -82,6 +84,8 @@ class DeliveryRepository {
       final queryParams = <String>[];
       if (storeId != null) queryParams.add('storeId=$storeId');
       if (status != null) queryParams.add('status=$status');
+      queryParams.add('page=$page');
+      queryParams.add('limit=$limit');
       
       if (queryParams.isNotEmpty) {
         url += '?${queryParams.join('&')}';
@@ -108,7 +112,14 @@ class DeliveryRepository {
         final data = json.decode(response.body);
         final orders = List<Map<String, dynamic>>.from(data['data'] ?? []);
         print('   - Pedidos retornados: ${orders.length}');
-        return orders;
+        
+        return {
+          'orders': orders,
+          'currentPage': data['currentPage'] ?? page,
+          'totalPages': data['totalPages'] ?? 1,
+          'totalItems': data['totalItems'] ?? orders.length,
+          'hasNextPage': data['hasNextPage'] ?? false,
+        };
       } else {
         final error = json.decode(response.body);
         print('❌ [DELIVERY_REPOSITORY] Erro na resposta: ${error['message']}');
@@ -161,6 +172,20 @@ class DeliveryRepository {
     } catch (e) {
       throw Exception('Erro ao confirmar entrega: $e');
     }
+  }
+
+  /// Buscar pedidos para entrega (método de compatibilidade)
+  Future<List<Map<String, dynamic>>> getDeliveryOrdersList({
+    String? storeId,
+    String? status,
+  }) async {
+    final result = await getDeliveryOrders(
+      storeId: storeId,
+      status: status,
+      page: 1,
+      limit: 1000, // Buscar todos os pedidos para compatibilidade
+    );
+    return List<Map<String, dynamic>>.from(result['orders'] ?? []);
   }
 
   /// Buscar estatísticas do entregador

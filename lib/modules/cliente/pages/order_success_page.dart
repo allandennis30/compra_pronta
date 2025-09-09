@@ -1,20 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'dart:async';
 import '../widgets/client_bottom_nav.dart';
 import '../../../constants/app_constants.dart';
 import '../../../utils/logger.dart';
 
-class OrderSuccessPage extends StatelessWidget {
+class OrderSuccessPage extends StatefulWidget {
   const OrderSuccessPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Redirecionar automaticamente para o histórico após 2 segundos
-    Future.delayed(const Duration(seconds: 2), () {
-      AppLogger.info('🔄 [SUCCESS] Redirecionando para histórico de pedidos...');
-      Get.offAllNamed('/cliente', arguments: {'initialIndex': 2});
-    });
+  State<OrderSuccessPage> createState() => _OrderSuccessPageState();
+}
 
+class _OrderSuccessPageState extends State<OrderSuccessPage> {
+  int _countdown = 5;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startCountdown();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startCountdown() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_countdown > 1) {
+        setState(() {
+          _countdown--;
+        });
+      } else {
+        timer.cancel();
+        AppLogger.info('🔄 [SUCCESS] Redirecionando para histórico de pedidos...');
+        Get.offAllNamed('/cliente', arguments: {'initialIndex': 2});
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pedido Confirmado',
@@ -44,7 +73,7 @@ class OrderSuccessPage extends StatelessWidget {
           const SizedBox(height: 16),
           _successMessage(),
           const SizedBox(height: 32),
-          _actionButtons,
+          // Botões removidos - apenas mensagem de confirmação
         ],
       ),
     );
@@ -53,8 +82,8 @@ class OrderSuccessPage extends StatelessWidget {
   Widget get _successIcon => Container(
         width: 100,
         height: 100,
-        decoration: BoxDecoration(
-          color: const Color(AppConstants.successColor),
+        decoration: const BoxDecoration(
+          color: Color(AppConstants.successColor),
           shape: BoxShape.circle,
         ),
         child: const Icon(
@@ -74,128 +103,41 @@ class OrderSuccessPage extends StatelessWidget {
         textAlign: TextAlign.center,
       );
 
-  Widget _successMessage() => const Text(
-        'Seu pedido foi realizado com sucesso e está sendo processado.',
-        style: TextStyle(
-          fontSize: 16,
-          color: Colors.grey,
-        ),
-        textAlign: TextAlign.center,
-      );
-
-  Widget _orderDetails(Map<String, dynamic> orderData) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Detalhes do Pedido',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              _buildDetailRow('Status', 'Pendente'),
-              _buildDetailRow('Total',
-                  'R\$ ${orderData['total']?.toStringAsFixed(2) ?? '0.00'}'),
-              _buildDetailRow('Método de Pagamento',
-                  _getPaymentMethodLabel(orderData['paymentMethod'] ?? '')),
-              if (orderData['deliveryAddress'] != null)
-                _buildDetailRow(
-                    'Endereço de Entrega', orderData['deliveryAddress']),
-              const SizedBox(height: 16),
-              const Text(
-                'O vendedor será notificado e entrará em contato em breve.',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-
-  Widget _buildDetailRow(String label, String value) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 120,
-              child: Text(
-                '$label:',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-            Expanded(
-              child: Text(
-                value,
-                style: const TextStyle(fontSize: 14),
-              ),
-            ),
-          ],
-        ),
-      );
-
-  Widget get _actionButtons => Column(
+  Widget _successMessage() => Column(
         children: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () =>
-                  Get.offAllNamed('/cliente', arguments: {'initialIndex': 0}),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: const Color(AppConstants.primaryColor),
-                foregroundColor: Colors.white,
-              ),
-              child: const Text(
-                'Continuar Comprando',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
+          const Text(
+            'Seu pedido foi realizado com sucesso e está sendo processado.',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey,
             ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () =>
-                  Get.offAllNamed('/cliente', arguments: {'initialIndex': 2}),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                side: const BorderSide(color: Color(AppConstants.primaryColor)),
-              ),
-              child: const Text(
-                'Ver Meus Pedidos',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(AppConstants.primaryColor),
-                ),
-              ),
+          const SizedBox(height: 16),
+          const Text(
+            'O vendedor será notificado e entrará em contato em breve.',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
             ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Você será redirecionado automaticamente em $_countdown segundos...',
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+              fontStyle: FontStyle.italic,
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       );
 
-  String _getPaymentMethodLabel(String method) {
-    switch (method) {
-      case 'dinheiro':
-        return 'Dinheiro';
-      case 'pix':
-        return 'PIX';
-      case 'cartao_credito':
-        return 'Cartão de Crédito';
-      case 'cartao_debito':
-        return 'Cartão de Débito';
-      default:
-        return method;
-    }
-  }
+  // Métodos de detalhes do pedido removidos - não utilizados na versão simplificada
+
+  // Botões de ação removidos - tela deve ter apenas a mensagem de confirmação
+
+  // Método _getPaymentMethodLabel removido - não utilizado na versão simplificada
 }

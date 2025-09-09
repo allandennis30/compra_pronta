@@ -118,11 +118,38 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
 
   Widget _buildOrdersList(BuildContext context) {
     return ListView.builder(
+      controller: controller.scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: controller.orders.length,
+      itemCount: controller.orders.length + 1,
       itemBuilder: (context, index) {
-        final order = controller.orders[index];
-        return _buildOrderCard(order, context);
+        if (index < controller.orders.length) {
+          final order = controller.orders[index];
+          return _buildOrderCard(order, context);
+        } else {
+          // Indicador de carregamento incremental ou fim da lista
+          return Obx(() {
+            if (controller.isLoadingMore) {
+              return const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            } else if (!controller.hasMorePages) {
+              return const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Center(
+                  child: Text(
+                    'Não há mais pedidos para carregar',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+              );
+            } else {
+              return const SizedBox.shrink();
+            }
+          });
+        }
       },
     );
   }
