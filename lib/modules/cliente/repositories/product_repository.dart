@@ -30,7 +30,6 @@ abstract class ProductRepository extends BaseRepository<ProductModel> {
 
 class ProductRepositoryImpl implements ProductRepository {
   final GetStorage _storage = GetStorage();
-  List<ProductModel>? _cachedProducts;
 
   String get _userFavoritesKey {
     final authController = Get.find<AuthController>();
@@ -64,21 +63,21 @@ class ProductRepositoryImpl implements ProductRepository {
   @override
   Future<ProductModel> create(ProductModel item) async {
     // Simular criação na API
-    await Future.delayed(Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 300));
     return item;
   }
 
   @override
   Future<ProductModel> update(ProductModel item) async {
     // Simular atualização na API
-    await Future.delayed(Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 300));
     return item;
   }
 
   @override
   Future<bool> delete(String id) async {
     // Simular exclusão na API
-    await Future.delayed(Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 300));
     return true;
   }
 
@@ -178,10 +177,7 @@ class ProductRepositoryImpl implements ProductRepository {
       final currentUser = authController.currentUser;
       final clientCity = currentUser?.address.city ?? '';
       
-      // Debug: verificar dados do usuário
-      AppLogger.info('🔍 [DEBUG] Current user: ${currentUser?.name}');
-      AppLogger.info('🔍 [DEBUG] User address: ${currentUser?.address.toJson()}');
-      AppLogger.info('🔍 [DEBUG] Client city: $clientCity');
+      // Verificar dados do usuário
       
       final queryParams = <String, String>{
         'page': page.toString(),
@@ -221,7 +217,8 @@ class ProductRepositoryImpl implements ProductRepository {
         queryParams['sortAscending'] = sortAscending.toString();
       }
 
-      final uri = Uri.parse(AppConstants.publicProductsEndpoint)
+      final publicProductsEndpoint = await AppConstants.publicProductsEndpoint;
+      final uri = Uri.parse(publicProductsEndpoint)
           .replace(queryParameters: queryParams);
 
       final response = await http.get(uri);
@@ -254,10 +251,7 @@ class ProductRepositoryImpl implements ProductRepository {
       final currentUser = authController.currentUser;
       final clientCity = currentUser?.address.city ?? '';
       
-      // Debug: verificar dados do usuário nos filtros
-      AppLogger.info('🔍 [DEBUG FILTERS] Current user: ${currentUser?.name}');
-      AppLogger.info('🔍 [DEBUG FILTERS] User address: ${currentUser?.address.toJson()}');
-      AppLogger.info('🔍 [DEBUG FILTERS] Client city: $clientCity');
+      // Verificar dados do usuário nos filtros
       
       final queryParams = <String, String>{};
       
@@ -266,7 +260,8 @@ class ProductRepositoryImpl implements ProductRepository {
         queryParams['clientCity'] = clientCity;
       }
       
-      final uri = Uri.parse(AppConstants.publicProductsFiltersEndpoint)
+      final publicProductsFiltersEndpoint = await AppConstants.publicProductsFiltersEndpoint;
+      final uri = Uri.parse(publicProductsFiltersEndpoint)
           .replace(queryParameters: queryParams);
 
       final response = await http.get(uri);

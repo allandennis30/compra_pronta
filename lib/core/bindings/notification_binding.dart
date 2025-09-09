@@ -7,6 +7,7 @@ import '../services/order_notification_service.dart';
 import '../services/notification_test_service.dart';
 import '../../modules/vendedor/repositories/vendor_order_repository.dart';
 import '../services/api_service.dart';
+import '../../utils/logger.dart';
 
 /// Binding para configurar todos os serviços de notificação
 class NotificationBinding extends Bindings {
@@ -57,10 +58,10 @@ class NotificationBinding extends Bindings {
       await backgroundService.onInit();
       await orderNotificationService.onInit();
       
-      print('✅ Todos os serviços de notificação foram inicializados');
+      AppLogger.info('✅ Todos os serviços de notificação foram inicializados');
       
     } catch (e) {
-      print('❌ Erro ao inicializar serviços de notificação: $e');
+      AppLogger.error('❌ Erro ao inicializar serviços de notificação: $e');
       rethrow;
     }
   }
@@ -71,10 +72,10 @@ class NotificationBinding extends Bindings {
       final orderNotificationService = Get.find<OrderNotificationService>();
       await orderNotificationService.startOrderMonitoring();
       
-      print('🔄 Monitoramento de pedidos iniciado');
+      AppLogger.info('🔄 Monitoramento de pedidos iniciado');
       
     } catch (e) {
-      print('❌ Erro ao iniciar monitoramento: $e');
+      AppLogger.error('❌ Erro ao iniciar monitoramento: $e');
       rethrow;
     }
   }
@@ -85,10 +86,10 @@ class NotificationBinding extends Bindings {
       final orderNotificationService = Get.find<OrderNotificationService>();
       await orderNotificationService.stopOrderMonitoring();
       
-      print('⏹️ Monitoramento de pedidos parado');
+      AppLogger.info('⏹️ Monitoramento de pedidos parado');
       
     } catch (e) {
-      print('❌ Erro ao parar monitoramento: $e');
+      AppLogger.error('❌ Erro ao parar monitoramento: $e');
       rethrow;
     }
   }
@@ -100,7 +101,7 @@ class NotificationBinding extends Bindings {
       await testService.runAllTests();
       
     } catch (e) {
-      print('❌ Erro ao executar testes: $e');
+      AppLogger.error('❌ Erro ao executar testes: $e');
       rethrow;
     }
   }
@@ -112,7 +113,7 @@ class NotificationBinding extends Bindings {
       await testService.testQuickNotification();
       
     } catch (e) {
-      print('❌ Erro no teste rápido: $e');
+      AppLogger.error('❌ Erro no teste rápido: $e');
       rethrow;
     }
   }

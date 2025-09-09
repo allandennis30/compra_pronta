@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mercax/core/utils/logger.dart';
 import 'dart:async';
 import '../../../core/models/order_model.dart';
 import '../../../core/models/user_model.dart';
@@ -238,7 +239,6 @@ class VendedorOrderDetailController extends GetxController {
   void shareOrderDetails() {
     if (_order.value == null) return;
 
-    final order = _order.value!;
 
     // Simular compartilhamento (implementar com share_plus)
     Get.snackbar(
@@ -255,8 +255,24 @@ class VendedorOrderDetailController extends GetxController {
     return '${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year} às ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
-  String _formatDateTime(DateTime dateTime) {
-    return '${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year} às ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+
+  /// Gerar QR Code para confirmação de entrega
+  Future<String?> generateDeliveryQRCode() async {
+    if (_order.value == null) return null;
+
+    try {
+      final qrData = await _repository.generateDeliveryQRCode(_order.value!.id);
+      return qrData['qrCodeData'];
+    } catch (e) {
+      Get.snackbar(
+        'Erro',
+        'Erro ao gerar QR Code: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return null;
+    }
   }
 
   /// Notifica outros controllers sobre a mudança de status do pedido
@@ -282,7 +298,7 @@ class VendedorOrderDetailController extends GetxController {
 
 
     } catch (e) {
-
+      AppLogger.error('❌ [ORDER] Erro ao notificar mudança de status', e);
     }
   }
 }

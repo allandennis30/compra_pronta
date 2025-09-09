@@ -4,6 +4,7 @@ import '../controllers/vendor_product_form_controller.dart';
 import '../widgets/image_picker_widget.dart';
 import '../widgets/barcode_scanner.dart';
 import '../../../models/vendor_category.dart';
+import '../../../utils/logger.dart';
 
 class VendorProductFormPage extends GetView<VendorProductFormController> {
   const VendorProductFormPage({super.key});
@@ -679,25 +680,25 @@ class VendorProductFormPage extends GetView<VendorProductFormController> {
   }
 
   Future<void> _createCategory(String categoryName) async {
-    print('🔄 [UI_CREATE_CATEGORY] Iniciando criação de categoria na UI: "$categoryName"');
+    AppLogger.info('🔄 [UI_CREATE_CATEGORY] Iniciando criação de categoria na UI: "$categoryName"');
     
     // Fechar o teclado
     FocusScope.of(Get.context!).unfocus();
-    print('⌨️ [UI_CREATE_CATEGORY] Teclado fechado');
+    AppLogger.info('⌨️ [UI_CREATE_CATEGORY] Teclado fechado');
     
-    print('🔄 [UI_CREATE_CATEGORY] Chamando controller.createVendorCategory');
+    AppLogger.info('🔄 [UI_CREATE_CATEGORY] Chamando controller.createVendorCategory');
     final success = await controller.createVendorCategory(categoryName);
-    print('📊 [UI_CREATE_CATEGORY] Resultado do controller: $success');
+    AppLogger.info('📊 [UI_CREATE_CATEGORY] Resultado do controller: $success');
     
     // Fechar o diálogo apenas se a criação foi bem-sucedida
     if (success) {
-      print('✅ [UI_CREATE_CATEGORY] Sucesso! Aguardando 1 segundo para exibir popup de sucesso');
+      AppLogger.info('✅ [UI_CREATE_CATEGORY] Sucesso! Aguardando 1 segundo para exibir popup de sucesso');
       // Aguardar 1 segundo para o popup de sucesso ser exibido antes de fechar
       await Future.delayed(const Duration(seconds: 1));
       Get.back();
-      print('🔙 [UI_CREATE_CATEGORY] Get.back() executado após 1 segundo');
+      AppLogger.info('🔙 [UI_CREATE_CATEGORY] Get.back() executado após 1 segundo');
     } else {
-      print('❌ [UI_CREATE_CATEGORY] Falha na criação - popup permanece aberto');
+      AppLogger.error('❌ [UI_CREATE_CATEGORY] Falha na criação - popup permanece aberto');
     }
   }
 

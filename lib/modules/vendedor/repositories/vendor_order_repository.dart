@@ -8,6 +8,7 @@ abstract class VendorOrderRepository {
   Future<List<OrderModel>> getVendorOrders();
   Future<OrderModel?> getOrderById(String orderId);
   Future<void> updateOrderStatus(String orderId, String status);
+  Future<Map<String, dynamic>> generateDeliveryQRCode(String orderId);
 }
 
 class VendorOrderRepositoryImpl implements VendorOrderRepository {
@@ -119,7 +120,24 @@ class VendorOrderRepositoryImpl implements VendorOrderRepository {
       }
     } catch (e) {
       AppLogger.error('Erro ao atualizar status do pedido', e);
-      throw e;
+      rethrow;
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> generateDeliveryQRCode(String orderId) async {
+    try {
+      final apiService = Get.find<ApiService>();
+      final response = await apiService.get('/delivery/qr-code/$orderId');
+      
+      if (response['success'] == true && response['data'] != null) {
+        return response['data'];
+      } else {
+        throw Exception(response['message'] ?? 'Erro ao gerar QR Code');
+      }
+    } catch (e) {
+      AppLogger.error('Erro ao gerar QR Code de confirmação', e);
+      rethrow;
     }
   }
 
@@ -131,34 +149,24 @@ class VendorOrderRepositoryImpl implements VendorOrderRepository {
     return {
       'id': apiOrder['id'] ?? '',
       'userId': apiOrder['clientId'] ?? apiOrder['client_id'] ?? '',
-      'clientName': apiOrder['clientName'] ?? null,
-      'clientEmail': apiOrder['clientEmail'] ?? null,
-      'clientPhone': apiOrder['clientPhone'] ?? null,
+      'clientName': apiOrder['clientName'],
+      'clientEmail': apiOrder['clientEmail'],
+      'clientPhone': apiOrder['clientPhone'],
       'items': _convertApiItemsToModel(apiOrder['items'] ?? <dynamic>[]),
       'subtotal': (apiOrder['subtotal'] ?? 0).toDouble(),
       'deliveryFee': (apiOrder['shipping'] ?? 0).toDouble(),
       'total': (apiOrder['total'] ?? 0).toDouble(),
       'status': apiOrder['status'] ?? 'pending',
-      'paymentMethod': apiOrder['paymentMethod'] ?? null,
-      'deliveryInstructions': apiOrder['deliveryInstructions'] ?? null,
-      'createdAt': apiOrder['createdAt'] != null
-          ? apiOrder['createdAt']
-          : apiOrder['created_at'] != null
-              ? apiOrder['created_at']
-              : null,
-      'deliveredAt': apiOrder['actualDeliveryTime'] != null
-          ? apiOrder['actualDeliveryTime']
-          : apiOrder['actual_delivery_time'] != null
-              ? apiOrder['actual_delivery_time']
-              : null,
-      'updatedAt': apiOrder['updatedAt'] != null ? apiOrder['updatedAt'] : null,
+      'paymentMethod': apiOrder['paymentMethod'],
+      'deliveryInstructions': apiOrder['deliveryInstructions'],
+      'createdAt': apiOrder['createdAt'] ?? (apiOrder['created_at']),
+      'deliveredAt': apiOrder['actualDeliveryTime'] ?? (apiOrder['actual_delivery_time']),
+      'updatedAt': apiOrder['updatedAt'],
       'deliveryAddress': convertedAddress,
-      'estimatedDeliveryTime': apiOrder['estimatedDeliveryTime'] != null
-          ? apiOrder['estimatedDeliveryTime']
-          : null,
-      'notes': apiOrder['notes'] ?? null,
-      'sellerId': apiOrder['sellerId'] ?? null,
-      'sellerName': apiOrder['sellerName'] ?? null,
+      'estimatedDeliveryTime': apiOrder['estimatedDeliveryTime'],
+      'notes': apiOrder['notes'],
+      'sellerId': apiOrder['sellerId'],
+      'sellerName': apiOrder['sellerName'],
     };
   }
 
@@ -180,7 +188,6 @@ class VendorOrderRepositoryImpl implements VendorOrderRepository {
       // Verificar se todos os campos estão vazios
       final street = addressData['street'] ?? '';
       final number = addressData['number'] ?? '';
-      final complement = addressData['complement'];
       final neighborhood = addressData['neighborhood'] ?? '';
       final city = addressData['city'] ?? '';
       final state = addressData['state'] ?? '';

@@ -1,6 +1,6 @@
-import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'supabase_image_service.dart';
+import '../utils/logger.dart';
 
 /// Exemplo de uso do SupabaseImageService
 /// Este arquivo demonstra como usar o serviço para gerenciar imagens
@@ -20,10 +20,10 @@ class SupabaseImageServiceExample {
       final userId = 'user123'; // ID do usuário atual
       final imageUrl = await _imageService.uploadImage(imageFile, userId);
 
-      print('✅ Imagem enviada com sucesso: $imageUrl');
+      AppLogger.success('✅ Imagem enviada com sucesso: $imageUrl');
       return imageUrl;
     } catch (e) {
-      print('❌ Erro ao fazer upload: $e');
+      AppLogger.error('❌ Erro ao fazer upload: $e');
       rethrow;
     }
   }
@@ -42,11 +42,11 @@ class SupabaseImageServiceExample {
       final newImageUrl = await _imageService.uploadImage(newImageFile, userId,
           oldImageUrl: oldImageUrl);
 
-      print('✅ Nova imagem enviada e imagem anterior removida automaticamente');
-      print('✅ Nova URL: $newImageUrl');
+      AppLogger.success('✅ Nova imagem enviada e imagem anterior removida automaticamente');
+      AppLogger.success('✅ Nova URL: $newImageUrl');
       return newImageUrl;
     } catch (e) {
-      print('❌ Erro ao fazer upload com substituição: $e');
+      AppLogger.error('❌ Erro ao fazer upload com substituição: $e');
       rethrow;
     }
   }
@@ -65,10 +65,10 @@ class SupabaseImageServiceExample {
       final newImageUrl =
           await _imageService.updateImage(newImageFile, userId, oldImageUrl);
 
-      print('✅ Imagem atualizada com sucesso: $newImageUrl');
+      AppLogger.success('✅ Imagem atualizada com sucesso: $newImageUrl');
       return newImageUrl;
     } catch (e) {
-      print('❌ Erro ao atualizar imagem: $e');
+      AppLogger.error('❌ Erro ao atualizar imagem: $e');
       rethrow;
     }
   }
@@ -79,14 +79,14 @@ class SupabaseImageServiceExample {
       final success = await _imageService.deleteImage(imageUrl);
 
       if (success) {
-        print('✅ Imagem removida com sucesso');
+        AppLogger.success('✅ Imagem removida com sucesso');
       } else {
-        print('⚠️ Não foi possível remover a imagem');
+        AppLogger.warning('⚠️ Não foi possível remover a imagem');
       }
 
       return success;
     } catch (e) {
-      print('❌ Erro ao remover imagem: $e');
+      AppLogger.error('❌ Erro ao remover imagem: $e');
       return false;
     }
   }
@@ -97,14 +97,14 @@ class SupabaseImageServiceExample {
       final userId = 'user123';
       final images = await _imageService.listUserImages(userId);
 
-      print('✅ ${images.length} imagens encontradas:');
+      AppLogger.success('✅ ${images.length} imagens encontradas:');
       for (final imageUrl in images) {
-        print('  - $imageUrl');
+        AppLogger.info('  - $imageUrl');
       }
 
       return images;
     } catch (e) {
-      print('❌ Erro ao listar imagens: $e');
+      AppLogger.error('❌ Erro ao listar imagens: $e');
       return [];
     }
   }
@@ -115,44 +115,44 @@ class SupabaseImageServiceExample {
       final exists = await _imageService.imageExists(imageUrl);
 
       if (exists) {
-        print('✅ Imagem existe: $imageUrl');
+        AppLogger.success('✅ Imagem existe: $imageUrl');
       } else {
-        print('❌ Imagem não existe: $imageUrl');
+        AppLogger.error('❌ Imagem não existe: $imageUrl');
       }
     } catch (e) {
-      print('❌ Erro ao verificar imagem: $e');
+      AppLogger.error('❌ Erro ao verificar imagem: $e');
     }
   }
 
   /// Exemplo: Processo completo de criação de produto com imagem
   Future<void> createProductWithImageExample() async {
     try {
-      print('🚀 Iniciando criação de produto com imagem...');
+      AppLogger.info('🚀 Iniciando criação de produto com imagem...');
 
       // 1. Selecionar imagem
       final imageFile = await _imageService.pickImage(ImageSource.gallery);
       if (imageFile == null) {
-        print('⚠️ Nenhuma imagem selecionada, criando produto sem imagem');
+        AppLogger.warning('⚠️ Nenhuma imagem selecionada, criando produto sem imagem');
         return;
       }
 
       // 2. Comprimir imagem se necessário
       final compressedImage =
           await _imageService.compressImageIfNeeded(imageFile);
-      print('📸 Imagem processada: ${compressedImage.path}');
+      AppLogger.info('📸 Imagem processada: ${compressedImage.path}');
 
       // 3. Fazer upload da imagem
       final userId = 'user123';
       final imageUrl = await _imageService.uploadImage(compressedImage, userId);
-      print('✅ Upload concluído: $imageUrl');
+      AppLogger.success('✅ Upload concluído: $imageUrl');
 
       // 4. Aqui você criaria o produto no banco com a imageUrl
-      print('📦 Produto criado com imagem: $imageUrl');
+      AppLogger.success('📦 Produto criado com imagem: $imageUrl');
 
       // 5. Exemplo de como remover a imagem se necessário
       // await _imageService.deleteImage(imageUrl);
     } catch (e) {
-      print('💥 Erro no processo: $e');
+      AppLogger.error('💥 Erro no processo: $e');
     }
   }
 }

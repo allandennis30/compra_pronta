@@ -149,8 +149,8 @@ class OrderHistoryPage extends StatelessWidget {
               Align(
                 alignment: Alignment.centerRight,
                 child: ElevatedButton.icon(
-                  onPressed: () => _confirmDeliveryDialog(order),
-                  icon: const Icon(Icons.check_circle_outline,
+                  onPressed: () => _generateQRCode(order),
+                  icon: const Icon(Icons.qr_code,
                       color: Colors.white),
                   label: Obx(() => controller.isConfirming(order.id)
                       ? const SizedBox(
@@ -162,7 +162,7 @@ class OrderHistoryPage extends StatelessWidget {
                           ),
                         )
                       : const Text(
-                          'Recebi o pedido',
+                          'Gerar QR Code',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -306,6 +306,53 @@ class OrderHistoryPage extends StatelessWidget {
       default:
         return method;
     }
+  }
+
+  void _showReceivedOrderConfirmation(OrderModel order) {
+    final theme = Theme.of(Get.context!);
+
+    Get.dialog(
+      AlertDialog(
+        title: Text(
+          'Confirmar Recebimento',
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        content: Text(
+          'Você confirma que recebeu o pedido #${order.id}?\n\nUm QR Code será gerado para validação pelo entregador.',
+          style: theme.textTheme.bodyMedium,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Get.back(); // Fecha o dialog de confirmação
+              Get.back(); // Fecha o dialog de detalhes
+              _generateQRCode(order);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Confirmar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _generateQRCode(OrderModel order) {
+    Get.toNamed(
+      '/qr-display',
+      arguments: {
+        'order': order,
+        'orderId': order.id,
+      },
+    );
   }
 
   void _showOrderDetails(OrderModel order) {
@@ -495,9 +542,33 @@ class OrderHistoryPage extends StatelessWidget {
                     bottomRight: Radius.circular(16),
                   ),
                 ),
-                child: Row(
+                child: Column(
                   children: [
-                    Expanded(
+                    // Botão "Recebi o pedido" - apenas para status "delivering"
+                     if (order.status == 'delivering') ...[
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () => _showReceivedOrderConfirmation(order),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Text(
+                              'Recebi o Pedido',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                     // Botão Fechar
+                    SizedBox(
+                      width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () => Get.back(),
                         style: ElevatedButton.styleFrom(
@@ -649,38 +720,5 @@ class OrderHistoryPage extends StatelessWidget {
     );
   }
 
-  void _confirmDeliveryDialog(OrderModel order) {
-    final theme = Theme.of(Get.context!);
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Confirmar recebimento'),
-        content: Text(
-          'Você confirma que recebeu o pedido #${order.id}? Esta ação marcará o pedido como entregue e não poderá ser desfeita.',
-          style: theme.textTheme.bodyMedium,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancelar'),
-          ),
-          Obx(() => ElevatedButton(
-                onPressed: () async {
-                  await controller.confirmOrderReceived(order.id, Get.context!);
-                  if (Get.isDialogOpen == true) Get.back();
-                },
-                child: controller.isConfirming(order.id)
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text('Confirmar'),
-              )),
-        ],
-      ),
-    );
-  }
+
 }

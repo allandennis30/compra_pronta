@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../controllers/vendedor_order_detail_controller.dart';
+import '../../../utils/logger.dart';
 
 class VendorOrderDetailPage extends GetView<VendedorOrderDetailController> {
   const VendorOrderDetailPage({super.key});
@@ -238,14 +240,14 @@ class VendorOrderDetailPage extends GetView<VendedorOrderDetailController> {
     final isDark = theme.brightness == Brightness.dark;
 
     // Debug: verificar se o endereço está chegando
-    print('🔍 [VENDOR_ORDER_DETAIL] Endereço: ${address.fullAddress}');
-    print('🔍 [VENDOR_ORDER_DETAIL] Street: ${address.street}');
-    print('🔍 [VENDOR_ORDER_DETAIL] Number: ${address.number}');
-    print('🔍 [VENDOR_ORDER_DETAIL] Neighborhood: ${address.neighborhood}');
-    print('🔍 [VENDOR_ORDER_DETAIL] City: ${address.city}');
-    print('🔍 [VENDOR_ORDER_DETAIL] State: ${address.state}');
-    print('🔍 [VENDOR_ORDER_DETAIL] ZipCode: ${address.zipCode}');
-    print('🔍 [VENDOR_ORDER_DETAIL] Complement: ${address.complement}');
+    AppLogger.info('🔍 [VENDOR_ORDER_DETAIL] Endereço: ${address.fullAddress}');
+    AppLogger.info('🔍 [VENDOR_ORDER_DETAIL] Street: ${address.street}');
+    AppLogger.info('🔍 [VENDOR_ORDER_DETAIL] Number: ${address.number}');
+    AppLogger.info('🔍 [VENDOR_ORDER_DETAIL] Neighborhood: ${address.neighborhood}');
+    AppLogger.info('🔍 [VENDOR_ORDER_DETAIL] City: ${address.city}');
+    AppLogger.info('🔍 [VENDOR_ORDER_DETAIL] State: ${address.state}');
+    AppLogger.info('🔍 [VENDOR_ORDER_DETAIL] ZipCode: ${address.zipCode}');
+    AppLogger.info('🔍 [VENDOR_ORDER_DETAIL] Complement: ${address.complement}');
 
     return Card(
       child: Padding(
@@ -651,6 +653,48 @@ class VendorOrderDetailPage extends GetView<VendedorOrderDetailController> {
                   .map((status) => _buildStatusChip(status))
                   .toList(),
             ),
+            // Botão QR Code para confirmação de entrega
+            if (order.status == 'delivering') ...[
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Icon(
+                    Icons.qr_code,
+                    color: theme.colorScheme.primary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'QR Code para Confirmação',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Gere um QR Code para que o entregador confirme a entrega.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _showDeliveryQRCode(),
+                  icon: const Icon(Icons.qr_code_2),
+                  label: const Text('Gerar QR Code'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -708,6 +752,70 @@ class VendorOrderDetailPage extends GetView<VendedorOrderDetailController> {
         ],
       ),
     );
+  }
+
+  void _showDeliveryQRCode() async {
+    final theme = Theme.of(Get.context!);
+    
+    // Mostrar loading
+    Get.dialog(
+      const Center(
+        child: CircularProgressIndicator(),
+      ),
+      barrierDismissible: false,
+    );
+    
+    try {
+      final qrCode = await controller.generateDeliveryQRCode();
+      Get.back(); // Fechar loading
+      
+      if (qrCode != null) {
+        Get.dialog(
+          AlertDialog(
+            title: Text(
+              'QR Code de Confirmação',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Mostre este QR Code para o entregador escanear e confirmar a entrega.',
+                  style: theme.textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: QrImageView(
+                    data: qrCode,
+                    version: QrVersions.auto,
+                    size: 200.0,
+                    backgroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(),
+                child: const Text('Fechar'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      Get.back(); // Fechar loading
+      // O erro já é tratado no controller
+    }
   }
 
   Widget _buildInfoRow(String label, String value, BuildContext context) {

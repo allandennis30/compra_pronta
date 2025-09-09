@@ -1,13 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class SnackBarUtils {
-  static void showSuccess(BuildContext context, String message) {
+  static void showSuccess(BuildContext context, String message, {bool showAtTop = false}) {
     final theme = Theme.of(context);
     _showSnackBar(
       context,
       message,
       backgroundColor: theme.colorScheme.primary,
       icon: Icons.check_circle,
+      showAtTop: showAtTop,
+    );
+  }
+
+  static void showSuccessAtTop(BuildContext context, String message) {
+    final theme = Theme.of(context);
+    _showSnackBar(
+      context,
+      message,
+      backgroundColor: theme.colorScheme.primary,
+      icon: Icons.check_circle,
+      showAtTop: true,
     );
   }
 
@@ -36,7 +49,7 @@ class SnackBarUtils {
     _showSnackBar(
       context,
       message,
-      backgroundColor: theme.colorScheme.tertiary ?? Colors.amber,
+      backgroundColor: theme.colorScheme.tertiary,
       icon: Icons.warning,
     );
   }
@@ -46,6 +59,7 @@ class SnackBarUtils {
     String message, {
     required Color backgroundColor,
     required IconData icon,
+    bool showAtTop = false,
   }) {
     // Verificar se o contexto ainda é válido antes de usar
     if (!context.mounted) return;
@@ -54,9 +68,13 @@ class SnackBarUtils {
       // Remove qualquer SnackBar existente antes de mostrar um novo
       ScaffoldMessenger.of(context).clearSnackBars();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
+      if (showAtTop) {
+        // Usar Get.snackbar para posicionar no topo
+        Get.snackbar(
+          '',
+          message,
+          titleText: Container(),
+          messageText: Row(
             children: [
               Icon(
                 icon,
@@ -76,29 +94,62 @@ class SnackBarUtils {
               ),
             ],
           ),
+          snackPosition: SnackPosition.TOP,
           backgroundColor: backgroundColor,
+          colorText: Colors.white,
           duration: const Duration(seconds: 3),
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.all(16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          action: SnackBarAction(
-            label: 'Fechar',
-            textColor: Colors.white,
-            onPressed: () {
-              // Verificar se o contexto ainda é válido antes de usar
-              if (context.mounted) {
-                try {
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                } catch (e) {
-                  // Ignorar erro se o contexto não for válido
+          margin: const EdgeInsets.only(top: 50, left: 16, right: 16),
+          borderRadius: 8,
+          isDismissible: true,
+          dismissDirection: DismissDirection.horizontal,
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  icon,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    message,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: backgroundColor,
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            action: SnackBarAction(
+              label: 'Fechar',
+              textColor: Colors.white,
+              onPressed: () {
+                // Verificar se o contexto ainda é válido antes de usar
+                if (context.mounted) {
+                  try {
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  } catch (e) {
+                    // Ignorar erro se o contexto não for válido
+                  }
                 }
-              }
-            },
+              },
+            ),
           ),
-        ),
-      );
+        );
+      }
     } catch (e) {
       // Se houver erro ao mostrar SnackBar, apenas logar (não quebrar o app)
       debugPrint('Erro ao mostrar SnackBar: $e');

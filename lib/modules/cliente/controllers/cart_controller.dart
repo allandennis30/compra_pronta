@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'dart:convert';
 import '../models/product_model.dart';
 import '../../../constants/app_constants.dart';
 import '../../../core/utils/logger.dart';
@@ -86,9 +85,6 @@ class CartController extends GetxController {
     subtotal.value = cartItems.fold(0, (sum, item) => sum + item.total);
     shipping.value = AppConstants.baseDeliveryFee;
     total.value = subtotal.value + shipping.value;
-    AppLogger.debug('[Totals] subtotal='
-        '${subtotal.value.toStringAsFixed(2)} shipping='
-        '${shipping.value.toStringAsFixed(2)} total=${total.value.toStringAsFixed(2)}');
   }
 
   Future<void> _applyVendorPolicy() async {
@@ -104,8 +100,7 @@ class CartController extends GetxController {
 
       final firstProduct = cartItems.first.product;
       final sellerId = firstProduct.sellerId;
-      AppLogger.debug('[Policy] sellerId='
-          '$sellerId subtotal=${subtotal.value.toStringAsFixed(2)}');
+      // Verificando sellerId e subtotal
       if (sellerId == null || sellerId.isEmpty) {
         _calculateTotals();
         return;
@@ -113,21 +108,14 @@ class CartController extends GetxController {
 
       final policy = await _storeSettingsRepository.getStorePolicy(sellerId);
       if (policy != null) {
-        try {
-          AppLogger.info('[Policy] received=' +
-              const JsonEncoder.withIndent('  ').convert(policy));
-        } catch (_) {
-          AppLogger.info('[Policy] received(simple)=' + policy.toString());
-        }
+        // Policy recebida do servidor
         vendorTaxaEntrega.value = (policy['taxaEntrega'] ?? 0.0).toDouble();
         vendorLimiteEntregaGratis.value =
             (policy['limiteEntregaGratis'] ?? 0.0).toDouble();
         vendorPedidoMinimo.value =
             (policy['pedidoMinimo'] ?? policy['pedido_minimo'] ?? 0.0)
                 .toDouble();
-        AppLogger.debug('[Policy] taxaEntrega=${vendorTaxaEntrega.value} '
-            'limiteGratis=${vendorLimiteEntregaGratis.value} '
-            'pedidoMinimo=${vendorPedidoMinimo.value}');
+        // Configurações de entrega aplicadas
 
         final bool lojaOffline = policy['lojaOffline'] == true;
         final bool aceitaForaHorario = policy['aceitaForaHorario'] == true;
@@ -172,11 +160,7 @@ class CartController extends GetxController {
             : vendorTaxaEntrega.value;
         shipping.value = applied;
         total.value = subtotal.value + shipping.value;
-        AppLogger.debug('[TotalsAfterPolicy] shipping='
-            '${shipping.value.toStringAsFixed(2)} total='
-            '${total.value.toStringAsFixed(2)} currentMin='
-            '${currentMinOrderValue.toStringAsFixed(2)} canCheckout='
-            '${canCheckout()}');
+        // Totais calculados após aplicar política
       } else {
         _calculateTotals();
       }
@@ -232,9 +216,7 @@ class CartController extends GetxController {
     _calculateTotals();
     _applyVendorPolicy();
     _saveCart();
-    AppLogger.info('[Cart] addItem id=${product.id} qty=$quantity subtotal='
-        '${subtotal.value.toStringAsFixed(2)} currentMin='
-        '${currentMinOrderValue.toStringAsFixed(2)} canCheckout=${canCheckout()}');
+    // Item adicionado ao carrinho
 
     // Evitar múltiplas chamadas de snackbar em sequência rápida
     final now = DateTime.now();
@@ -242,7 +224,7 @@ class CartController extends GetxController {
         now.difference(_lastSnackbarTime!).inMilliseconds > 1000) {
       _lastSnackbarTime = now;
       if (context != null) {
-        SnackBarUtils.showSuccess(context, 'Produto adicionado ao carrinho!');
+        SnackBarUtils.showSuccessAtTop(context, 'Produto adicionado ao carrinho!');
       }
     }
   }
@@ -252,9 +234,7 @@ class CartController extends GetxController {
     _calculateTotals();
     _applyVendorPolicy();
     _saveCart();
-    AppLogger.info('[Cart] removeItem id=$productId subtotal='
-        '${subtotal.value.toStringAsFixed(2)} currentMin='
-        '${currentMinOrderValue.toStringAsFixed(2)} canCheckout=${canCheckout()}');
+    // Item removido do carrinho
   }
 
   void updateQuantity(String productId, int quantity) {
@@ -270,9 +250,7 @@ class CartController extends GetxController {
       _calculateTotals();
       _applyVendorPolicy();
       _saveCart();
-      AppLogger.info('[Cart] updateQuantity id=$productId qty=$quantity '
-          'subtotal=${subtotal.value.toStringAsFixed(2)} currentMin='
-          '${currentMinOrderValue.toStringAsFixed(2)} canCheckout=${canCheckout()}');
+      // Quantidade atualizada no carrinho
       // Não mostrar snackbar aqui - feedback visual sutil é suficiente
     }
   }

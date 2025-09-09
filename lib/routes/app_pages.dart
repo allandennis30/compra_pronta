@@ -3,10 +3,15 @@ import '../modules/auth/pages/login_page.dart';
 import '../modules/auth/pages/signup_page.dart';
 import '../modules/auth/pages/forgot_password_page.dart';
 import '../modules/cliente/pages/cliente_main_page.dart';
+import '../modules/cliente/pages/delivery_main_page.dart';
+import '../modules/cliente/pages/qr_scanner_page.dart';
+import '../modules/cliente/pages/qr_display_page.dart';
+import '../modules/cliente/pages/delivery_confirmation_page.dart';
+import '../modules/cliente/pages/delivery_stats_page.dart';
 import '../modules/cliente/pages/product_detail_page.dart';
 import '../modules/cliente/pages/checkout_page.dart';
 import '../modules/cliente/pages/order_success_page.dart';
-import '../modules/vendedor/pages/vendor_dashboard_page.dart';
+import '../modules/vendedor/pages/vendedor_dashboard_page.dart';
 import '../modules/vendedor/pages/vendor_product_list_page.dart';
 import '../modules/vendedor/pages/vendor_product_form_page.dart';
 import '../modules/vendedor/pages/vendor_order_list_page.dart';
@@ -14,6 +19,7 @@ import '../modules/vendedor/pages/vendor_order_detail_page.dart';
 import '../modules/vendedor/pages/vendor_scan_page.dart';
 import '../modules/vendedor/pages/vendedor_settings_page.dart';
 import '../modules/vendedor/pages/order_builder_page.dart';
+import '../modules/vendedor/pages/delivery_management_page.dart';
 import '../modules/auth/controllers/auth_controller.dart';
 import '../core/bindings/cliente_binding.dart';
 import '../core/bindings/vendedor_binding.dart';
@@ -36,6 +42,11 @@ abstract class Routes {
   static const signup = '/signup';
   static const forgotPassword = '/forgot-password';
   static const clienteMain = '/cliente';
+  static const deliveryMain = '/delivery';
+  static const qrScanner = '/qr-scanner';
+  static const deliveryConfirmation = '/delivery-confirmation';
+  static const deliveryStats = '/delivery-stats';
+  static const qrDisplay = '/qr-display';
   static const clienteDetalhe = '/cliente/produto';
   static const clienteCheckout = '/cliente/checkout';
   static const clienteOrderSuccess = '/cliente/order-success';
@@ -47,6 +58,7 @@ abstract class Routes {
   static const vendorScan = '/vendor/scan';
   static const vendorConfig = '/vendor/config';
   static const vendorOrderBuilder = '/vendor/order-builder';
+  static const vendorDeliveryManagement = '/vendor/delivery-management';
 }
 
 class AppPages {
@@ -72,6 +84,34 @@ class AppPages {
       page: () => const ClienteMainPage(),
       binding: ClienteBinding(),
     ),
+    // Delivery - Página principal do entregador
+    GetPage(
+      name: Routes.deliveryMain,
+      page: () => const DeliveryMainPage(),
+      binding: ClienteBinding(),
+    ),
+    // QR Scanner
+    GetPage(
+      name: Routes.qrScanner,
+      page: () => const QRScannerPage(scanType: 'register'),
+      binding: ClienteBinding(),
+    ),
+    GetPage(
+        name: Routes.deliveryConfirmation,
+        page: () => const DeliveryConfirmationPage(),
+        binding: ClienteBinding(),
+      ),
+      GetPage(
+        name: Routes.deliveryStats,
+        page: () => const DeliveryStatsPage(),
+        binding: ClienteBinding(),
+      ),
+    // QR Display
+    GetPage(
+      name: Routes.qrDisplay,
+      page: () => QRDisplayPage(),
+      binding: ClienteBinding(),
+    ),
     // Rotas específicas do cliente que ainda precisam de navegação separada
     GetPage(
       name: Routes.clienteDetalhe,
@@ -91,7 +131,7 @@ class AppPages {
     // Vendedor
     GetPage(
       name: Routes.vendorDashboard,
-      page: () => VendorDashboardPage(),
+      page: () => VendedorDashboardPage(),
       binding: VendedorBinding(),
     ),
     GetPage(
@@ -132,6 +172,11 @@ class AppPages {
     GetPage(
       name: Routes.vendorOrderBuilder,
       page: () => const OrderBuilderPage(),
+      binding: VendedorBinding(),
+    ),
+    GetPage(
+      name: Routes.vendorDeliveryManagement,
+      page: () => const DeliveryManagementPage(),
       binding: VendedorBinding(),
     ),
   ];

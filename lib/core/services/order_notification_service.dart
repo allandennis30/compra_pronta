@@ -211,24 +211,18 @@ class OrderNotificationService extends GetxService {
       await _orderRepository.updateOrderStatus(orderId, newStatus);
       
       // Exibir notificação de confirmação
-      String statusMessage;
       switch (newStatus) {
         case 'preparing':
-          statusMessage = 'Pedido em preparação';
           break;
         case 'delivering':
-          statusMessage = 'Pedido saiu para entrega';
           break;
         case 'delivered':
-          statusMessage = 'Pedido entregue com sucesso';
           await _audioService.playConfirmationSound();
           break;
         case 'cancelled':
-          statusMessage = 'Pedido cancelado';
           await _audioService.playErrorSound();
           break;
         default:
-          statusMessage = 'Status do pedido atualizado';
       }
       
       await _notificationService.showNewOrderNotification(

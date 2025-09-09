@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../widgets/client_bottom_nav.dart';
 import '../controllers/cliente_main_controller.dart';
+import '../controllers/delivery_controller.dart';
 import 'product_list_page.dart';
 import 'cart_page.dart';
 import 'order_history_page.dart';
@@ -15,6 +16,11 @@ class ClienteMainPage extends StatelessWidget {
     // Garante que o controller esteja disponível
     if (!Get.isRegistered<ClienteMainController>()) {
       Get.put(ClienteMainController());
+    }
+
+    // Garante que o DeliveryController esteja disponível
+    if (!Get.isRegistered<DeliveryController>()) {
+      Get.put(DeliveryController());
     }
 
     final controller = Get.find<ClienteMainController>();
@@ -31,16 +37,24 @@ class ClienteMainPage extends StatelessWidget {
     // Lista de páginas que serão exibidas
     final List<Widget> pages = [
       ProductListPage(),
-      CartPage(),
+      const CartPage(),
       OrderHistoryPage(),
-      ProfilePage(),
+      const ProfilePage(),
     ];
 
     return Scaffold(
-      body: Obx(() => IndexedStack(
-            index: controller.currentIndex.value,
-            children: pages,
-          )),
+      body: Column(
+        children: [
+          // Switch de modo de entrega
+          // Conteúdo principal
+          Expanded(
+            child: Obx(() => IndexedStack(
+                  index: controller.currentIndex.value,
+                  children: pages,
+                )),
+          ),
+        ],
+      ),
       bottomNavigationBar: Obx(() => ClientBottomNav(
             currentIndex: controller.currentIndex.value,
             onTabTapped: controller.setCurrentIndex,

@@ -7,6 +7,7 @@
 
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
+import '../../utils/logger.dart';
 import '../../modules/auth/repositories/auth_repository.dart';
 import '../../modules/vendedor/controllers/vendor_product_list_controller.dart';
 import '../../modules/vendedor/controllers/vendor_product_form_controller.dart';
@@ -14,6 +15,7 @@ import '../../modules/vendedor/controllers/vendor_order_list_controller.dart';
 import '../../modules/vendedor/controllers/vendedor_order_detail_controller.dart';
 import '../../modules/vendedor/controllers/vendor_scan_controller.dart';
 import '../../modules/vendedor/controllers/vendor_metrics_controller.dart';
+import '../../modules/vendedor/controllers/delivery_management_controller.dart';
 import '../../modules/vendedor/repositories/vendor_metrics_repository.dart';
 import '../../modules/vendedor/repositories/vendedor_product_repository.dart';
 import '../../modules/vendedor/repositories/vendor_order_repository.dart';
@@ -29,8 +31,9 @@ class VendedorBinding extends Bindings {
     Get.lazyPut<ApiService>(() => ApiService());
     
     // Inicializar serviços de notificação
-    final notificationBinding = NotificationBinding();
-    notificationBinding.dependencies();
+    // TEMPORARIAMENTE DESABILITADO - Erro Firebase Messaging FIS auth token
+    // final notificationBinding = NotificationBinding();
+    // notificationBinding.dependencies();
 
     // Controllers
     Get.lazyPut<AuthController>(() => AuthController());
@@ -61,8 +64,12 @@ class VendedorBinding extends Bindings {
     // TODO: Renomear para VendedorMetricsController após renomear os arquivos
     Get.lazyPut<VendorMetricsController>(() => VendorMetricsController());
     
+    // Delivery Management Controller
+    Get.lazyPut<DeliveryManagementController>(() => DeliveryManagementController());
+    
     // Inicializar serviços de notificação após todas as dependências
-    _initializeNotificationServices();
+    // TEMPORARIAMENTE DESABILITADO - Erro Firebase Messaging FIS auth token
+    // _initializeNotificationServices();
   }
   
   /// Inicializa os serviços de notificação de forma assíncrona
@@ -71,9 +78,9 @@ class VendedorBinding extends Bindings {
       try {
         await NotificationBinding.initializeServices();
         await NotificationBinding.startOrderMonitoring();
-        print('✅ Sistema de notificações ativado para vendedor');
+        AppLogger.info('✅ Sistema de notificações ativado para vendedor');
       } catch (e) {
-        print('❌ Erro ao inicializar notificações: $e');
+        AppLogger.error('❌ Erro ao inicializar notificações: $e');
       }
     });
   }

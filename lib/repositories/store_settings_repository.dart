@@ -6,57 +6,57 @@ import '../core/utils/logger.dart';
 
 class StoreSettingsRepository {
   final AuthRepository _authRepository = AuthRepositoryImpl();
-  final String _baseUrl = AppConstants.baseUrl;
 
   /// Busca as configurações da loja do vendedor autenticado
   Future<Map<String, dynamic>?> getStoreSettings() async {
     try {
-      print('🔍 [STORE_SETTINGS_REPO] Iniciando busca de configurações...');
+      AppLogger.info('🔍 [STORE_SETTINGS_REPO] Iniciando busca de configurações...');
       final token = await _authRepository.getToken();
-      print(
+      AppLogger.info(
           '🔍 [STORE_SETTINGS_REPO] Token obtido: ${token != null ? 'SIM' : 'NÃO'}');
       if (token == null) {
         throw Exception('Token não encontrado');
       }
 
+      final baseUrl = await AppConstants.baseUrl;
       final response = await http.get(
-        Uri.parse('$_baseUrl/api/store-settings'),
+        Uri.parse('$baseUrl/api/store-settings'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
       );
 
-      print('🔍 [STORE_SETTINGS_REPO] Status code: ${response.statusCode}');
-      print('🔍 [STORE_SETTINGS_REPO] Response body: ${response.body}');
+      AppLogger.info('🔍 [STORE_SETTINGS_REPO] Status code: ${response.statusCode}');
+      AppLogger.info('🔍 [STORE_SETTINGS_REPO] Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print('🔍 [STORE_SETTINGS_REPO] Dados decodificados: $data');
+        AppLogger.info('🔍 [STORE_SETTINGS_REPO] Dados decodificados: $data');
 
         // Verificar se a resposta tem o formato esperado
         if (data['success'] == true && data['data'] != null) {
           return data['data'];
         } else {
-          print(
+          AppLogger.warning(
               '🔍 [STORE_SETTINGS_REPO] Resposta não tem formato esperado: $data');
           return null;
         }
       } else if (response.statusCode == 404) {
-        print('🔍 [STORE_SETTINGS_REPO] Configurações não encontradas (404)');
+        AppLogger.info('🔍 [STORE_SETTINGS_REPO] Configurações não encontradas (404)');
         return null; // Configurações não encontradas
       } else if (response.statusCode == 403) {
         final error = json.decode(response.body);
-        print('🔍 [STORE_SETTINGS_REPO] Acesso negado (403): $error');
+        AppLogger.error('🔍 [STORE_SETTINGS_REPO] Acesso negado (403): $error');
         throw Exception(
             'Apenas vendedores podem acessar configurações da loja');
       } else {
         final error = json.decode(response.body);
-        print('🔍 [STORE_SETTINGS_REPO] Erro na resposta: $error');
+        AppLogger.error('🔍 [STORE_SETTINGS_REPO] Erro na resposta: $error');
         throw Exception(error['message'] ?? 'Erro ao buscar configurações');
       }
     } catch (e) {
-      print('Erro ao buscar configurações da loja: $e');
+      AppLogger.error('Erro ao buscar configurações da loja: $e');
       rethrow;
     }
   }
@@ -72,12 +72,13 @@ class StoreSettingsRepository {
 
       // Log do payload enviado
       try {
-        print('📝 [STORE_SETTINGS_REPO] Payload POST /api/store-settings:');
-        print(const JsonEncoder.withIndent('  ').convert(settings));
+        AppLogger.info('📝 [STORE_SETTINGS_REPO] Payload POST /api/store-settings:');
+        AppLogger.info(const JsonEncoder.withIndent('  ').convert(settings));
       } catch (_) {}
 
+      final baseUrl = await AppConstants.baseUrl;
       final response = await http.post(
-        Uri.parse('$_baseUrl/api/store-settings'),
+        Uri.parse('$baseUrl/api/store-settings'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -85,8 +86,8 @@ class StoreSettingsRepository {
         body: json.encode(settings),
       );
 
-      print('🔍 [STORE_SETTINGS_REPO] POST status: ${response.statusCode}');
-      print('🔍 [STORE_SETTINGS_REPO] POST body: ${response.body}');
+      AppLogger.info('🔍 [STORE_SETTINGS_REPO] POST status: ${response.statusCode}');
+      AppLogger.info('🔍 [STORE_SETTINGS_REPO] POST body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -95,7 +96,7 @@ class StoreSettingsRepository {
         if (data['success'] == true && data['data'] != null) {
           return data['data'];
         } else {
-          print(
+          AppLogger.warning(
               '🔍 [STORE_SETTINGS_REPO] Resposta não tem formato esperado: $data');
           throw Exception('Resposta inválida do servidor');
         }
@@ -113,7 +114,7 @@ class StoreSettingsRepository {
         }
       }
     } catch (e) {
-      print('Erro ao salvar configurações da loja: $e');
+      AppLogger.error('Erro ao salvar configurações da loja: $e');
       rethrow;
     }
   }
@@ -129,12 +130,13 @@ class StoreSettingsRepository {
 
       // Log do payload enviado
       try {
-        print('📝 [STORE_SETTINGS_REPO] Payload PUT /api/store-settings:');
-        print(const JsonEncoder.withIndent('  ').convert(settings));
+        AppLogger.info('📝 [STORE_SETTINGS_REPO] Payload PUT /api/store-settings:');
+        AppLogger.info(const JsonEncoder.withIndent('  ').convert(settings));
       } catch (_) {}
 
+      final baseUrl = await AppConstants.baseUrl;
       final response = await http.put(
-        Uri.parse('$_baseUrl/api/store-settings'),
+        Uri.parse('$baseUrl/api/store-settings'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -142,8 +144,8 @@ class StoreSettingsRepository {
         body: json.encode(settings),
       );
 
-      print('🔍 [STORE_SETTINGS_REPO] PUT status: ${response.statusCode}');
-      print('🔍 [STORE_SETTINGS_REPO] PUT body: ${response.body}');
+      AppLogger.info('🔍 [STORE_SETTINGS_REPO] PUT status: ${response.statusCode}');
+      AppLogger.info('🔍 [STORE_SETTINGS_REPO] PUT body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -152,7 +154,7 @@ class StoreSettingsRepository {
         if (data['success'] == true && data['data'] != null) {
           return data['data'];
         } else {
-          print(
+          AppLogger.warning(
               '🔍 [STORE_SETTINGS_REPO] Resposta não tem formato esperado: $data');
           throw Exception('Resposta inválida do servidor');
         }
@@ -170,7 +172,7 @@ class StoreSettingsRepository {
         }
       }
     } catch (e) {
-      print('Erro ao atualizar configurações da loja: $e');
+      AppLogger.error('Erro ao atualizar configurações da loja: $e');
       rethrow;
     }
   }
@@ -187,7 +189,8 @@ class StoreSettingsRepository {
       if (longitude != null) queryParams['longitude'] = longitude.toString();
       if (radius != null) queryParams['radius'] = radius.toString();
 
-      final uri = Uri.parse('$_baseUrl/api/store-settings/public').replace(
+      final baseUrl = await AppConstants.baseUrl;
+      final uri = Uri.parse('$baseUrl/api/store-settings/public').replace(
           queryParameters: queryParams.isNotEmpty ? queryParams : null);
 
       final response = await http.get(
@@ -204,7 +207,7 @@ class StoreSettingsRepository {
         if (data['success'] == true && data['data'] != null) {
           return List<Map<String, dynamic>>.from(data['data']);
         } else {
-          print(
+          AppLogger.warning(
               '🔍 [STORE_SETTINGS_REPO] Resposta não tem formato esperado: $data');
           throw Exception('Resposta inválida do servidor');
         }
@@ -213,7 +216,7 @@ class StoreSettingsRepository {
         throw Exception(error['message'] ?? 'Erro ao buscar lojas');
       }
     } catch (e) {
-      print('Erro ao buscar configurações públicas das lojas: $e');
+      AppLogger.error('Erro ao buscar configurações públicas das lojas: $e');
       rethrow;
     }
   }
@@ -221,8 +224,9 @@ class StoreSettingsRepository {
   /// Busca configurações de uma loja específica (público)
   Future<Map<String, dynamic>?> getStoreSettingsById(String sellerId) async {
     try {
+      final baseUrl = await AppConstants.baseUrl;
       final response = await http.get(
-        Uri.parse('$_baseUrl/api/store-settings/$sellerId'),
+        Uri.parse('$baseUrl/api/store-settings/$sellerId'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -235,7 +239,7 @@ class StoreSettingsRepository {
         if (data['success'] == true && data['data'] != null) {
           return data['data'];
         } else {
-          print(
+          AppLogger.warning(
               '🔍 [STORE_SETTINGS_REPO] Resposta não tem formato esperado: $data');
           return null;
         }
@@ -246,7 +250,7 @@ class StoreSettingsRepository {
         throw Exception(error['message'] ?? 'Erro ao buscar loja');
       }
     } catch (e) {
-      print('Erro ao buscar configurações da loja: $e');
+      AppLogger.error('Erro ao buscar configurações da loja: $e');
       rethrow;
     }
   }
@@ -254,8 +258,9 @@ class StoreSettingsRepository {
   /// Busca apenas a política de entrega pública da loja
   Future<Map<String, dynamic>?> getStorePolicy(String sellerId) async {
     try {
-      final uri = Uri.parse('$_baseUrl/api/store-settings/$sellerId/policy');
-      AppLogger.debug('[PolicyAPI] GET ' + uri.toString());
+      final baseUrl = await AppConstants.baseUrl;
+      final uri = Uri.parse('$baseUrl/api/store-settings/$sellerId/policy');
+      AppLogger.debug('[PolicyAPI] GET ${uri.toString()}');
       final response = await http.get(
         uri,
         headers: {
@@ -263,8 +268,8 @@ class StoreSettingsRepository {
         },
       );
 
-      AppLogger.debug('[PolicyAPI] status=' + response.statusCode.toString());
-      AppLogger.debug('[PolicyAPI] body=' + response.body);
+      AppLogger.debug('[PolicyAPI] status=${response.statusCode.toString()}');
+      AppLogger.debug('[PolicyAPI] body=${response.body}');
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success'] == true && data['policy'] != null) {

@@ -139,9 +139,9 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
                 ],
               ),
             ),
-            // Câmera com altura fixa para evitar overflow
-            Container(
-              height: MediaQuery.of(context).size.height * 0.5, // 50% da altura da tela
+            // Câmera com altura flexível para evitar overflow
+            Flexible(
+              flex: 1,
               child: Stack(
                 children: [
                   MobileScanner(
@@ -192,7 +192,7 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
                                     'Código Detectado!',
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 18,
+                                      fontSize: 20,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -201,7 +201,7 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
                                     'Código: ${_manualInputController.text}',
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 14,
+                                      fontSize: 16,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -209,7 +209,7 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
                                     'Retornando ao cadastro...',
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 12,
+                                      fontSize: 14,
                                     ),
                                   ),
                                 ],
@@ -223,9 +223,10 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
               ),
             ),
             // Área de instruções e entrada manual
-            Expanded(
+            Flexible(
+              flex: 1,
               child: Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8),
                 width: double.infinity,
                 color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
                 child: SingleChildScrollView(
@@ -237,7 +238,7 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
                             ? 'Código detectado com sucesso!'
                             : 'Aponte a câmera para o código de barras',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                       ),
@@ -247,18 +248,18 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
                             ? 'Retornando ao cadastro...'
                             : 'O código será detectado automaticamente e você retornará ao cadastro',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       const Divider(height: 1),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       Text(
-                        'Ou digite manualmente e aperte OK:',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        'Ou digite manualmente:',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Row(
                         children: [
                           Expanded(
@@ -268,6 +269,7 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
                                 hintText: _manualInputController.text.isEmpty 
                                     ? 'Digite o código de barras' 
                                     : 'Código escaneado: ${_manualInputController.text}',
+                                hintStyle: const TextStyle(fontSize: 16),
                                 border: const OutlineInputBorder(),
                                 contentPadding: const EdgeInsets.symmetric(
                                   horizontal: 10,
@@ -275,6 +277,7 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
                                 ),
                                 isDense: true,
                               ),
+                              style: const TextStyle(fontSize: 16),
                               keyboardType: TextInputType.number,
                               onSubmitted: _processManualInput,
                             ),
@@ -288,11 +291,11 @@ class _BarcodeScannerState extends State<BarcodeScanner> {
                                 horizontal: 12,
                                 vertical: 8,
                               ),
-                              minimumSize: const Size(0, 36),
+                              minimumSize: const Size(0, 40),
                               backgroundColor: Colors.green,
                               foregroundColor: Colors.white,
                             ),
-                            child: const Text('Usar Código', style: TextStyle(fontSize: 11)),
+                            child: const Text('OK', style: TextStyle(fontSize: 14)),
                           ),
                         ],
                       ),

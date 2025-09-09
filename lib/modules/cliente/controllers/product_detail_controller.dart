@@ -5,6 +5,7 @@ import '../models/product_model.dart';
 import 'cart_controller.dart';
 import 'cliente_main_controller.dart';
 import '../../../core/utils/snackbar_utils.dart';
+import '../../../utils/logger.dart';
 
 class ProductDetailController extends GetxController {
   final Rx<ProductModel?> _product = Rx<ProductModel?>(null);
@@ -78,7 +79,7 @@ class ProductDetailController extends GetxController {
       }
     } catch (e) {
       // Se não conseguir encontrar o CartController, usar valores padrão
-      print('Erro ao sincronizar quantidade do carrinho: $e');
+      AppLogger.error('Erro ao sincronizar quantidade do carrinho: $e');
     } finally {
       _isSyncingFromCart = false; // Desmarcar a flag
     }
@@ -131,7 +132,7 @@ class ProductDetailController extends GetxController {
       }
     } catch (e) {
       // Se não conseguir encontrar o CartController, ignorar
-      print('Erro ao atualizar quantidade do carrinho: $e');
+      AppLogger.error('Erro ao atualizar quantidade do carrinho: $e');
     }
   }
 
@@ -249,7 +250,7 @@ class ProductDetailController extends GetxController {
         clienteMainController.goToCart();
       } catch (e) {
         // Se não conseguir encontrar o controller, apenas navega
-        print('Erro ao definir aba do carrinho: $e');
+        AppLogger.error('Erro ao definir aba do carrinho: $e');
       }
     });
   }

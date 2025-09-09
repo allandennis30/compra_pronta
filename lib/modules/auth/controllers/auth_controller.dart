@@ -13,11 +13,14 @@ class AuthController extends GetxController {
   final Rx<UserModel?> _currentUser = Rx<UserModel?>(null);
   final RxBool _isLoading = false.obs;
   final RxBool _isLoggedIn = false.obs;
+  final RxString _userMode = 'cliente'.obs; // Modo padrão: cliente
 
   UserModel? get currentUser => _currentUser.value;
   Rx<UserModel?> get currentUserRx => _currentUser;
   bool get isLoading => _isLoading.value;
   bool get isLoggedIn => _isLoggedIn.value;
+  String get userMode => _userMode.value;
+  RxString get userModeRx => _userMode;
 
   @override
   void onInit() {
@@ -76,8 +79,9 @@ class AuthController extends GetxController {
       if (token == null) return false;
 
       // Fazer requisição para verificar token
+      final verifyTokenEndpoint = await AppConstants.verifyTokenEndpoint;
       final response = await http.post(
-        Uri.parse(AppConstants.verifyTokenEndpoint),
+        Uri.parse(verifyTokenEndpoint),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -100,10 +104,9 @@ class AuthController extends GetxController {
         return;
       }
 
-      AppLogger.info('🔄 Tentando renovar token...');
-
+      final refreshTokenEndpoint = await AppConstants.refreshTokenEndpoint;
       final response = await http.post(
-        Uri.parse(AppConstants.refreshTokenEndpoint),
+        Uri.parse(refreshTokenEndpoint),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -137,19 +140,15 @@ class AuthController extends GetxController {
     try {
       final user = await _authRepository.getCurrentUser();
       if (user != null) {
-        AppLogger.info('🔍 [RELOAD DEBUG] Usuário carregado do storage:');
-        AppLogger.info('   - ID: ${user.id}');
-        AppLogger.info('   - Nome: ${user.name}');
-        AppLogger.info('   - Email: ${user.email}');
-        AppLogger.info('   - isSeller: ${user.isSeller}');
-        
         _currentUser.value = user;
         _isLoggedIn.value = true;
+        
+        // Carregar modo do usuário salvo
+        await loadUserMode();
         
         // Buscar dados atualizados do servidor
         await _fetchUpdatedUserData();
       } else {
-        AppLogger.warning('⚠️ [RELOAD DEBUG] Nenhum usuário encontrado no storage');
         await _authRepository.logout();
       }
     } catch (e) {
@@ -169,8 +168,9 @@ class AuthController extends GetxController {
         return;
       }
 
+      final profileEndpoint = await AppConstants.profileEndpoint;
       final response = await http.get(
-        Uri.parse(AppConstants.profileEndpoint),
+        Uri.parse(profileEndpoint),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -180,17 +180,7 @@ class AuthController extends GetxController {
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         if (responseData['user'] != null) {
-          AppLogger.info('🔍 [RELOAD DEBUG] Dados recebidos do servidor:');
-          AppLogger.info('   - Raw data: ${responseData['user']}');
-          AppLogger.info('   - isSeller no JSON: ${responseData['user']['isSeller']}');
-          
           final updatedUser = UserModel.fromJson(responseData['user']);
-          
-          AppLogger.info('🔍 [RELOAD DEBUG] Usuário após fromJson:');
-          AppLogger.info('   - ID: ${updatedUser.id}');
-          AppLogger.info('   - Nome: ${updatedUser.name}');
-          AppLogger.info('   - Email: ${updatedUser.email}');
-          AppLogger.info('   - isSeller: ${updatedUser.isSeller}');
           
           // Atualizar dados no storage e na memória
           await _authRepository.saveUser(updatedUser);
@@ -366,10 +356,14 @@ class AuthController extends GetxController {
   /// Recarrega dados do usuário atual do repositório
   Future<void> reloadCurrentUser() async {
     try {
+      // Primeiro carrega do storage local
       final user = await _authRepository.getCurrentUser();
       if (user != null) {
         _currentUser.value = user;
-        AppLogger.info('✅ Dados do usuário recarregados');
+        AppLogger.info('✅ Dados do usuário recarregados do storage');
+        
+        // Depois busca dados atualizados do servidor
+        await _fetchUpdatedUserData();
       }
     } catch (e) {
       AppLogger.error('❌ Erro ao recarregar dados do usuário', e);
@@ -419,6 +413,50 @@ class AuthController extends GetxController {
   /// Força a renovação do token
   Future<void> forceTokenRefresh() async {
     AppLogger.info('🔄 Forçando renovação do token...');
-    _refreshToken();
+    await _refreshToken();
   }
+
+  /// Métodos para gerenciar o modo do usuário (cliente/entregador)
+  Future<void> saveUserMode(String mode) async {
+    try {
+      await _authRepository.saveUserMode(mode);
+      _userMode.value = mode;
+      AppLogger.info('💾 Modo do usuário alterado para: $mode');
+    } catch (e) {
+      AppLogger.error('❌ Erro ao salvar modo do usuário', e);
+    }
+  }
+
+  Future<void> loadUserMode() async {
+    try {
+      final savedMode = await _authRepository.getUserMode();
+      if (savedMode != null) {
+        _userMode.value = savedMode;
+        AppLogger.info('📖 Modo do usuário carregado: $savedMode');
+      } else {
+        // Se não há modo salvo, usar 'cliente' como padrão
+        _userMode.value = 'cliente';
+        AppLogger.info('📖 Usando modo padrão: cliente');
+      }
+    } catch (e) {
+      AppLogger.error('❌ Erro ao carregar modo do usuário', e);
+      _userMode.value = 'cliente'; // Fallback para cliente
+    }
+  }
+
+  Future<void> clearUserMode() async {
+    try {
+      await _authRepository.clearUserMode();
+      _userMode.value = 'cliente';
+      AppLogger.info('🗑️ Modo do usuário limpo, voltando para cliente');
+    } catch (e) {
+      AppLogger.error('❌ Erro ao limpar modo do usuário', e);
+    }
+  }
+
+  /// Verifica se o usuário está no modo entregador
+  bool get isDeliveryMode => _userMode.value == 'entregador';
+
+  /// Verifica se o usuário está no modo cliente
+  bool get isClientMode => _userMode.value == 'cliente';
 }

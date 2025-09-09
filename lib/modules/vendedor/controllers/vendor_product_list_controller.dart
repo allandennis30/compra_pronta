@@ -5,6 +5,7 @@ import '../repositories/vendedor_product_repository.dart';
 import '../../../models/vendor_category.dart';
 import '../../../repositories/vendor_category_repository.dart';
 import '../../auth/repositories/auth_repository.dart';
+import '../../../utils/logger.dart';
 
 class VendedorProductListController extends GetxController {
   final VendedorProductRepository _repository;
@@ -231,7 +232,7 @@ class VendedorProductListController extends GetxController {
       final categories = await _vendorCategoryRepository.getVendorCategories();
       vendorCategories.assignAll(categories);
     } catch (e) {
-      print('Erro ao carregar categorias do vendedor: $e');
+      AppLogger.error('Erro ao carregar categorias do vendedor: $e');
     } finally {
       isLoadingCategories.value = false;
     }

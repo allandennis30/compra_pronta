@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:async';
 import '../../../core/models/order_model.dart';
-import '../../../core/models/user_model.dart';
 import '../../../core/utils/logger.dart';
 import '../repositories/vendor_order_repository.dart';
 

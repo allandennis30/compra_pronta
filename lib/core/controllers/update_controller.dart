@@ -47,18 +47,18 @@ class UpdateController extends GetxController {
         _isCheckingUpdate.value = true;
       }
       
-      AppLogger.info('🔍 [UPDATE_CONTROLLER] Iniciando verificação de atualizações...');
+      // Iniciando verificação de atualizações
       
       final hasUpdate = await _updateService.checkForUpdates();
       
       _hasUpdateAvailable.value = hasUpdate;
       
       if (hasUpdate) {
-          AppLogger.info('🆕 [UPDATE_CONTROLLER] Atualização disponível!');
+          // Atualização disponível
           _showUpdateDialog.value = true;
           _showUpdateDialogUI(currentVersion, latestVersion);
         } else {
-        AppLogger.info('✅ [UPDATE_CONTROLLER] App está atualizado');
+        // App está atualizado
         if (showLoading) {
           Get.snackbar('Sucesso', 'App está atualizado!', snackPosition: SnackPosition.BOTTOM, backgroundColor: Get.theme.colorScheme.primary, colorText: Get.theme.colorScheme.onPrimary);
         }
@@ -78,7 +78,7 @@ class UpdateController extends GetxController {
   Future<void> openPlayStore() async {
     try {
       final url = _updateService.playStoreUrl;
-      AppLogger.info('🏪 [UPDATE_CONTROLLER] Abrindo Play Store: $url');
+      // Abrindo Play Store
       
       final uri = Uri.parse(url);
       
@@ -116,13 +116,13 @@ class UpdateController extends GetxController {
   /// Fecha o dialog de atualização
   void dismissUpdateDialog() {
     _showUpdateDialog.value = false;
-    AppLogger.info('❌ [UPDATE_CONTROLLER] Dialog de atualização fechado');
+    // Dialog de atualização fechado
   }
   
   /// Força verificação de atualização (para testes)
   Future<void> forceUpdateCheck() async {
     try {
-      AppLogger.info('🧪 [UPDATE_CONTROLLER] Forçando verificação de atualização...');
+      // Forçando verificação de atualização
       
       _isCheckingUpdate.value = true;
       
@@ -148,7 +148,7 @@ class UpdateController extends GetxController {
     _updateService.resetUpdateState();
     _hasUpdateAvailable.value = false;
     _showUpdateDialog.value = false;
-    AppLogger.info('🔄 [UPDATE_CONTROLLER] Estado de atualização resetado');
+    // Estado de atualização resetado
   }
   
   /// Verifica atualizações manualmente (com feedback visual)

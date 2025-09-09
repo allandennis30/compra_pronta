@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../utils/logger.dart';
 
 class CepService {
   static const String _baseUrl = 'https://viacep.com.br/ws';
@@ -39,7 +40,7 @@ class CepService {
 
       return null;
     } catch (e) {
-      print('Erro ao buscar CEP: $e');
+      AppLogger.error('Erro ao buscar CEP: $e');
       return null;
     }
   }

@@ -30,9 +30,10 @@ class VendedorProductSupabaseRepository
       AppLogger.info('📦 [SUPABASE] Buscando todos os produtos...');
 
       final headers = await _getHeaders();
+      final endpoint = await AppConstants.listProductsEndpoint;
       final response = await http
           .get(
-            Uri.parse(AppConstants.listProductsEndpoint),
+            Uri.parse(endpoint),
             headers: headers,
           )
           .timeout(const Duration(seconds: 30));
@@ -61,9 +62,10 @@ class VendedorProductSupabaseRepository
       AppLogger.info('🔍 [SUPABASE] Buscando produto: $id');
 
       final headers = await _getHeaders();
+      final endpoint = await AppConstants.getProductEndpoint;
       final response = await http
           .get(
-            Uri.parse('${AppConstants.getProductEndpoint}/$id'),
+            Uri.parse('$endpoint/$id'),
             headers: headers,
           )
           .timeout(const Duration(seconds: 30));
@@ -113,9 +115,10 @@ class VendedorProductSupabaseRepository
         if (finalImageUrl != null) 'imageUrl': finalImageUrl,
       };
 
+      final endpoint = await AppConstants.createProductEndpoint;
       final response = await http
           .post(
-            Uri.parse(AppConstants.createProductEndpoint),
+            Uri.parse(endpoint),
             headers: headers,
             body: json.encode(productData),
           )
@@ -167,9 +170,10 @@ class VendedorProductSupabaseRepository
         if (finalImageUrl != null) 'imageUrl': finalImageUrl,
       };
 
+      final endpoint = await AppConstants.updateProductEndpoint;
       final response = await http
           .put(
-            Uri.parse('${AppConstants.updateProductEndpoint}/${item.id}'),
+            Uri.parse('$endpoint/${item.id}'),
             headers: headers,
             body: json.encode(productData),
           )
@@ -205,9 +209,10 @@ class VendedorProductSupabaseRepository
 
       // 2. Deletar o produto no backend
       final headers = await _getHeaders();
+      final endpoint = await AppConstants.deleteProductEndpoint;
       final response = await http
           .delete(
-            Uri.parse('${AppConstants.deleteProductEndpoint}/$id'),
+            Uri.parse('$endpoint/$id'),
             headers: headers,
           )
           .timeout(const Duration(seconds: 30));
@@ -241,7 +246,7 @@ class VendedorProductSupabaseRepository
 
       // Fazer upload
       final imageUrl =
-          await _imageService.uploadImage(compressedImage, currentUser.id!);
+          await _imageService.uploadImage(compressedImage, currentUser.id);
 
       AppLogger.success('✅ [SUPABASE] Imagem do produto enviada: $imageUrl');
       return imageUrl;
@@ -267,7 +272,7 @@ class VendedorProductSupabaseRepository
 
       // Atualizar imagem
       final newImageUrl = await _imageService.updateImage(
-          compressedImage, currentUser.id!, oldImageUrl);
+          compressedImage, currentUser.id, oldImageUrl);
 
       AppLogger.success(
           '✅ [SUPABASE] Imagem do produto atualizada: $newImageUrl');
@@ -308,7 +313,7 @@ class VendedorProductSupabaseRepository
 
       AppLogger.info('📋 [SUPABASE] Listando imagens do produto: $productId');
 
-      final images = await _imageService.listUserImages(currentUser.id!);
+      final images = await _imageService.listUserImages(currentUser.id);
 
       // Filtrar apenas imagens relacionadas ao produto específico
       final productImages =

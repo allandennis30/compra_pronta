@@ -7,6 +7,7 @@ class UserModel {
   final double latitude;
   final double longitude;
   final bool isSeller;
+  final bool? isEntregador;
 
   UserModel({
     required this.id,
@@ -17,6 +18,7 @@ class UserModel {
     required this.latitude,
     required this.longitude,
     this.isSeller = false,
+    this.isEntregador,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
@@ -39,6 +41,7 @@ class UserModel {
         latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
         longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
         isSeller: json['isSeller'] ?? json['istore'] ?? false,
+        isEntregador: json['isEntregador'],
       );
 
   Map<String, dynamic> toJson() => {
@@ -50,6 +53,7 @@ class UserModel {
         'latitude': latitude,
         'longitude': longitude,
         'isSeller': isSeller,
+        'isEntregador': isEntregador,
       };
 }
 

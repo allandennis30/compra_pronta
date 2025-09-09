@@ -10,8 +10,9 @@ class ProductApiRepository implements BaseRepository<ProductModel> {
   @override
   Future<List<ProductModel>> getAll() async {
     try {
+      final endpoint = await AppConstants.listProductsEndpoint;
       final response = await _httpClient.get(
-        Uri.parse(AppConstants.listProductsEndpoint),
+        Uri.parse(endpoint),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -31,8 +32,9 @@ class ProductApiRepository implements BaseRepository<ProductModel> {
   @override
   Future<ProductModel?> getById(String id) async {
     try {
+      final endpoint = await AppConstants.getProductEndpoint;
       final response = await _httpClient.get(
-        Uri.parse('${AppConstants.getProductEndpoint}/$id'),
+        Uri.parse('$endpoint/$id'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -54,8 +56,9 @@ class ProductApiRepository implements BaseRepository<ProductModel> {
   @override
   Future<ProductModel> create(ProductModel item) async {
     try {
+      final endpoint = await AppConstants.createProductEndpoint;
       final response = await _httpClient.post(
-        Uri.parse(AppConstants.createProductEndpoint),
+        Uri.parse(endpoint),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -76,8 +79,9 @@ class ProductApiRepository implements BaseRepository<ProductModel> {
   @override
   Future<ProductModel> update(ProductModel item) async {
     try {
+      final endpoint = await AppConstants.updateProductEndpoint;
       final response = await _httpClient.put(
-        Uri.parse('${AppConstants.updateProductEndpoint}/${item.id}'),
+        Uri.parse('$endpoint/${item.id}'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -98,8 +102,9 @@ class ProductApiRepository implements BaseRepository<ProductModel> {
   @override
   Future<bool> delete(String id) async {
     try {
+      final endpoint = await AppConstants.deleteProductEndpoint;
       final response = await _httpClient.delete(
-        Uri.parse('${AppConstants.deleteProductEndpoint}/$id'),
+        Uri.parse('$endpoint/$id'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -114,9 +119,10 @@ class ProductApiRepository implements BaseRepository<ProductModel> {
   @override
   Future<List<ProductModel>> search(String query) async {
     try {
+      final endpoint = await AppConstants.listProductsEndpoint;
       final response = await _httpClient.get(
         Uri.parse(
-            '${AppConstants.listProductsEndpoint}?q=${Uri.encodeComponent(query)}'),
+            '$endpoint?q=${Uri.encodeComponent(query)}'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -133,7 +139,6 @@ class ProductApiRepository implements BaseRepository<ProductModel> {
     }
   }
 
-  @override
   void dispose() {
     _httpClient.close();
   }

@@ -28,9 +28,10 @@ class VendedorProductApiRepository implements VendedorProductRepository {
     try {
       final headers = await _getHeaders();
 
+      final endpoint = await AppConstants.listProductsEndpoint;
       final response = await http
           .get(
-            Uri.parse(AppConstants.listProductsEndpoint),
+            Uri.parse(endpoint),
             headers: headers,
           )
           .timeout(const Duration(seconds: 30));
@@ -59,9 +60,10 @@ class VendedorProductApiRepository implements VendedorProductRepository {
   Future<ProductModel?> getById(String id) async {
     try {
       final headers = await _getHeaders();
+      final endpoint = await AppConstants.getProductEndpoint;
       final response = await http
           .get(
-            Uri.parse('${AppConstants.getProductEndpoint}/$id'),
+            Uri.parse('$endpoint/$id'),
             headers: headers,
           )
           .timeout(const Duration(seconds: 30));
@@ -85,8 +87,9 @@ class VendedorProductApiRepository implements VendedorProductRepository {
   Future<ProductModel> create(ProductModel item) async {
     try {
       final headers = await _getHeaders();
+      final endpoint = await AppConstants.createProductEndpoint;
       final response = await http.post(
-        Uri.parse(AppConstants.createProductEndpoint),
+        Uri.parse(endpoint),
         headers: headers,
         body: json.encode(() {
           final Map<String, dynamic> body = {
@@ -138,8 +141,9 @@ class VendedorProductApiRepository implements VendedorProductRepository {
   Future<ProductModel> update(ProductModel item) async {
     try {
       final headers = await _getHeaders();
+      final endpoint = await AppConstants.updateProductEndpoint;
       final response = await http.put(
-        Uri.parse('${AppConstants.updateProductEndpoint}/${item.id}'),
+        Uri.parse('$endpoint/${item.id}'),
         headers: headers,
         body: json.encode(() {
           final Map<String, dynamic> body = {
@@ -193,9 +197,10 @@ class VendedorProductApiRepository implements VendedorProductRepository {
   Future<bool> delete(String id) async {
     try {
       final headers = await _getHeaders();
+      final endpoint = await AppConstants.deleteProductEndpoint;
       final response = await http
           .delete(
-            Uri.parse('${AppConstants.deleteProductEndpoint}/$id'),
+            Uri.parse('$endpoint/$id'),
             headers: headers,
           )
           .timeout(const Duration(seconds: 30));
@@ -221,10 +226,11 @@ class VendedorProductApiRepository implements VendedorProductRepository {
   Future<List<ProductModel>> search(String query) async {
     try {
       final headers = await _getHeaders();
+      final endpoint = await AppConstants.listProductsEndpoint;
       final response = await http
           .get(
             Uri.parse(
-                '${AppConstants.listProductsEndpoint}?q=${Uri.encodeComponent(query)}'),
+                '$endpoint?q=${Uri.encodeComponent(query)}'),
             headers: headers,
           )
           .timeout(const Duration(seconds: 30));

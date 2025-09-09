@@ -118,7 +118,7 @@ class BackgroundService extends GetxService {
       final tenMinutesAgo = now.subtract(const Duration(minutes: 10));
       
       final recentOrders = allOrders.where((order) {
-        return order.createdAt != null && order.createdAt!.isAfter(tenMinutesAgo);
+        return order.createdAt.isAfter(tenMinutesAgo);
       }).toList();
       
       if (recentOrders.isNotEmpty) {
@@ -149,7 +149,7 @@ class BackgroundService extends GetxService {
       AppLogger.info('🆕 [BACKGROUND] Processando novo pedido: ${order.id}');
       
       // Marcar como processado
-      backgroundService._processedOrderIds.add(order.id!);
+      backgroundService._processedOrderIds.add(order.id);
       
       // Enviar notificação
       final notificationService = Get.find<NotificationService>();

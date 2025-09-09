@@ -5,6 +5,7 @@ import '../../auth/controllers/auth_controller.dart';
 import '../models/horario_funcionamento.dart';
 import '../../../repositories/store_settings_repository.dart';
 import '../../../core/services/cep_service.dart';
+import '../../../utils/logger.dart';
 
 class VendedorSettingsController extends GetxController {
   // Informações da loja
@@ -62,20 +63,20 @@ class VendedorSettingsController extends GetxController {
 
   Future<void> carregarDadosLoja() async {
     try {
-      print('🔍 [VENDOR_SETTINGS] Iniciando carregamento de dados...');
+      AppLogger.info('🔍 [VENDOR_SETTINGS] Iniciando carregamento de dados...');
       final settings = await _storeSettingsRepository.getStoreSettings();
-      print('🔍 [VENDOR_SETTINGS] Dados recebidos: $settings');
+      AppLogger.info('🔍 [VENDOR_SETTINGS] Dados recebidos: $settings');
 
       // Debug: mostrar todos os campos disponíveis
       if (settings != null) {
-        print('🔍 [VENDOR_SETTINGS] Campos disponíveis no backend:');
+        AppLogger.info('🔍 [VENDOR_SETTINGS] Campos disponíveis no backend:');
         settings.forEach((key, value) {
-          print('   $key: $value (${value.runtimeType})');
+          AppLogger.info('   $key: $value (${value.runtimeType})');
         });
       }
 
       if (settings != null) {
-        print('🔍 [VENDOR_SETTINGS] Atribuindo dados aos observables...');
+        AppLogger.info('🔍 [VENDOR_SETTINGS] Atribuindo dados aos observables...');
 
         // Carregar dados da loja (usar chaves camelCase retornadas pelo backend)
         nomeLoja.value = settings['nomeLoja'] ?? settings['nome_empresa'] ?? '';
@@ -155,7 +156,7 @@ class VendedorSettingsController extends GetxController {
             horariosFuncionamento
                 .add(HorarioFuncionamento.fromJson(horarioData));
           }
-          print(
+          AppLogger.info(
               '🔍 [VENDOR_SETTINGS] Horários de funcionamento carregados: ${horariosFuncionamento.length} dias');
         }
 
@@ -194,7 +195,7 @@ class VendedorSettingsController extends GetxController {
         _inicializarHorariosFuncionamento();
       }
     } catch (e) {
-      print('Erro ao carregar dados da loja: $e');
+      AppLogger.error('Erro ao carregar dados da loja: $e');
       Get.snackbar(
         'Erro',
         'Não foi possível carregar as configurações da loja',
@@ -306,7 +307,7 @@ class VendedorSettingsController extends GetxController {
         }
       }
     } catch (e) {
-      print('Erro ao fazer parse do endereço: $e');
+      AppLogger.error('Erro ao fazer parse do endereço: $e');
     }
   }
 
@@ -470,7 +471,7 @@ class VendedorSettingsController extends GetxController {
         colorText: Colors.white,
       );
     } catch (e) {
-      print('Erro ao salvar dados da loja: $e');
+      AppLogger.error('Erro ao salvar dados da loja: $e');
       Get.snackbar(
         'Erro',
         'Não foi possível salvar as configurações da loja',

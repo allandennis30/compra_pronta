@@ -6,6 +6,7 @@ import 'background_service.dart';
 import 'order_notification_service.dart';
 import '../models/order_model.dart';
 import '../models/user_model.dart';
+import '../../utils/logger.dart';
 
 /// Serviço para testar o funcionamento das notificações
 class NotificationTestService extends GetxService {
@@ -17,7 +18,7 @@ class NotificationTestService extends GetxService {
 
   /// Testa todos os serviços de notificação
   Future<void> runAllTests() async {
-    print('🧪 Iniciando testes de notificação...');
+    AppLogger.info('🧪 Iniciando testes de notificação...');
     
     try {
       // Teste 1: Inicialização dos serviços
@@ -38,38 +39,38 @@ class NotificationTestService extends GetxService {
       // Teste 6: Background service
       await _testBackgroundService();
       
-      print('✅ Todos os testes concluídos com sucesso!');
+      AppLogger.info('✅ Todos os testes concluídos com sucesso!');
     } catch (e) {
-      print('❌ Erro durante os testes: $e');
+      AppLogger.error('❌ Erro durante os testes: $e');
     }
   }
 
   /// Teste 1: Verifica se todos os serviços foram inicializados
   Future<void> _testServiceInitialization() async {
-    print('\n📋 Teste 1: Inicialização dos serviços');
+    AppLogger.info('\n📋 Teste 1: Inicialização dos serviços');
     
     try {
       await _orderNotificationService.onInit();
-      print('✅ OrderNotificationService inicializado');
+      AppLogger.info('✅ OrderNotificationService inicializado');
       
       await _audioService.onInit();
-      print('✅ AudioService inicializado');
+      AppLogger.info('✅ AudioService inicializado');
       
       await _firebaseService.onInit();
-      print('✅ FirebaseService inicializado');
+      AppLogger.info('✅ FirebaseService inicializado');
       
       await _backgroundService.onInit();
-      print('✅ BackgroundService inicializado');
+      AppLogger.info('✅ BackgroundService inicializado');
       
     } catch (e) {
-      print('❌ Erro na inicialização: $e');
+      AppLogger.error('❌ Erro na inicialização: $e');
       rethrow;
     }
   }
 
   /// Teste 2: Testa notificação local
   Future<void> _testLocalNotification() async {
-    print('\n🔔 Teste 2: Notificação local');
+    AppLogger.info('\n🔔 Teste 2: Notificação local');
     
     try {
       await _notificationService.showNewOrderNotification(
@@ -77,54 +78,54 @@ class NotificationTestService extends GetxService {
         clientName: 'Cliente Teste',
         total: 99.99,
       );
-      print('✅ Notificação local enviada');
+      AppLogger.info('✅ Notificação local enviada');
       
       // Aguardar um pouco para a notificação aparecer
       await Future.delayed(Duration(seconds: 2));
       
     } catch (e) {
-      print('❌ Erro na notificação local: $e');
+      AppLogger.error('❌ Erro na notificação local: $e');
       rethrow;
     }
   }
 
   /// Teste 3: Testa serviço de áudio
   Future<void> _testAudioService() async {
-    print('\n🔊 Teste 3: Serviço de áudio');
+    AppLogger.info('\n🔊 Teste 3: Serviço de áudio');
     
     try {
       await _audioService.playNewOrderSound();
-      print('✅ Som de novo pedido reproduzido');
+      AppLogger.info('✅ Som de novo pedido reproduzido');
       
       // Aguardar o som terminar
       await Future.delayed(Duration(seconds: 3));
       
     } catch (e) {
-      print('❌ Erro no serviço de áudio: $e');
+      AppLogger.error('❌ Erro no serviço de áudio: $e');
       // Não relançar erro pois áudio pode falhar em emuladores
     }
   }
 
   /// Teste 4: Testa token do Firebase
   Future<void> _testFirebaseToken() async {
-    print('\n🔥 Teste 4: Token do Firebase');
+    AppLogger.info('\n🔥 Teste 4: Token do Firebase');
     
     try {
       final token = await _notificationService.getFCMToken();
       if (token != null && token.isNotEmpty) {
-        print('✅ Token FCM obtido: ${token.substring(0, 20)}...');
+        AppLogger.info('✅ Token FCM obtido: ${token.substring(0, 20)}...');
       } else {
-        print('⚠️ Token FCM não disponível (normal em emuladores)');
+        AppLogger.warning('⚠️ Token FCM não disponível (normal em emuladores)');
       }
     } catch (e) {
-      print('❌ Erro ao obter token FCM: $e');
+      AppLogger.error('❌ Erro ao obter token FCM: $e');
       // Não relançar erro pois pode falhar em emuladores
     }
   }
 
   /// Teste 5: Simula processamento de novo pedido
   Future<void> _testNewOrderSimulation() async {
-    print('\n📦 Teste 5: Simulação de novo pedido');
+    AppLogger.info('\n📦 Teste 5: Simulação de novo pedido');
     
     try {
       // Criar um pedido de teste
@@ -148,37 +149,37 @@ class NotificationTestService extends GetxService {
       );
       
       await _orderNotificationService.processNewOrder(testOrder);
-      print('✅ Novo pedido processado com sucesso');
+      AppLogger.info('✅ Novo pedido processado com sucesso');
       
     } catch (e) {
-      print('❌ Erro na simulação de novo pedido: $e');
+      AppLogger.error('❌ Erro na simulação de novo pedido: $e');
       rethrow;
     }
   }
 
   /// Teste 6: Testa serviço de background
   Future<void> _testBackgroundService() async {
-    print('\n⏰ Teste 6: Serviço de background');
+    AppLogger.info('\n⏰ Teste 6: Serviço de background');
     
     try {
       await _backgroundService.startOrderMonitoring();
-      print('✅ Monitoramento em background iniciado');
+      AppLogger.info('✅ Monitoramento em background iniciado');
       
       // Aguardar um ciclo de verificação
       await Future.delayed(Duration(seconds: 5));
       
       await _backgroundService.stopOrderMonitoring();
-      print('✅ Monitoramento em background parado');
+      AppLogger.info('✅ Monitoramento em background parado');
       
     } catch (e) {
-      print('❌ Erro no serviço de background: $e');
+      AppLogger.error('❌ Erro no serviço de background: $e');
       rethrow;
     }
   }
 
   /// Teste rápido apenas de notificação
   Future<void> testQuickNotification() async {
-    print('🚀 Teste rápido de notificação');
+    AppLogger.info('🚀 Teste rápido de notificação');
     
     try {
       await _notificationService.showNewOrderNotification(
@@ -189,9 +190,9 @@ class NotificationTestService extends GetxService {
       
       await _audioService.playNewOrderSound();
       
-      print('✅ Teste rápido concluído');
+      AppLogger.info('✅ Teste rápido concluído');
     } catch (e) {
-      print('❌ Erro no teste rápido: $e');
+      AppLogger.error('❌ Erro no teste rápido: $e');
     }
   }
 
@@ -199,9 +200,9 @@ class NotificationTestService extends GetxService {
   Future<void> clearAllNotifications() async {
     try {
       await _notificationService.cancelAllNotifications();
-      print('🧹 Todas as notificações foram limpas');
+      AppLogger.info('🧹 Todas as notificações foram limpas');
     } catch (e) {
-      print('❌ Erro ao limpar notificações: $e');
+      AppLogger.error('❌ Erro ao limpar notificações: $e');
     }
   }
 }

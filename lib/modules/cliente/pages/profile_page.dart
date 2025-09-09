@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/profile_controller.dart';
+import '../controllers/delivery_controller.dart';
+import '../widgets/delivery_mode_switch.dart';
 import '../../../core/themes/app_colors.dart';
 import '../../../core/utils/input_formatters.dart';
 
@@ -309,6 +311,52 @@ class ProfilePage extends StatelessWidget {
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
+
+              // Botão tornar-se entregador
+              GetX<DeliveryController>(
+                init: DeliveryController(),
+                builder: (deliveryController) {
+                  if (deliveryController.isDeliveryUser.value) {
+                    return const SizedBox.shrink();
+                  }
+                  return Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: deliveryController.isLoading.value
+                              ? null
+                              : deliveryController.registerAsDeliveryWithQR,
+                          icon: deliveryController.isLoading.value
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(Icons.delivery_dining),
+                          label: const Text('Tornar-se Entregador'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  );
+                },
+              ),
+
+              // Seletor de modo (Cliente/Entregador)
+              const DeliveryModeSwitch(),
               const SizedBox(height: 16),
 
               // Botão sair

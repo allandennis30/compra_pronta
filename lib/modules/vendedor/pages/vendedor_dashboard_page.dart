@@ -7,11 +7,11 @@ import '../widgets/dashboard/sales_report_section.dart';
 import '../widgets/vendedor_layout.dart';
 import '../../../core/themes/app_colors.dart';
 
-class VendorDashboardPage extends StatelessWidget {
+class VendedorDashboardPage extends StatelessWidget {
   final VendorMetricsController controller = Get.put(VendorMetricsController());
   final SalesReportController reportController = Get.put(SalesReportController());
 
-  VendorDashboardPage({super.key});
+  VendedorDashboardPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -89,34 +89,35 @@ class VendorDashboardPage extends StatelessWidget {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    _buildQuickAction(
-                      icon: Icons.add_circle_outline,
-                      label: 'Produto',
-                      onTap: () => Get.toNamed('/vendor/produto_form'),
+                    Expanded(
+                      child: _buildQuickAction(
+                        icon: Icons.add_circle_outline,
+                        label: 'Produto',
+                        onTap: () => Get.toNamed('/vendor/produto_form'),
+                      ),
                     ),
                     const SizedBox(width: 12),
-                    _buildQuickAction(
-                      icon: Icons.qr_code_scanner,
-                      label: 'Scanner',
-                      onTap: () => Get.toNamed('/vendor/scan'),
+                    Expanded(
+                      child: _buildQuickAction(
+                        icon: Icons.qr_code_scanner,
+                        label: 'Scanner',
+                        onTap: () => Get.toNamed('/vendor/scan'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildQuickAction(
+                        icon: Icons.delivery_dining,
+                        label: 'Entregadores',
+                        onTap: () => Get.toNamed('/vendor/delivery-management'),
+                      ),
                     ),
                   ],
                 ),
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.store_rounded,
-              color: Colors.white,
-              size: 32,
-            ),
-          ),
+        
         ],
       ),
     );
@@ -136,7 +137,7 @@ class VendorDashboardPage extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 icon,
@@ -144,12 +145,15 @@ class VendorDashboardPage extends StatelessWidget {
                 size: 16,
               ),
               const SizedBox(width: 6),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+              Flexible(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],

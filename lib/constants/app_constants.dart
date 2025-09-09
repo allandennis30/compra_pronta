@@ -52,7 +52,7 @@ class AppConstants {
   static const String tokenKey = 'auth_token';
 
   // API Configuration - Usando EnvironmentConfig para detecção automática
-  static String get baseUrl => EnvironmentConfig.baseUrl;
+  static Future<String> get baseUrl => EnvironmentConfig.baseUrl;
   static const String apiVersion = '/api';
   static const String authEndpoint = '/auth';
 
@@ -60,43 +60,44 @@ class AppConstants {
   static String get environmentName => EnvironmentConfig.environmentName;
   static bool get isDevelopment => EnvironmentConfig.isDevelopment;
   static bool get isProduction => EnvironmentConfig.isProduction;
+  static bool get isAuto => EnvironmentConfig.isAuto;
 
-  // API Endpoints - Usando getters para detecção automática de ambiente
-  static String get loginEndpoint => '$baseUrl$apiVersion$authEndpoint/login';
-  static String get registerEndpoint =>
-      '$baseUrl$apiVersion$authEndpoint/register/client';
-  static String get registerSellerEndpoint =>
-      '$baseUrl$apiVersion$authEndpoint/register/seller';
-  static String get verifyTokenEndpoint =>
-      '$baseUrl$apiVersion$authEndpoint/verify';
-  static String get refreshTokenEndpoint =>
-      '$baseUrl$apiVersion$authEndpoint/refresh';
-  static String get profileEndpoint =>
-      '$baseUrl$apiVersion$authEndpoint/profile';
-  static String get updateProfileEndpoint =>
-      '$baseUrl$apiVersion$authEndpoint/profile';
-  static String get logoutEndpoint => '$baseUrl$apiVersion$authEndpoint/logout';
-  static String get usersEndpoint => '$baseUrl$apiVersion$authEndpoint/users';
-  static String get forgotPasswordEndpoint =>
-      '$baseUrl$apiVersion$authEndpoint/forgot-password';
-  static String get resetPasswordEndpoint =>
-      '$baseUrl$apiVersion$authEndpoint/reset-password';
+  // API Endpoints - Métodos assíncronos para detecção automática de ambiente
+  static Future<String> get loginEndpoint async => '${await baseUrl}$apiVersion$authEndpoint/login';
+  static Future<String> get registerEndpoint async =>
+      '${await baseUrl}$apiVersion$authEndpoint/register/client';
+  static Future<String> get registerSellerEndpoint async =>
+      '${await baseUrl}$apiVersion$authEndpoint/register/seller';
+  static Future<String> get verifyTokenEndpoint async =>
+      '${await baseUrl}$apiVersion$authEndpoint/verify';
+  static Future<String> get refreshTokenEndpoint async =>
+      '${await baseUrl}$apiVersion$authEndpoint/refresh';
+  static Future<String> get profileEndpoint async =>
+      '${await baseUrl}$apiVersion$authEndpoint/profile';
+  static Future<String> get updateProfileEndpoint async =>
+      '${await baseUrl}$apiVersion$authEndpoint/profile';
+  static Future<String> get logoutEndpoint async => '${await baseUrl}$apiVersion$authEndpoint/logout';
+  static Future<String> get usersEndpoint async => '${await baseUrl}$apiVersion$authEndpoint/users';
+  static Future<String> get forgotPasswordEndpoint async =>
+      '${await baseUrl}$apiVersion$authEndpoint/forgot-password';
+  static Future<String> get resetPasswordEndpoint async =>
+      '${await baseUrl}$apiVersion$authEndpoint/reset-password';
 
   // Products endpoints
-  static String get productsEndpoint => '$baseUrl$apiVersion/products';
-  static String get createProductEndpoint => '$baseUrl$apiVersion/products';
-  static String get listProductsEndpoint => '$baseUrl$apiVersion/products';
-  static String get getProductEndpoint => '$baseUrl$apiVersion/products';
-  static String get updateProductEndpoint => '$baseUrl$apiVersion/products';
-  static String get deleteProductEndpoint => '$baseUrl$apiVersion/products';
-  static String get checkBarcodeEndpoint =>
-      '$baseUrl$apiVersion/products/barcode';
-  static String get publicProductsEndpoint =>
-      '$baseUrl$apiVersion/products/public';
-  static String get publicProductsFiltersEndpoint =>
-      '$baseUrl$apiVersion/products/public/filters';
-  static String get uploadImageEndpoint =>
-      '$baseUrl$apiVersion/products/upload-image';
+  static Future<String> get productsEndpoint async => '${await baseUrl}$apiVersion/products';
+  static Future<String> get createProductEndpoint async => '${await baseUrl}$apiVersion/products';
+  static Future<String> get listProductsEndpoint async => '${await baseUrl}$apiVersion/products';
+  static Future<String> get getProductEndpoint async => '${await baseUrl}$apiVersion/products';
+  static Future<String> get updateProductEndpoint async => '${await baseUrl}$apiVersion/products';
+  static Future<String> get deleteProductEndpoint async => '${await baseUrl}$apiVersion/products';
+  static Future<String> get checkBarcodeEndpoint async =>
+      '${await baseUrl}$apiVersion/products/barcode';
+  static Future<String> get publicProductsEndpoint async =>
+      '${await baseUrl}$apiVersion/products/public';
+  static Future<String> get publicProductsFiltersEndpoint async =>
+      '${await baseUrl}$apiVersion/products/public/filters';
+  static Future<String> get uploadImageEndpoint async =>
+      '${await baseUrl}$apiVersion/products/upload-image';
 
   // Credenciais de teste para o backend
   // Cliente: teste@teste.com / teste123

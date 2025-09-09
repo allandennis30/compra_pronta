@@ -3,13 +3,14 @@ import 'package:http/http.dart' as http;
 import '../models/vendor_category.dart';
 import '../constants/app_constants.dart';
 import '../modules/auth/repositories/auth_repository.dart';
+import '../utils/logger.dart';
 
 class VendorCategoryRepository {
   final AuthRepository _authRepository;
 
   VendorCategoryRepository(this._authRepository);
 
-  String get _baseUrl => '${AppConstants.baseUrl}/api/vendor-categories';
+  Future<String> get _baseUrl async => '${await AppConstants.baseUrl}/api/vendor-categories';
 
   /// Buscar todas as categorias do vendedor logado
   Future<List<VendorCategory>> getVendorCategories() async {
@@ -19,8 +20,9 @@ class VendorCategoryRepository {
         throw Exception('Token de autenticação não encontrado');
       }
 
+      final baseUrl = await _baseUrl;
       final response = await http.get(
-        Uri.parse(_baseUrl),
+        Uri.parse(baseUrl),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -40,29 +42,30 @@ class VendorCategoryRepository {
         throw Exception('Erro ao carregar categorias: ${response.statusCode}');
       }
     } catch (e) {
-      print('Erro no VendorCategoryRepository.getVendorCategories: $e');
+      AppLogger.error('Erro no VendorCategoryRepository.getVendorCategories: $e');
       rethrow;
     }
   }
 
-  /// Criar nova categoria para o vendedor
+  /// Criar nova categoria
   Future<VendorCategory> createVendorCategory(String name) async {
-    print('🌐 [REPO_CREATE_CATEGORY] Iniciando criação no repository: "$name"');
-    
+    AppLogger.info('🌐 [REPO_CREATE_CATEGORY] Iniciando criação no repository: "$name"');
     try {
-      print('🔑 [REPO_CREATE_CATEGORY] Obtendo token de autenticação');
+      // Obter token de autenticação
+      AppLogger.info('🔑 [REPO_CREATE_CATEGORY] Obtendo token de autenticação');
       final token = await _authRepository.getToken();
       if (token == null) {
-        print('❌ [REPO_CREATE_CATEGORY] Token não encontrado');
+        AppLogger.error('❌ [REPO_CREATE_CATEGORY] Token não encontrado');
         throw Exception('Token de autenticação não encontrado');
       }
-      print('✅ [REPO_CREATE_CATEGORY] Token obtido com sucesso');
+      AppLogger.info('✅ [REPO_CREATE_CATEGORY] Token obtido com sucesso');
 
-      print('📡 [REPO_CREATE_CATEGORY] Fazendo requisição POST para: $_baseUrl');
-      print('📝 [REPO_CREATE_CATEGORY] Payload: {"name": "$name"}');
+      AppLogger.info('📡 [REPO_CREATE_CATEGORY] Fazendo requisição POST para: $_baseUrl');
+      AppLogger.info('📝 [REPO_CREATE_CATEGORY] Payload: {"name": "$name"}');
       
+      final baseUrl = await _baseUrl;
       final response = await http.post(
-        Uri.parse(_baseUrl),
+        Uri.parse(baseUrl),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -72,25 +75,24 @@ class VendorCategoryRepository {
         }),
       );
 
-      print('📊 [REPO_CREATE_CATEGORY] Status da resposta: ${response.statusCode}');
-      print('📄 [REPO_CREATE_CATEGORY] Corpo da resposta: ${response.body}');
+      AppLogger.info('📊 [REPO_CREATE_CATEGORY] Status da resposta: ${response.statusCode}');
+      AppLogger.info('📄 [REPO_CREATE_CATEGORY] Corpo da resposta: ${response.body}');
 
       if (response.statusCode == 201) {
-        print('✅ [REPO_CREATE_CATEGORY] Categoria criada com sucesso');
+        AppLogger.info('✅ [REPO_CREATE_CATEGORY] Categoria criada com sucesso');
         final data = json.decode(response.body);
-        print('📋 [REPO_CREATE_CATEGORY] Dados da categoria: ${data['category']}');
+        AppLogger.info('📋 [REPO_CREATE_CATEGORY] Dados da categoria: ${data['category']}');
         final category = VendorCategory.fromJson(data['category']);
-        print('🎯 [REPO_CREATE_CATEGORY] Categoria mapeada: ${category.toJson()}');
+        AppLogger.info('🎯 [REPO_CREATE_CATEGORY] Categoria mapeada: ${category.toJson()}');
         return category;
       } else if (response.statusCode == 409) {
-        print('⚠️ [REPO_CREATE_CATEGORY] Categoria já existe (409)');
-        final data = json.decode(response.body);
-        throw Exception(data['message'] ?? 'Categoria já existe');
+        AppLogger.warning('⚠️ [REPO_CREATE_CATEGORY] Categoria já existe (409)');
+        throw Exception('Categoria já existe');
       } else if (response.statusCode == 403) {
-        print('🚫 [REPO_CREATE_CATEGORY] Acesso negado (403)');
-        throw Exception('Apenas vendedores podem criar categorias');
+        AppLogger.error('🚫 [REPO_CREATE_CATEGORY] Acesso negado (403)');
+        throw Exception('Acesso negado');
       } else if (response.statusCode == 400) {
-        print('❌ [REPO_CREATE_CATEGORY] Dados inválidos (400)');
+        AppLogger.error('❌ [REPO_CREATE_CATEGORY] Dados inválidos (400)');
         final data = json.decode(response.body);
         final errors = data['errors'] as List?;
         if (errors != null && errors.isNotEmpty) {
@@ -98,12 +100,12 @@ class VendorCategoryRepository {
         }
         throw Exception(data['message'] ?? 'Dados inválidos');
       } else {
-        print('💥 [REPO_CREATE_CATEGORY] Erro inesperado: ${response.statusCode}');
-        throw Exception('Erro ao criar categoria: ${response.statusCode}');
+        AppLogger.error('💥 [REPO_CREATE_CATEGORY] Erro inesperado: ${response.statusCode}');
+        throw Exception('Erro inesperado: ${response.statusCode}');
       }
     } catch (e) {
-      print('💥 [REPO_CREATE_CATEGORY] Erro capturado: $e');
-      print('📊 [REPO_CREATE_CATEGORY] Tipo do erro: ${e.runtimeType}');
+      AppLogger.error('💥 [REPO_CREATE_CATEGORY] Erro capturado: $e');
+      AppLogger.error('📊 [REPO_CREATE_CATEGORY] Tipo do erro: ${e.runtimeType}');
       rethrow;
     }
   }
@@ -116,8 +118,9 @@ class VendorCategoryRepository {
         throw Exception('Token de autenticação não encontrado');
       }
 
+      final baseUrl = await _baseUrl;
       final response = await http.put(
-        Uri.parse('$_baseUrl/$id'),
+        Uri.parse('$baseUrl/$id'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -148,7 +151,7 @@ class VendorCategoryRepository {
         throw Exception('Erro ao atualizar categoria: ${response.statusCode}');
       }
     } catch (e) {
-      print('Erro no VendorCategoryRepository.updateVendorCategory: $e');
+      AppLogger.error('Erro no VendorCategoryRepository.updateVendorCategory: $e');
       rethrow;
     }
   }
@@ -161,8 +164,9 @@ class VendorCategoryRepository {
         throw Exception('Token de autenticação não encontrado');
       }
 
+      final baseUrl = await _baseUrl;
       final response = await http.delete(
-        Uri.parse('$_baseUrl/$id'),
+        Uri.parse('$baseUrl/$id'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -182,7 +186,7 @@ class VendorCategoryRepository {
         throw Exception('Erro ao deletar categoria: ${response.statusCode}');
       }
     } catch (e) {
-      print('Erro no VendorCategoryRepository.deleteVendorCategory: $e');
+      AppLogger.error('Erro no VendorCategoryRepository.deleteVendorCategory: $e');
       rethrow;
     }
   }

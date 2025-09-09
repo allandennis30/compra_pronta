@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'core/themes/app_theme.dart';
 import 'routes/app_pages.dart';
 import 'modules/auth/controllers/auth_controller.dart';
@@ -17,8 +16,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Inicializar Firebase
-  await Firebase.initializeApp();
-  print('✅ [MAIN] Firebase inicializado');
+  // TEMPORARIAMENTE DESABILITADO - Erro Firebase Messaging FIS auth token
+  // await Firebase.initializeApp();
+
   
   // Bloquear rotação do app - apenas portrait
   await SystemChrome.setPreferredOrientations([
@@ -29,13 +29,7 @@ void main() async {
   await GetStorage.init();
   await Hive.initFlutter();
 
-  // Teste simples do GetStorage
-  final testStorage = GetStorage();
-  testStorage.write('test_key', 'test_value');
-  final testValue = testStorage.read('test_key');
-  print('🧪 [TESTE STORAGE] Valor de teste: $testValue');
-  testStorage.remove('test_key');
-
+ 
   runApp(const MyApp());
 }
 
@@ -113,9 +107,13 @@ class _InitialRouteDecider extends StatelessWidget {
             Get.offAllNamed('/vendor/dashboard');
           });
         } else {
-          // Cliente
+          // Cliente - considerar modo salvo
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            Get.offAllNamed('/cliente');
+            if (authController.isDeliveryMode) {
+              Get.offAllNamed('/delivery');
+            } else {
+              Get.offAllNamed('/cliente');
+            }
           });
         }
         return const SizedBox.shrink();

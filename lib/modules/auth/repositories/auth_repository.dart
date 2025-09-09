@@ -41,6 +41,11 @@ abstract class AuthRepository {
       {required String email,
       required String code,
       required String newPassword});
+
+  // Métodos para persistência do modo escolhido (cliente/entregador)
+  Future<void> saveUserMode(String mode);
+  Future<String?> getUserMode();
+  Future<void> clearUserMode();
 }
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -49,13 +54,14 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<UserModel?> login(String email, String password) async {
     try {
+      final loginEndpoint = await AppConstants.loginEndpoint;
       // Log da requisição
       AppLogger.info(
-          '🔐 Iniciando login - Email: $email - Endpoint: ${AppConstants.loginEndpoint}');
+          '🔐 Iniciando login - Email: $email - Endpoint: $loginEndpoint');
 
       final response = await http
           .post(
-        Uri.parse(AppConstants.loginEndpoint),
+        Uri.parse(loginEndpoint),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -220,9 +226,10 @@ class AuthRepositoryImpl implements AuthRepository {
     bool isSeller = false,
   }) async {
     try {
+      final registerEndpoint = await AppConstants.registerEndpoint;
       final response = await http
           .post(
-        Uri.parse(AppConstants.registerEndpoint),
+        Uri.parse(registerEndpoint),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -329,14 +336,7 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final userData = _storage.read(AppConstants.userKey);
       if (userData != null) {
-        AppLogger.info('🔍 [STORAGE DEBUG] Dados do usuário no storage:');
-        AppLogger.info('   - Raw JSON: $userData');
-        AppLogger.info('   - isSeller no storage: ${userData['isSeller']}');
-        
         final user = UserModel.fromJson(userData);
-        AppLogger.info('🔍 [STORAGE DEBUG] Usuário após fromJson do storage:');
-        AppLogger.info('   - isSeller: ${user.isSeller}');
-        
         return user;
       }
     } catch (e) {
@@ -349,15 +349,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> saveUser(UserModel user) async {
     try {
       final userJson = user.toJson();
-      AppLogger.info('🔍 [STORAGE DEBUG] Salvando usuário no storage:');
-      AppLogger.info('   - ID: ${user.id}');
-      AppLogger.info('   - Nome: ${user.name}');
-      AppLogger.info('   - Email: ${user.email}');
-      AppLogger.info('   - isSeller: ${user.isSeller}');
-      AppLogger.info('   - JSON a ser salvo: $userJson');
-      
       await _storage.write(AppConstants.userKey, userJson);
-      AppLogger.success('✅ Usuário salvo no storage com sucesso');
     } catch (e) {
       AppLogger.error('❌ Erro ao salvar usuário', e);
       rethrow;
@@ -441,8 +433,9 @@ class AuthRepositoryImpl implements AuthRepository {
       await clearUserCacheKeepingLogin();
       AppLogger.info('🗑️ Cache limpo antes da atualização do perfil');
 
+      final updateProfileEndpoint = await AppConstants.updateProfileEndpoint;
       final response = await http.put(
-        Uri.parse(AppConstants.updateProfileEndpoint),
+        Uri.parse(updateProfileEndpoint),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -583,9 +576,10 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> requestPasswordReset(String email) async {
     try {
+      final forgotPasswordEndpoint = await AppConstants.forgotPasswordEndpoint;
       final response = await http
           .post(
-            Uri.parse(AppConstants.forgotPasswordEndpoint),
+            Uri.parse(forgotPasswordEndpoint),
             headers: {'Content-Type': 'application/json'},
             body: json.encode({'email': email}),
           )
@@ -618,9 +612,10 @@ class AuthRepositoryImpl implements AuthRepository {
     required String newPassword,
   }) async {
     try {
+      final resetPasswordEndpoint = await AppConstants.resetPasswordEndpoint;
       final response = await http
           .post(
-            Uri.parse(AppConstants.resetPasswordEndpoint),
+            Uri.parse(resetPasswordEndpoint),
             headers: {'Content-Type': 'application/json'},
             body: json.encode(
                 {'email': email, 'code': code, 'newPassword': newPassword}),
@@ -641,6 +636,41 @@ class AuthRepositoryImpl implements AuthRepository {
       }
     } catch (e) {
       AppLogger.error('❌ Erro ao redefinir senha', e);
+      rethrow;
+    }
+  }
+
+  // Implementação dos métodos para persistência do modo escolhido
+  @override
+  Future<void> saveUserMode(String mode) async {
+    try {
+      await _storage.write('user_mode', mode);
+      AppLogger.info('💾 Modo do usuário salvo: $mode');
+    } catch (e) {
+      AppLogger.error('❌ Erro ao salvar modo do usuário', e);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<String?> getUserMode() async {
+    try {
+      final mode = _storage.read('user_mode');
+      AppLogger.info('📖 Modo do usuário carregado: $mode');
+      return mode;
+    } catch (e) {
+      AppLogger.error('❌ Erro ao carregar modo do usuário', e);
+      return null;
+    }
+  }
+
+  @override
+  Future<void> clearUserMode() async {
+    try {
+      await _storage.remove('user_mode');
+      AppLogger.info('🗑️ Modo do usuário removido');
+    } catch (e) {
+      AppLogger.error('❌ Erro ao remover modo do usuário', e);
       rethrow;
     }
   }

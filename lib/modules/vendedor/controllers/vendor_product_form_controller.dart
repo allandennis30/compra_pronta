@@ -10,6 +10,7 @@ import '../../../repositories/vendor_category_repository.dart';
 import '../../../models/vendor_category.dart';
 import '../../auth/repositories/auth_repository.dart';
 import 'package:uuid/uuid.dart';
+import '../../../utils/logger.dart';
 
 class VendorProductFormController extends GetxController {
   final VendedorProductRepository _repository;
@@ -248,13 +249,12 @@ class VendorProductFormController extends GetxController {
 
       // Processar a imagem primeiro, se houver uma nova
       String finalImageUrl = imageUrl.value;
-      String? oldImageUrl; // Para deletar a imagem anterior
+// Para deletar a imagem anterior
 
       if (productImage.value != null) {
         try {
           // Salvar URL da imagem antiga para deletar depois
           if (isEditing.value && imageUrl.value.isNotEmpty) {
-            oldImageUrl = imageUrl.value;
           }
 
           isUploadingImage.value = true;
@@ -377,7 +377,7 @@ class VendorProductFormController extends GetxController {
       final categories = await _vendorCategoryRepository.getVendorCategories();
       vendorCategories.value = categories;
     } catch (e) {
-      print('Erro ao carregar categorias do vendedor: $e');
+      AppLogger.error('Erro ao carregar categorias do vendedor: $e');
       // Não mostrar erro para o usuário, apenas log
     } finally {
       isLoadingCategories.value = false;
@@ -386,10 +386,10 @@ class VendorProductFormController extends GetxController {
 
   /// Criar nova categoria personalizada
   Future<bool> createVendorCategory(String categoryName) async {
-    print('🔄 [CATEGORY_CREATE] Iniciando criação de categoria: "$categoryName"');
+    AppLogger.info('🔄 [CATEGORY_CREATE] Iniciando criação de categoria: "$categoryName"');
     
     if (categoryName.trim().isEmpty) {
-      print('❌ [CATEGORY_CREATE] Nome da categoria vazio');
+      AppLogger.error('❌ [CATEGORY_CREATE] Nome da categoria vazio');
       Get.snackbar(
         'Erro',
         'Nome da categoria não pode estar vazio',
@@ -401,16 +401,16 @@ class VendorProductFormController extends GetxController {
     }
 
     try {
-      print('🔄 [CATEGORY_CREATE] Definindo isCreatingCategory = true');
+      AppLogger.info('🔄 [CATEGORY_CREATE] Definindo isCreatingCategory = true');
       isCreatingCategory.value = true;
       
       // Verificar se a categoria já existe (incluindo padrões)
       final normalizedName = categoryName.trim();
-      print('🔍 [CATEGORY_CREATE] Verificando se categoria "$normalizedName" já existe');
-      print('📋 [CATEGORY_CREATE] Categorias existentes: ${categories.join(", ")}');
+      AppLogger.info('🔍 [CATEGORY_CREATE] Verificando se categoria "$normalizedName" já existe');
+      AppLogger.info('📋 [CATEGORY_CREATE] Categorias existentes: ${categories.join(", ")}');
       
       if (categories.any((cat) => cat.toLowerCase() == normalizedName.toLowerCase())) {
-        print('⚠️ [CATEGORY_CREATE] Categoria já existe: "$normalizedName"');
+        AppLogger.warning('⚠️ [CATEGORY_CREATE] Categoria já existe: "$normalizedName"');
         Get.snackbar(
           'Aviso',
           'Categoria "$normalizedName" já existe',
@@ -421,18 +421,18 @@ class VendorProductFormController extends GetxController {
         return false;
       }
 
-      print('🌐 [CATEGORY_CREATE] Chamando repository para criar categoria');
+      AppLogger.info('🌐 [CATEGORY_CREATE] Chamando repository para criar categoria');
       final newCategory = await _vendorCategoryRepository.createVendorCategory(normalizedName);
-      print('✅ [CATEGORY_CREATE] Categoria criada no backend: ${newCategory.toJson()}');
+      AppLogger.info('✅ [CATEGORY_CREATE] Categoria criada no backend: ${newCategory.toJson()}');
       
       vendorCategories.add(newCategory);
-      print('📝 [CATEGORY_CREATE] Categoria adicionada à lista local');
+      AppLogger.info('📝 [CATEGORY_CREATE] Categoria adicionada à lista local');
       
       // Selecionar a nova categoria automaticamente
       selectedCategory.value = newCategory.name;
-      print('🎯 [CATEGORY_CREATE] Categoria selecionada automaticamente: "${newCategory.name}"');
+      AppLogger.info('🎯 [CATEGORY_CREATE] Categoria selecionada automaticamente: "${newCategory.name}"');
       
-      print('🎉 [CATEGORY_CREATE] Exibindo snackbar de sucesso');
+      AppLogger.info('🎉 [CATEGORY_CREATE] Exibindo snackbar de sucesso');
       Get.snackbar(
         'Sucesso',
         'Categoria "${newCategory.name}" criada com sucesso!',
@@ -441,11 +441,11 @@ class VendorProductFormController extends GetxController {
         colorText: Colors.white,
       );
       
-      print('✅ [CATEGORY_CREATE] Retornando true - sucesso');
+      AppLogger.info('✅ [CATEGORY_CREATE] Retornando true - sucesso');
       return true;
     } catch (e) {
-      print('❌ [CATEGORY_CREATE] Erro capturado: $e');
-      print('📊 [CATEGORY_CREATE] Tipo do erro: ${e.runtimeType}');
+      AppLogger.error('❌ [CATEGORY_CREATE] Erro capturado: $e');
+      AppLogger.error('📊 [CATEGORY_CREATE] Tipo do erro: ${e.runtimeType}');
       Get.snackbar(
         'Erro',
         'Erro ao criar categoria: $e',
@@ -455,7 +455,7 @@ class VendorProductFormController extends GetxController {
       );
       return false;
     } finally {
-      print('🔄 [CATEGORY_CREATE] Definindo isCreatingCategory = false');
+      AppLogger.info('🔄 [CATEGORY_CREATE] Definindo isCreatingCategory = false');
       isCreatingCategory.value = false;
     }
   }

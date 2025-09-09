@@ -34,7 +34,6 @@ class AppUpdateService extends GetxService {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
       _currentVersion = packageInfo.version;
-      AppLogger.info('📱 [UPDATE] Versão atual do app: $_currentVersion');
     } catch (e) {
       AppLogger.error('❌ [UPDATE] Erro ao obter versão atual', e);
     }
@@ -43,15 +42,12 @@ class AppUpdateService extends GetxService {
   /// Verifica se há atualizações disponíveis
   Future<bool> checkForUpdates() async {
     try {
-      AppLogger.info('🔍 [UPDATE] Verificando atualizações...');
-      
       // Simula verificação de versão remota
       // Em produção, isso seria uma chamada para sua API ou Firebase Remote Config
       await _fetchLatestVersion();
       
       if (_latestVersion.isNotEmpty && _currentVersion.isNotEmpty) {
         final hasUpdate = _compareVersions(_currentVersion, _latestVersion);
-        AppLogger.info('📋 [UPDATE] Versão atual: $_currentVersion, Última: $_latestVersion, Tem atualização: $hasUpdate');
         return hasUpdate;
       }
       
@@ -69,7 +65,7 @@ class AppUpdateService extends GetxService {
       if (_lastCheckTime != null && 
           DateTime.now().difference(_lastCheckTime!) < _cacheTimeout &&
           _latestVersion.isNotEmpty) {
-        AppLogger.info('📋 [UPDATE] Usando versão em cache: $_latestVersion');
+        // Usando versão em cache
         return;
       }
       
@@ -113,7 +109,7 @@ class AppUpdateService extends GetxService {
            
            if (match != null && match.group(1) != null) {
              _latestVersion = match.group(1)!;
-             AppLogger.info('📋 [UPDATE] Versão encontrada na Play Store: $_latestVersion (padrão: $pattern)');
+             // Versão encontrada na Play Store
              versionFound = true;
              break;
            }
@@ -163,7 +159,7 @@ class AppUpdateService extends GetxService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         _latestVersion = data['version'] ?? _currentVersion;
-        AppLogger.info('📋 [UPDATE] Versão obtida da API: $_latestVersion');
+        // Versão obtida da API
       } else {
         AppLogger.error('❌ [UPDATE] Erro HTTP ${response.statusCode} na API');
         _latestVersion = _currentVersion;

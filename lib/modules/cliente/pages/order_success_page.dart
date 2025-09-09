@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../widgets/client_bottom_nav.dart';
 import '../../../constants/app_constants.dart';
+import '../../../utils/logger.dart';
 
 class OrderSuccessPage extends StatelessWidget {
   const OrderSuccessPage({super.key});
@@ -10,7 +11,7 @@ class OrderSuccessPage extends StatelessWidget {
   Widget build(BuildContext context) {
     // Redirecionar automaticamente para o histórico após 2 segundos
     Future.delayed(const Duration(seconds: 2), () {
-      print('🔄 [SUCCESS] Redirecionando para histórico de pedidos...');
+      AppLogger.info('🔄 [SUCCESS] Redirecionando para histórico de pedidos...');
       Get.offAllNamed('/cliente', arguments: {'initialIndex': 2});
     });
 
