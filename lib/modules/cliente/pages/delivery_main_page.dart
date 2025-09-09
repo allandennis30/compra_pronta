@@ -12,19 +12,29 @@ class DeliveryMainPage extends StatefulWidget {
   State<DeliveryMainPage> createState() => _DeliveryMainPageState();
 }
 
-class _DeliveryMainPageState extends State<DeliveryMainPage> {
+class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBindingObserver {
   final DeliveryController _deliveryController = Get.find<DeliveryController>();
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    WidgetsBinding.instance.addObserver(this);
+    _refreshData();
   }
 
-  Future<void> _loadData() async {
-    await _deliveryController.loadDeliveryStores();
-    await _deliveryController.loadDeliveryOrders();
-    await _deliveryController.loadDeliveryStats();
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // Atualizar dados quando o app volta ao primeiro plano
+    if (state == AppLifecycleState.resumed) {
+      _refreshData();
+    }
   }
 
   @override
@@ -42,7 +52,7 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> {
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _loadData,
+            onPressed: _refreshData,
           ),
         ],
       ),
@@ -56,7 +66,7 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> {
         }
 
         return RefreshIndicator(
-          onRefresh: _loadData,
+          onRefresh: _refreshData,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
@@ -87,6 +97,19 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> {
         );
       }),
     );
+  }
+
+  /// Atualizar todos os dados da página
+  Future<void> _refreshData() async {
+    try {
+      await Future.wait([
+        _deliveryController.loadDeliveryStores(),
+        _deliveryController.loadDeliveryOrders(),
+        _deliveryController.loadDeliveryStats(),
+      ]);
+    } catch (e) {
+      print('Erro ao atualizar dados: $e');
+    }
   }
 
   Widget _buildMercaxBar() {
@@ -481,7 +504,7 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> {
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Cliente: ${order['customer_name'] ?? 'N/A'}'),
+                        Text('Cliente: ${order['client_name'] ?? 'N/A'}'),
                         Text('Valor: R\$ ${order['total']?.toStringAsFixed(2) ?? '0.00'}'),
                       ],
                     ),
@@ -523,8 +546,16 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> {
                               children: [
                                 Expanded(
                                   child: ElevatedButton.icon(
-                                    onPressed: () {
-                                      Get.toNamed('/delivery-confirmation');
+                                    onPressed: () async {
+                                      // Navegar para scanner QR e aguardar resultado
+                                      final result = await Get.to(() => const QRScannerPage(
+                                        scanType: 'confirm',
+                                      ));
+                                      
+                                      // Se houve sucesso na confirmação, atualizar dados
+                                      if (result == true) {
+                                        _refreshData();
+                                      }
                                     },
                                     icon: const Icon(Icons.qr_code_scanner),
                                     label: const Text('Confirmar Entrega'),

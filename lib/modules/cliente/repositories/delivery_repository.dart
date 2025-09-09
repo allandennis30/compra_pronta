@@ -87,6 +87,11 @@ class DeliveryRepository {
         url += '?${queryParams.join('&')}';
       }
 
+      // Debug: log da requisição
+      print('🌐 [DELIVERY_REPOSITORY] Fazendo requisição:');
+      print('   - URL: $url');
+      print('   - Token presente: ${token.isNotEmpty}');
+
       final response = await http.get(
         Uri.parse(url),
         headers: {
@@ -95,14 +100,22 @@ class DeliveryRepository {
         },
       );
 
+      // Debug: log da resposta
+      print('   - Status Code: ${response.statusCode}');
+      print('   - Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return List<Map<String, dynamic>>.from(data['data'] ?? []);
+        final orders = List<Map<String, dynamic>>.from(data['data'] ?? []);
+        print('   - Pedidos retornados: ${orders.length}');
+        return orders;
       } else {
         final error = json.decode(response.body);
+        print('❌ [DELIVERY_REPOSITORY] Erro na resposta: ${error['message']}');
         throw Exception(error['message'] ?? 'Erro ao buscar pedidos para entrega');
       }
     } catch (e) {
+      print('❌ [DELIVERY_REPOSITORY] Exceção: $e');
       throw Exception('Erro ao buscar pedidos para entrega: $e');
     }
   }
@@ -119,16 +132,22 @@ class DeliveryRepository {
         throw Exception('Token não encontrado');
       }
 
+      // Obter dados do usuário atual
+      final user = await _authRepository.getCurrentUser();
+      if (user == null) {
+        throw Exception('Usuário não encontrado');
+      }
+
       final baseUrl = await AppConstants.baseUrl;
       final response = await http.post(
-        Uri.parse('$baseUrl/api/delivery/confirm'),
+        Uri.parse('$baseUrl/api/orders/$orderId/confirm-delivery-by-deliverer'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
         body: json.encode({
-          'orderId': orderId,
-          'confirmationCode': confirmationCode,
+          'delivererId': user.id,
+          'hash': confirmationCode,
           if (notes != null) 'notes': notes,
         }),
       );

@@ -208,30 +208,52 @@ class _DeliveryQRScannerPageState extends State<DeliveryQRScannerPage> {
     });
 
     try {
-      // Tentar decodificar JSON
-      Map<String, dynamic> qrPayload;
+      print('🔍 [QR_SCANNER] Processando QR Code: $qrData');
+      
+      String? orderId;
+      String? confirmationCode;
+      
+      // Tentar primeiro o formato JSON (cliente)
       try {
-        qrPayload = jsonDecode(qrData);
+        final qrPayload = jsonDecode(qrData);
+        print('📱 [QR_SCANNER] QR Code JSON detectado: $qrPayload');
+        
+        // Validar estrutura do QR Code JSON
+        if (qrPayload.containsKey('order_id') &&
+            qrPayload.containsKey('type') &&
+            qrPayload['type'] == 'delivery_confirmation') {
+          orderId = qrPayload['order_id'] as String;
+          confirmationCode = qrPayload['hash'] as String?;
+          print('✅ [QR_SCANNER] Formato JSON válido - orderId: $orderId, hash: $confirmationCode');
+        } else {
+          print('❌ [QR_SCANNER] Estrutura JSON inválida');
+        }
       } catch (e) {
-        _showErrorSnackbar('QR Code não é válido para confirmação de entrega');
+        print('🔄 [QR_SCANNER] Não é JSON, tentando formato string: $e');
+        
+        // Se não for JSON, tentar formato string (backend)
+        if (qrData.startsWith('delivery_confirm:')) {
+          final parts = qrData.split(':');
+          if (parts.length == 3) {
+            orderId = parts[1];
+            confirmationCode = parts[2];
+            print('✅ [QR_SCANNER] Formato string válido - orderId: $orderId, confirmationCode: $confirmationCode');
+          } else {
+            print('❌ [QR_SCANNER] Formato string inválido - partes: ${parts.length}');
+          }
+        } else {
+          print('❌ [QR_SCANNER] QR Code não começa com delivery_confirm:');
+        }
+      }
+      
+      // Validar se conseguimos extrair os dados
+      if (orderId == null || orderId.isEmpty) {
+        print('❌ [QR_SCANNER] orderId não encontrado ou vazio');
+        _showErrorSnackbar('QR Code inválido para confirmação de entrega');
         return;
       }
-
-      // Validar estrutura do QR Code
-      if (!qrPayload.containsKey('order_id') ||
-          !qrPayload.containsKey('type') ||
-          qrPayload['type'] != 'delivery_confirmation') {
-        _showErrorSnackbar('QR Code não é válido para confirmação de entrega');
-        return;
-      }
-
-      final orderId = qrPayload['order_id'] as String;
-      final hash = qrPayload['hash'] as String?;
-
-      if (orderId.isEmpty) {
-        _showErrorSnackbar('ID do pedido não encontrado no QR Code');
-        return;
-      }
+      
+      print('✅ [QR_SCANNER] Dados extraídos com sucesso - orderId: $orderId');
 
       // Mostrar dialog de confirmação
       final confirmed = await _showConfirmationDialog(orderId);
@@ -240,7 +262,7 @@ class _DeliveryQRScannerPageState extends State<DeliveryQRScannerPage> {
       }
 
       // Confirmar entrega no backend
-      await _confirmDelivery(orderId, hash);
+      await _confirmDelivery(orderId, confirmationCode);
       
     } catch (e) {
       _showErrorSnackbar('Erro ao processar QR Code: $e');
@@ -285,21 +307,30 @@ class _DeliveryQRScannerPageState extends State<DeliveryQRScannerPage> {
 
   Future<void> _confirmDelivery(String orderId, String? hash) async {
     try {
+      print('🚚 [CONFIRM_DELIVERY] Iniciando confirmação de entrega - orderId: $orderId, hash: $hash');
+      
       // Obter ID do entregador atual
       final authController = Get.find<AuthController>();
       final currentUser = authController.currentUser;
       
       if (currentUser == null) {
+        print('❌ [CONFIRM_DELIVERY] Usuário não autenticado');
         _showErrorSnackbar('Usuário não autenticado');
         return;
       }
       
+      print('👤 [CONFIRM_DELIVERY] Usuário autenticado: ${currentUser.id}');
+      
       // Chamar API para confirmar entrega pelo entregador
       final apiService = Get.find<ApiService>();
+      print('📡 [CONFIRM_DELIVERY] Chamando API: /orders/$orderId/confirm-delivery-by-deliverer');
+      
       final response = await apiService.post('/orders/$orderId/confirm-delivery-by-deliverer', {
         'delivererId': currentUser.id,
         'hash': hash,
       });
+      
+      print('📡 [CONFIRM_DELIVERY] Resposta da API: $response');
       
       if (response['success'] == true) {
          // Recarregar dados do entregador
@@ -323,13 +354,15 @@ class _DeliveryQRScannerPageState extends State<DeliveryQRScannerPage> {
            duration: const Duration(seconds: 4),
          );
          
-         // Voltar para a página anterior
-         Get.back();
+         // Voltar para a página anterior com resultado de sucesso
+         Get.back(result: true);
        } else {
         _showErrorSnackbar(response['message'] ?? 'Erro ao confirmar entrega');
       }
       
     } catch (e) {
+      print('❌ [CONFIRM_DELIVERY] Erro capturado: $e');
+      print('❌ [CONFIRM_DELIVERY] Tipo do erro: ${e.runtimeType}');
       _showErrorSnackbar('Erro ao confirmar entrega: $e');
     }
   }

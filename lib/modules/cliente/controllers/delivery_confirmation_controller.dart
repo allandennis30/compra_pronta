@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:get/get.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../repositories/delivery_repository.dart';
@@ -58,19 +59,47 @@ class DeliveryConfirmationController extends GetxController {
   /// Extrair dados do QR Code
   Map<String, String>? _parseQRCodeData(String qrCodeData) {
     try {
-      // Formato esperado: "DELIVERY:orderId:deliveryCode"
-      if (!qrCodeData.startsWith('DELIVERY:')) {
-        return null;
+      String? orderId;
+      String? deliveryCode;
+      
+      // Tentar primeiro o formato JSON (cliente)
+      try {
+        final qrPayload = jsonDecode(qrCodeData);
+        
+        // Validar estrutura do QR Code JSON
+        if (qrPayload.containsKey('order_id') &&
+            qrPayload.containsKey('type') &&
+            qrPayload['type'] == 'delivery_confirmation') {
+          orderId = qrPayload['order_id'] as String;
+          deliveryCode = qrPayload['hash'] as String?;
+        }
+      } catch (e) {
+        // Se não for JSON, tentar formatos string
+        if (qrCodeData.startsWith('delivery_confirm:')) {
+          // Formato backend: "delivery_confirm:orderId:confirmationCode"
+          final parts = qrCodeData.split(':');
+          if (parts.length == 3) {
+            orderId = parts[1];
+            deliveryCode = parts[2];
+          }
+        } else if (qrCodeData.startsWith('DELIVERY:')) {
+          // Formato legado: "DELIVERY:orderId:deliveryCode"
+          final parts = qrCodeData.split(':');
+          if (parts.length == 3) {
+            orderId = parts[1];
+            deliveryCode = parts[2];
+          }
+        }
       }
       
-      final parts = qrCodeData.split(':');
-      if (parts.length != 3) {
+      // Validar se conseguimos extrair os dados
+      if (orderId == null || orderId.isEmpty) {
         return null;
       }
       
       return {
-        'orderId': parts[1],
-        'deliveryCode': parts[2],
+        'orderId': orderId,
+        'deliveryCode': deliveryCode ?? '',
       };
     } catch (e) {
       AppLogger.error('Erro ao analisar QR Code: $e');

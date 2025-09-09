@@ -124,12 +124,27 @@ class DeliveryController extends GetxController {
   Future<void> loadDeliveryOrders({String? storeId, String? status}) async {
     try {
       isLoading.value = true;
+      
+      // Debug: verificar parâmetros
+      print('🔍 [DELIVERY_CONTROLLER] Carregando pedidos de entrega:');
+      print('   - storeId: $storeId');
+      print('   - status: $status');
+      print('   - isDeliveryUser: ${isDeliveryUser.value}');
+      
       final orders = await _deliveryRepository.getDeliveryOrders(
         storeId: storeId,
         status: status,
       );
+      
+      // Debug: verificar resultado
+      print('   - Pedidos carregados: ${orders.length}');
+      if (orders.isNotEmpty) {
+        print('   - Primeiro pedido: ${orders.first}');
+      }
+      
       deliveryOrders.value = orders;
     } catch (e) {
+      print('❌ [DELIVERY_CONTROLLER] Erro ao carregar pedidos: $e');
       Get.snackbar('Erro', 'Erro ao carregar pedidos: $e', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
       isLoading.value = false;
