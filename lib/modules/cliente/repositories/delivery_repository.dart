@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../../constants/app_constants.dart';
 import '../../auth/repositories/auth_repository.dart';
+import '../../../utils/logger.dart';
 
 class DeliveryRepository {
   final AuthRepository _authRepository = AuthRepositoryImpl();
@@ -92,9 +93,9 @@ class DeliveryRepository {
       }
 
       // Debug: log da requisição
-      print('🌐 [DELIVERY_REPOSITORY] Fazendo requisição:');
-      print('   - URL: $url');
-      print('   - Token presente: ${token.isNotEmpty}');
+      AppLogger.debug('🌐 [DELIVERY_REPOSITORY] Fazendo requisição:');
+      AppLogger.debug('   - URL: $url');
+      AppLogger.debug('   - Token presente: ${token.isNotEmpty}');
 
       final response = await http.get(
         Uri.parse(url),
@@ -105,13 +106,13 @@ class DeliveryRepository {
       );
 
       // Debug: log da resposta
-      print('   - Status Code: ${response.statusCode}');
-      print('   - Response Body: ${response.body}');
+      AppLogger.debug('   - Status Code: ${response.statusCode}');
+      AppLogger.debug('   - Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final orders = List<Map<String, dynamic>>.from(data['data'] ?? []);
-        print('   - Pedidos retornados: ${orders.length}');
+        AppLogger.info('   - Pedidos retornados: ${orders.length}');
         
         return {
           'orders': orders,
@@ -122,11 +123,11 @@ class DeliveryRepository {
         };
       } else {
         final error = json.decode(response.body);
-        print('❌ [DELIVERY_REPOSITORY] Erro na resposta: ${error['message']}');
+        AppLogger.error('❌ [DELIVERY_REPOSITORY] Erro na resposta: ${error['message']}');
         throw Exception(error['message'] ?? 'Erro ao buscar pedidos para entrega');
       }
     } catch (e) {
-      print('❌ [DELIVERY_REPOSITORY] Exceção: $e');
+      AppLogger.error('❌ [DELIVERY_REPOSITORY] Exceção: $e');
       throw Exception('Erro ao buscar pedidos para entrega: $e');
     }
   }

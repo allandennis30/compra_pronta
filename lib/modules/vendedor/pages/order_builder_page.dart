@@ -61,11 +61,11 @@ class OrderBuilderPage extends StatelessWidget {
         centerTitle: false,
         titleSpacing: 0,
         backgroundColor:
-            isDark ? theme.colorScheme.surface : theme.colorScheme.background,
+            isDark ? theme.colorScheme.surface : theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
         elevation: isDark ? 1 : 0,
         shadowColor: isDark ? theme.colorScheme.shadow.withOpacity(0.1) : null,
-        actions: [
+        actions: const [
          
         ],
       ),
@@ -119,7 +119,7 @@ class OrderBuilderPage extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: isDark
                           ? theme.colorScheme.surface
-                          : theme.colorScheme.background,
+                          : theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(12),
                       border: isDark
                           ? Border.all(

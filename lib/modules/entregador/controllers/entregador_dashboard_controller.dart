@@ -4,6 +4,7 @@ import '../../../utils/logger.dart';
 import '../repositories/entregador_repository.dart';
 import '../models/delivery_stats_model.dart';
 import '../models/entregador_profile_model.dart';
+import '../../../core/utils/result.dart';
 
 class EntregadorDashboardController extends GetxController {
   final EntregadorRepository _repository = Get.find<EntregadorRepository>();
@@ -54,78 +55,111 @@ class EntregadorDashboardController extends GetxController {
 
   /// Carrega perfil do entregador
   Future<void> loadProfile() async {
-    try {
-      final profile = await _repository.getProfile();
-      _profile.value = profile;
-      _isAvailable.value = profile.isAvailable;
-      
-      AppLogger.info('✅ [DASHBOARD] Perfil carregado: ${profile.name}');
-    } catch (e) {
-      AppLogger.error('❌ [DASHBOARD] Erro ao carregar perfil', e);
-      rethrow;
-    }
+    final Result<EntregadorProfileModel> result = await _repository.getProfileR();
+    result.when(
+      success: (profile) {
+        _profile.value = profile;
+        _isAvailable.value = profile.isAvailable;
+        AppLogger.info('✅ [DASHBOARD] Perfil carregado: ${profile.name}');
+      },
+      failure: (message, {code, exception}) {
+        AppLogger.error('❌ [DASHBOARD] Erro ao carregar perfil: $message', exception);
+        throw Exception(message);
+      },
+    );
   }
 
   /// Carrega estatísticas
   Future<void> loadStats() async {
-    try {
-      final stats = await _repository.getDeliveryStats();
-      _stats.value = stats;
-      
-      AppLogger.info('✅ [DASHBOARD] Estatísticas carregadas: ${stats.totalDeliveries} entregas');
-    } catch (e) {
-      AppLogger.error('❌ [DASHBOARD] Erro ao carregar estatísticas', e);
-      rethrow;
-    }
+    final Result<DeliveryStatsModel> result = await _repository.getDeliveryStatsR();
+    result.when(
+      success: (stats) {
+        _stats.value = stats;
+        AppLogger.info('✅ [DASHBOARD] Estatísticas carregadas: ${stats.totalDeliveries} entregas');
+      },
+      failure: (message, {code, exception}) {
+        AppLogger.error('❌ [DASHBOARD] Erro ao carregar estatísticas: $message', exception);
+        throw Exception(message);
+      },
+    );
   }
 
   /// Carrega entregas ativas
   Future<void> loadActiveDeliveries() async {
-    try {
-      final deliveries = await _repository.getActiveDeliveries();
-      _activeDeliveries.assignAll(deliveries);
-      
-      AppLogger.info('✅ [DASHBOARD] ${deliveries.length} entregas ativas carregadas');
-    } catch (e) {
-      AppLogger.error('❌ [DASHBOARD] Erro ao carregar entregas ativas', e);
-      rethrow;
-    }
+    final Result<List<OrderModel>> result = await _repository.getActiveDeliveriesR();
+    result.when(
+      success: (deliveries) {
+        _activeDeliveries.assignAll(deliveries);
+        AppLogger.info('✅ [DASHBOARD] ${deliveries.length} entregas ativas carregadas');
+      },
+      failure: (message, {code, exception}) {
+        AppLogger.error('❌ [DASHBOARD] Erro ao carregar entregas ativas: $message', exception);
+        throw Exception(message);
+      },
+    );
   }
 
   /// Atualiza disponibilidade do entregador
   Future<void> toggleAvailability() async {
     try {
       final newAvailability = !_isAvailable.value;
-      
-      await _repository.updateAvailability(newAvailability);
-      _isAvailable.value = newAvailability;
-      
-      // Atualiza o perfil local
-      if (_profile.value != null) {
-        // Como não temos copyWith no modelo, vamos recarregar o perfil
-        await loadProfile();
-      }
-      
-      AppLogger.info('✅ [DASHBOARD] Disponibilidade alterada para: $newAvailability');
-      
-      Get.snackbar(
-        'Sucesso',
-        newAvailability ? 'Você está disponível para entregas' : 'Você está indisponível',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: newAvailability ? Get.theme.primaryColor : Get.theme.colorScheme.secondary,
-        colorText: Get.theme.colorScheme.onPrimary,
+      final Result<void> result = await _repository.updateAvailabilityR(newAvailability);
+      result.when(
+        success: (_) async {
+          _isAvailable.value = newAvailability;
+          if (_profile.value != null) {
+            await loadProfile();
+          }
+          AppLogger.info('✅ [DASHBOARD] Disponibilidade alterada para: $newAvailability');
+          Get.snackbar(
+            'Sucesso',
+            newAvailability ? 'Você está disponível para entregas' : 'Você está indisponível',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: newAvailability ? Get.theme.primaryColor : Get.theme.colorScheme.secondary,
+            colorText: Get.theme.colorScheme.onPrimary,
+          );
+        },
+        failure: (message, {code, exception}) {
+          AppLogger.error('❌ [DASHBOARD] Erro ao alterar disponibilidade: $message', exception);
+          Get.snackbar(
+            'Erro',
+            message,
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Get.theme.colorScheme.error,
+            colorText: Get.theme.colorScheme.onError,
+          );
+        },
       );
-    } catch (e) {
-      AppLogger.error('❌ [DASHBOARD] Erro ao alterar disponibilidade', e);
-      
-      Get.snackbar(
-        'Erro',
-        'Não foi possível alterar sua disponibilidade',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError,
-      );
-    }
+    } catch (_) {}
+  }
+
+  /// Aceita uma entrega rapidamente
+  Future<void> quickAcceptDelivery(OrderModel delivery) async {
+    final Result<void> result = await _repository.acceptDeliveryR(delivery.id);
+    result.when(
+      success: (_) async {
+        _activeDeliveries.remove(delivery);
+        await loadActiveDeliveries();
+        AppLogger.info('✅ [DASHBOARD] Entrega aceita rapidamente: ${delivery.id}');
+        Get.snackbar(
+          'Sucesso',
+          'Entrega aceita com sucesso!',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Get.theme.primaryColor,
+          colorText: Get.theme.colorScheme.onPrimary,
+        );
+      },
+      failure: (message, {code, exception}) {
+        AppLogger.error('❌ [DASHBOARD] Erro ao aceitar entrega: $message', exception);
+        Get.snackbar(
+          'Erro',
+          message,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Get.theme.colorScheme.error,
+          colorText: Get.theme.colorScheme.onError,
+        );
+      },
+    );
   }
 
   /// Atualiza todos os dados
@@ -153,36 +187,6 @@ class EntregadorDashboardController extends GetxController {
     Get.toNamed('/entregador/delivery/${delivery.id}');
   }
 
-  /// Aceita uma entrega rapidamente
-  Future<void> quickAcceptDelivery(OrderModel delivery) async {
-    try {
-      await _repository.acceptDelivery(delivery.id);
-      
-      // Remove da lista de ativas e recarrega
-      _activeDeliveries.remove(delivery);
-      await loadActiveDeliveries();
-      
-      AppLogger.info('✅ [DASHBOARD] Entrega aceita rapidamente: ${delivery.id}');
-      
-      Get.snackbar(
-        'Sucesso',
-        'Entrega aceita com sucesso!',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.primaryColor,
-        colorText: Get.theme.colorScheme.onPrimary,
-      );
-    } catch (e) {
-      AppLogger.error('❌ [DASHBOARD] Erro ao aceitar entrega', e);
-      
-      Get.snackbar(
-        'Erro',
-        'Não foi possível aceitar a entrega',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError,
-      );
-    }
-  }
 
   /// Verifica se pode aceitar entregas
   bool get canAcceptDeliveries {

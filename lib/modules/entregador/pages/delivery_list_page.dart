@@ -37,13 +37,13 @@ class DeliveryListPage extends GetView<DeliveryListController> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 64, color: Colors.red),
-                SizedBox(height: 16),
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
                 Text(controller.errorMessage),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: controller.loadDeliveries,
-                  child: Text('Tentar Novamente'),
+                  child: const Text('Tentar Novamente'),
                 ),
               ],
             ),
@@ -303,7 +303,7 @@ class DeliveryListPage extends GetView<DeliveryListController> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Deseja aceitar esta entrega?'),
+            const Text('Deseja aceitar esta entrega?'),
             const SizedBox(height: 16),
             _buildDeliveryInfo(delivery),
           ],

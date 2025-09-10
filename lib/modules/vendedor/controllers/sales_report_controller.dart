@@ -192,7 +192,7 @@ class SalesReportController extends GetxController {
       // Gerar nome do arquivo
       final startDateStr = DateFormat('ddMMyyyy').format(_startDate.value!);
       final endDateStr = DateFormat('ddMMyyyy').format(_endDate.value!);
-      final fileName = 'relatorio_vendas_${startDateStr}_${endDateStr}.pdf';
+      final fileName = 'relatorio_vendas_${startDateStr}_$endDateStr.pdf';
 
       // Gerar PDF
       final pdfBytes = await _pdfService.generateSalesReport(

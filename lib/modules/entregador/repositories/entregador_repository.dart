@@ -4,6 +4,7 @@ import '../../../core/services/api_service.dart';
 import '../../../utils/logger.dart';
 import '../models/delivery_stats_model.dart';
 import '../models/entregador_profile_model.dart';
+import '../../../core/utils/result.dart';
 
 class EntregadorRepository {
   final ApiService _apiService = Get.find<ApiService>();
@@ -208,6 +209,158 @@ class EntregadorRepository {
     } catch (e) {
       AppLogger.error('Erro ao atualizar disponibilidade', e);
       rethrow;
+    }
+  }
+
+  // ===== Variantes com Result<T> (sufixo R) =====
+  Future<Result<List<OrderModel>>> getAvailableDeliveriesR() async {
+    try {
+      final response = await _apiService.get('/entregador/deliveries/available');
+      if (response['success'] == true) {
+        final List<dynamic> deliveriesJson = response['deliveries'] ?? [];
+        final deliveries = deliveriesJson.map((json) {
+          try {
+            return OrderModel.fromJson(json);
+          } catch (e) {
+            AppLogger.error('Erro ao converter entrega', e);
+            return null;
+          }
+        }).where((order) => order != null).cast<OrderModel>().toList();
+        return Success(deliveries);
+      }
+      return Failure(response['message'] ?? 'Erro ao carregar entregas', code: response['statusCode']);
+    } catch (e) {
+      AppLogger.error('Erro ao carregar entregas disponíveis', e);
+      return Failure('Erro de conexão', exception: e);
+    }
+  }
+
+  Future<Result<void>> acceptDeliveryR(String orderId) async {
+    try {
+      final response = await _apiService.post('/entregador/deliveries/$orderId/accept', {});
+      if (response['success'] == true) {
+        return const Success(null);
+      }
+      return Failure(response['message'] ?? 'Erro ao aceitar entrega', code: response['statusCode']);
+    } catch (e) {
+      AppLogger.error('Erro ao aceitar entrega', e);
+      return Failure('Erro de conexão', exception: e);
+    }
+  }
+
+  Future<Result<void>> updateDeliveryStatusR(String orderId, String newStatus) async {
+    try {
+      final response = await _apiService.put('/entregador/deliveries/$orderId/status', {'status': newStatus});
+      if (response['success'] == true) {
+        return const Success(null);
+      }
+      return Failure(response['message'] ?? 'Erro ao atualizar status', code: response['statusCode']);
+    } catch (e) {
+      AppLogger.error('Erro ao atualizar status da entrega', e);
+      return Failure('Erro de conexão', exception: e);
+    }
+  }
+
+  Future<Result<List<OrderModel>>> getActiveDeliveriesR() async {
+    try {
+      final response = await _apiService.get('/entregador/deliveries/active');
+      if (response['success'] == true) {
+        final List<dynamic> deliveriesJson = response['deliveries'] ?? [];
+        final deliveries = deliveriesJson.map((json) {
+          try {
+            return OrderModel.fromJson(json);
+          } catch (e) {
+            AppLogger.error('Erro ao converter entrega ativa', e);
+            return null;
+          }
+        }).where((order) => order != null).cast<OrderModel>().toList();
+        return Success(deliveries);
+      }
+      return Failure(response['message'] ?? 'Erro ao carregar entregas ativas', code: response['statusCode']);
+    } catch (e) {
+      AppLogger.error('Erro ao carregar entregas ativas', e);
+      return Failure('Erro de conexão', exception: e);
+    }
+  }
+
+  Future<Result<List<OrderModel>>> getDeliveryHistoryR({int page = 1, int limit = 20}) async {
+    try {
+      final response = await _apiService.get('/entregador/deliveries/history?page=$page&limit=$limit');
+      if (response['success'] == true) {
+        final List<dynamic> deliveriesJson = response['deliveries'] ?? [];
+        final deliveries = deliveriesJson.map((json) {
+          try {
+            return OrderModel.fromJson(json);
+          } catch (e) {
+            AppLogger.error('Erro ao converter entrega do histórico', e);
+            return null;
+          }
+        }).where((order) => order != null).cast<OrderModel>().toList();
+        return Success(deliveries);
+      }
+      return Failure(response['message'] ?? 'Erro ao carregar histórico', code: response['statusCode']);
+    } catch (e) {
+      AppLogger.error('Erro ao carregar histórico de entregas', e);
+      return Failure('Erro de conexão', exception: e);
+    }
+  }
+
+  Future<Result<DeliveryStatsModel>> getDeliveryStatsR() async {
+    try {
+      final response = await _apiService.get('/entregador/stats');
+      if (response['success'] == true) {
+        final stats = DeliveryStatsModel.fromJson(response['stats'] ?? {});
+        return Success(stats);
+      }
+      return Failure(response['message'] ?? 'Erro ao carregar estatísticas', code: response['statusCode']);
+    } catch (e) {
+      AppLogger.error('Erro ao carregar estatísticas do entregador', e);
+      return Failure('Erro de conexão', exception: e);
+    }
+  }
+
+  Future<Result<EntregadorProfileModel>> getProfileR() async {
+    try {
+      final response = await _apiService.get('/entregador/profile');
+      if (response['success'] == true) {
+        final profile = EntregadorProfileModel.fromJson(response['profile'] ?? {});
+        return Success(profile);
+      }
+      return Failure(response['message'] ?? 'Erro ao carregar perfil', code: response['statusCode']);
+    } catch (e) {
+      AppLogger.error('Erro ao carregar perfil', e);
+      return Failure('Erro de conexão', exception: e);
+    }
+  }
+
+  Future<Result<OrderModel?>> getDeliveryByIdR(String orderId) async {
+    try {
+      final response = await _apiService.get('/entregador/deliveries/$orderId');
+      if (response['success'] == true) {
+        final deliveryJson = response['delivery'];
+        if (deliveryJson != null) {
+          final delivery = OrderModel.fromJson(deliveryJson);
+          return Success<OrderModel?>(delivery);
+        }
+        return const Success<OrderModel?>(null);
+      }
+      return Failure(response['message'] ?? 'Erro ao carregar entrega', code: response['statusCode']);
+    } catch (e) {
+      AppLogger.error('Erro ao carregar entrega por ID', e);
+      return Failure('Erro de conexão', exception: e);
+    }
+  }
+
+  Future<Result<void>> updateAvailabilityR(bool isAvailable) async {
+    try {
+      final response = await _apiService.put('/entregador/availability', {'is_available': isAvailable});
+      if (response['success'] == true) {
+        return const Success(null);
+      }
+      return Failure(response['message'] ?? 'Erro ao atualizar disponibilidade', code: response['statusCode']);
+    } catch (e) {
+      AppLogger.error('Erro ao atualizar disponibilidade', e);
+      return Failure('Erro de conexão', exception: e);
     }
   }
 }

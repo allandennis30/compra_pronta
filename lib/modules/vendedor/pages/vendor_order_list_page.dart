@@ -232,7 +232,7 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
                               width: 1,
                             ),
                           ),
-                          child: Row(
+                          child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
@@ -240,7 +240,7 @@ class VendorOrderListPage extends GetView<VendorOrderListController> {
                                 size: 14,
                                 color: Colors.white,
                               ),
-                              const SizedBox(width: 4),
+                              SizedBox(width: 4),
                               Text(
                                 'MONTADO',
                                 style: TextStyle(

@@ -490,33 +490,6 @@ class VendorProductFormPage extends GetView<VendorProductFormController> {
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirmar Exclusão'),
-          content: const Text(
-              'Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Get.back();
-              },
-            ),
-            TextButton(
-              child: const Text('Excluir'),
-              onPressed: () {
-                controller.deleteProduct();
-                Get.back();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   void _showCreateCategoryDialog() {
     final TextEditingController categoryController = TextEditingController();

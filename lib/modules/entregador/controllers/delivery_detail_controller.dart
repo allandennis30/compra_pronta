@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import '../../../core/models/order_model.dart';
+import '../../../core/utils/result.dart';
 import '../../../utils/logger.dart';
 import '../repositories/entregador_repository.dart';
 
@@ -48,52 +49,73 @@ class DeliveryDetailController extends GetxController {
       _isUpdatingStatus.value = true;
       _errorMessage.value = '';
 
-      await _repository.updateDeliveryStatus(_delivery.value!.id, newStatus);
-      
-      // Atualização local do status
-      final currentDelivery = _delivery.value!;
-      final updatedDelivery = OrderModel(
-        id: currentDelivery.id,
-        userId: currentDelivery.userId,
-        clientName: currentDelivery.clientName,
-        clientEmail: currentDelivery.clientEmail,
-        clientPhone: currentDelivery.clientPhone,
-        items: currentDelivery.items,
-        subtotal: currentDelivery.subtotal,
-        deliveryFee: currentDelivery.deliveryFee,
-        total: currentDelivery.total,
-        status: newStatus,
-        paymentMethod: currentDelivery.paymentMethod,
-        deliveryInstructions: currentDelivery.deliveryInstructions,
-        createdAt: currentDelivery.createdAt,
-        deliveredAt: currentDelivery.deliveredAt,
-        estimatedDeliveryTime: currentDelivery.estimatedDeliveryTime,
-        updatedAt: DateTime.now(),
-        deliveryAddress: currentDelivery.deliveryAddress,
-        notes: currentDelivery.notes,
-        sellerId: currentDelivery.sellerId,
-        sellerName: currentDelivery.sellerName,
-      );
-      _delivery.value = updatedDelivery;
+      final Result<void> result = await _repository.updateDeliveryStatusR(_delivery.value!.id, newStatus);
+      result.when(
+        success: (_) {
+          final currentDelivery = _delivery.value!;
+          final updatedDelivery = OrderModel(
+            id: currentDelivery.id,
+            userId: currentDelivery.userId,
+            clientName: currentDelivery.clientName,
+            clientEmail: currentDelivery.clientEmail,
+            clientPhone: currentDelivery.clientPhone,
+            items: currentDelivery.items,
+            subtotal: currentDelivery.subtotal,
+            deliveryFee: currentDelivery.deliveryFee,
+            total: currentDelivery.total,
+            status: newStatus,
+            paymentMethod: currentDelivery.paymentMethod,
+            deliveryInstructions: currentDelivery.deliveryInstructions,
+            createdAt: currentDelivery.createdAt,
+            deliveredAt: currentDelivery.deliveredAt,
+            estimatedDeliveryTime: currentDelivery.estimatedDeliveryTime,
+            updatedAt: DateTime.now(),
+            deliveryAddress: currentDelivery.deliveryAddress,
+            notes: currentDelivery.notes,
+            sellerId: currentDelivery.sellerId,
+            sellerName: currentDelivery.sellerName,
+          );
+          _delivery.value = updatedDelivery;
 
-      Get.snackbar(
-        'Sucesso',
-        'Status da entrega atualizado!',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-
-      AppLogger.info('✅ [DELIVERY_DETAIL] Status atualizado para: $newStatus');
-    } catch (e) {
-      _errorMessage.value = 'Erro ao atualizar status: $e';
-      AppLogger.error('❌ [DELIVERY_DETAIL] Erro ao atualizar status', e);
-      
-      Get.snackbar(
-        'Erro',
-        'Não foi possível atualizar o status',
-        snackPosition: SnackPosition.BOTTOM,
+          Get.snackbar('Sucesso', 'Status da entrega atualizado!', snackPosition: SnackPosition.BOTTOM);
+          AppLogger.info('✅ [DELIVERY_DETAIL] Status atualizado para: $newStatus');
+        },
+        failure: (message, {code, exception}) {
+          _errorMessage.value = message;
+          AppLogger.error('❌ [DELIVERY_DETAIL] Erro ao atualizar status: $message', exception);
+          Get.snackbar('Erro', message, snackPosition: SnackPosition.BOTTOM);
+        },
       );
     } finally {
       _isUpdatingStatus.value = false;
+    }
+  }
+
+  Future<void> loadDeliveryDetails() async {
+    if (_delivery.value == null) {
+      _errorMessage.value = 'Entrega não encontrada';
+      return;
+    }
+
+    try {
+      _isLoading.value = true;
+      _errorMessage.value = '';
+
+      final Result<OrderModel?> result = await _repository.getDeliveryByIdR(_delivery.value!.id);
+      result.when(
+        success: (updatedDelivery) {
+          if (updatedDelivery != null) {
+            _delivery.value = updatedDelivery;
+            AppLogger.info('✅ [DELIVERY_DETAIL] Entrega recarregada: ${updatedDelivery.id}');
+          }
+        },
+        failure: (message, {code, exception}) {
+          _errorMessage.value = message;
+          AppLogger.error('❌ [DELIVERY_DETAIL] Erro ao recarregar entrega: $message', exception);
+        },
+      );
+    } finally {
+      _isLoading.value = false;
     }
   }
 
@@ -128,30 +150,6 @@ class DeliveryDetailController extends GetxController {
         'Funcionalidade em desenvolvimento',
         snackPosition: SnackPosition.BOTTOM,
       );
-    }
-  }
-
-  Future<void> loadDeliveryDetails() async {
-    if (_delivery.value == null) {
-      _errorMessage.value = 'Entrega não encontrada';
-      return;
-    }
-
-    try {
-      _isLoading.value = true;
-      _errorMessage.value = '';
-      
-      // Recarrega os dados da entrega do servidor
-      final updatedDelivery = await _repository.getDeliveryById(_delivery.value!.id);
-      if (updatedDelivery != null) {
-        _delivery.value = updatedDelivery;
-        AppLogger.info('✅ [DELIVERY_DETAIL] Entrega recarregada: ${updatedDelivery.id}');
-      }
-    } catch (e) {
-      _errorMessage.value = 'Erro ao recarregar entrega: $e';
-      AppLogger.error('❌ [DELIVERY_DETAIL] Erro ao recarregar entrega', e);
-    } finally {
-      _isLoading.value = false;
     }
   }
 

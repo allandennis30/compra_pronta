@@ -72,7 +72,7 @@ class _CampoEditavelState extends State<CampoEditavel> {
         controller: _controller,
         focusNode: _focusNode,
         decoration: InputDecoration(
-            labelText: widget.label, border: OutlineInputBorder()),
+            labelText: widget.label, border: const OutlineInputBorder()),
         onChanged: widget.onChanged,
         maxLines: widget.maxLines,
         enabled: widget.enabled,

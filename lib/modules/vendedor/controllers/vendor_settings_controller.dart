@@ -313,14 +313,14 @@ class VendedorSettingsController extends GetxController {
 
   void _inicializarHorariosFuncionamento() {
     // Inicializa todos os dias da semana com o mesmo horário padrão
-    final horaInicioPadrao = TimeOfDay(hour: 8, minute: 0);
-    final horaFimPadrao = TimeOfDay(hour: 18, minute: 0);
+    const horaInicioPadrao = TimeOfDay(hour: 8, minute: 0);
+    const horaFimPadrao = TimeOfDay(hour: 18, minute: 0);
 
     horariosFuncionamento.clear();
 
     // Segunda a sexta: horário comercial
     for (int i = 0; i < 5; i++) {
-      horariosFuncionamento.add(HorarioFuncionamento(
+      horariosFuncionamento.add(const HorarioFuncionamento(
         horarioInicio: horaInicioPadrao,
         horarioFim: horaFimPadrao,
         ativo: true,
@@ -328,14 +328,14 @@ class VendedorSettingsController extends GetxController {
     }
 
     // Sábado: meio período
-    horariosFuncionamento.add(HorarioFuncionamento(
+    horariosFuncionamento.add(const HorarioFuncionamento(
       horarioInicio: horaInicioPadrao,
       horarioFim: TimeOfDay(hour: 13, minute: 0),
       ativo: true,
     ));
 
     // Domingo: fechado
-    horariosFuncionamento.add(HorarioFuncionamento(
+    horariosFuncionamento.add(const HorarioFuncionamento(
       horarioInicio: horaInicioPadrao,
       horarioFim: horaFimPadrao,
       ativo: false,

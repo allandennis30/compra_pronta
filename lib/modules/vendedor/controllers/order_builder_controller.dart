@@ -217,7 +217,7 @@ class OrderBuilderController extends GetxController {
           if (isNowComplete) {
             Get.snackbar(
               'Item Completo!',
-              'Produto ${product.name} escaneado completamente (${newScannedQuantity}/${currentItem.orderItem.quantity})',
+              'Produto ${product.name} escaneado completamente ($newScannedQuantity/${currentItem.orderItem.quantity})',
               snackPosition: SnackPosition.TOP,
               backgroundColor: Get.theme.colorScheme.primary,
               colorText: Get.theme.colorScheme.onPrimary,
@@ -226,7 +226,7 @@ class OrderBuilderController extends GetxController {
           } else {
             Get.snackbar(
               'Produto Adicionado',
-              'Produto ${product.name} (${newScannedQuantity}/${currentItem.orderItem.quantity})',
+              'Produto ${product.name} ($newScannedQuantity/${currentItem.orderItem.quantity})',
               snackPosition: SnackPosition.TOP,
               backgroundColor: Get.theme.colorScheme.secondary,
               colorText: Get.theme.colorScheme.onSecondary,

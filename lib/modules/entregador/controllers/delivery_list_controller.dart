@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import '../../../core/models/order_model.dart';
 import '../../../utils/logger.dart';
 import '../repositories/entregador_repository.dart';
+import '../../../core/utils/result.dart';
 
 class DeliveryListController extends GetxController {
   final EntregadorRepository _repository = Get.find<EntregadorRepository>();
@@ -35,18 +36,17 @@ class DeliveryListController extends GetxController {
     try {
       _isLoading.value = true;
       _errorMessage.value = '';
-      
-      final availableDeliveries = await _repository.getAvailableDeliveries();
-      _deliveries.assignAll(availableDeliveries);
-      
-      AppLogger.info('✅ [DELIVERY_LIST] ${_deliveries.length} entregas carregadas com sucesso');
-    } catch (e) {
-      _errorMessage.value = 'Erro ao carregar entregas: $e';
-      AppLogger.error('❌ [DELIVERY_LIST] Erro ao carregar entregas', e);
-      Get.snackbar(
-        'Erro',
-        'Não foi possível carregar as entregas',
-        snackPosition: SnackPosition.BOTTOM,
+      final Result<List<OrderModel>> result = await _repository.getAvailableDeliveriesR();
+      result.when(
+        success: (data) {
+          _deliveries.assignAll(data);
+          AppLogger.info('✅ [DELIVERY_LIST] ${_deliveries.length} entregas carregadas com sucesso');
+        },
+        failure: (message, {code, exception}) {
+          _errorMessage.value = message;
+          AppLogger.error('❌ [DELIVERY_LIST] Erro ao carregar entregas: $message', exception);
+          Get.snackbar('Erro', message, snackPosition: SnackPosition.BOTTOM);
+        },
       );
     } finally {
       _isLoading.value = false;
@@ -57,36 +57,27 @@ class DeliveryListController extends GetxController {
     await loadDeliveries();
   }
 
-  void filterByStatus(String status) {
+  Future<void> filterByStatus(String status) async {
     _selectedStatus.value = status;
-    // Implementar filtro local ou recarregar com filtro
-    loadDeliveries();
+    await loadDeliveries();
   }
 
   /// Aceita uma entrega
   Future<void> acceptDelivery(OrderModel delivery) async {
-    try {
-      await _repository.acceptDelivery(delivery.id);
-      
-      // Remove da lista de disponíveis
-      _deliveries.remove(delivery);
-      
-      AppLogger.info('✅ [DELIVERY_LIST] Entrega aceita: ${delivery.id}');
-      
-      Get.snackbar(
-        'Sucesso',
-        'Entrega aceita com sucesso!',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    } catch (e) {
-      _errorMessage.value = 'Erro ao aceitar entrega: $e';
-      AppLogger.error('❌ [DELIVERY_LIST] Erro ao aceitar entrega', e);
-      Get.snackbar(
-        'Erro',
-        'Não foi possível aceitar a entrega',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    }
+    _errorMessage.value = '';
+    final Result<void> result = await _repository.acceptDeliveryR(delivery.id);
+    result.when(
+      success: (_) {
+        _deliveries.remove(delivery);
+        AppLogger.info('✅ [DELIVERY_LIST] Entrega aceita: ${delivery.id}');
+        Get.snackbar('Sucesso', 'Entrega aceita com sucesso!', snackPosition: SnackPosition.BOTTOM);
+      },
+      failure: (message, {code, exception}) {
+        _errorMessage.value = message;
+        AppLogger.error('❌ [DELIVERY_LIST] Erro ao aceitar entrega: $message', exception);
+        Get.snackbar('Erro', message, snackPosition: SnackPosition.BOTTOM);
+      },
+    );
   }
 
   void goToDeliveryDetail(OrderModel delivery) {

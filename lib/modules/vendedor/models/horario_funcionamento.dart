@@ -5,7 +5,7 @@ class HorarioFuncionamento {
   final TimeOfDay horarioInicio;
   final TimeOfDay horarioFim;
 
-  HorarioFuncionamento({
+  const HorarioFuncionamento({
     this.ativo = true,
     required this.horarioInicio,
     required this.horarioFim,
@@ -26,8 +26,8 @@ class HorarioFuncionamento {
 
   // Método para criar a partir de JSON
   factory HorarioFuncionamento.fromJson(Map<String, dynamic> json) {
-    TimeOfDay horarioInicio = TimeOfDay(hour: 8, minute: 0);
-    TimeOfDay horarioFim = TimeOfDay(hour: 18, minute: 0);
+    TimeOfDay horarioInicio = const TimeOfDay(hour: 8, minute: 0);
+    TimeOfDay horarioFim = const TimeOfDay(hour: 18, minute: 0);
 
     if (json['horarioInicio'] != null) {
       final horarioInicioStr = json['horarioInicio'];

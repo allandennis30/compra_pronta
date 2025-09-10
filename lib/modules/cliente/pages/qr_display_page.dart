@@ -45,7 +45,7 @@ class QRDisplayPage extends StatelessWidget {
                   color: Colors.green.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.qr_code,
                   size: 48,
                   color: Colors.green,
@@ -142,7 +142,8 @@ class QRDisplayPage extends StatelessWidget {
                   version: QrVersions.auto,
                   size: 250.0,
                   backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
+                  eyeStyle: const QrEyeStyle(color: Colors.black),
+                  dataModuleStyle: const QrDataModuleStyle(color: Colors.black),
                 ),
               ),
               const SizedBox(height: 24),

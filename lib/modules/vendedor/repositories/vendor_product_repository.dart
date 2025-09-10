@@ -74,7 +74,7 @@ class VendedorProductRepositoryImpl implements VendedorProductRepository {
     }
 
     // Simular delay de rede
-    await Future.delayed(Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 500));
 
     // Carregar produtos salvos pelo vendedor
     final vendorProducts = _loadVendedorProducts();
@@ -102,7 +102,7 @@ class VendedorProductRepositoryImpl implements VendedorProductRepository {
     }
 
     // Simular criação na API
-    await Future.delayed(Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 300));
 
     // Carregar produtos atuais
     final products = await getAll();
@@ -130,7 +130,7 @@ class VendedorProductRepositoryImpl implements VendedorProductRepository {
     }
 
     // Simular atualização na API
-    await Future.delayed(Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 300));
 
     // Carregar produtos atuais
     final products = await getAll();
@@ -156,7 +156,7 @@ class VendedorProductRepositoryImpl implements VendedorProductRepository {
     if (id.isEmpty) return false;
 
     // Simular exclusão na API
-    await Future.delayed(Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 300));
 
     // Carregar produtos atuais
     final products = await getAll();
@@ -213,7 +213,7 @@ class VendedorProductRepositoryImpl implements VendedorProductRepository {
     // e retornaria a URL da imagem
     // Aqui, vamos simular esse processo retornando uma URL fake
 
-    await Future.delayed(Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 300));
     final random = Random().nextInt(1000);
 
     // Usar uma URL de imagem real em vez de placeholder

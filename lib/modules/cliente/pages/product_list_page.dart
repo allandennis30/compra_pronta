@@ -576,20 +576,6 @@ class ProductListPage extends StatelessWidget {
     });
   }
 
-  Widget _buildLoadingIndicator() {
-    return const Padding(
-      padding: EdgeInsets.all(16.0),
-      child: Center(
-        child: Column(
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 8),
-            Text('Carregando mais produtos...'),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildPaginationInfo(BuildContext context) {
     return Obx(() {

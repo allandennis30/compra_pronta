@@ -265,7 +265,14 @@ class DeliveryManagementController extends GetxController {
               version: QrVersions.auto,
               size: 200.0,
               backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
+              eyeStyle: const QrEyeStyle(
+                eyeShape: QrEyeShape.square,
+                color: Colors.black,
+              ),
+              dataModuleStyle: const QrDataModuleStyle(
+                dataModuleShape: QrDataModuleShape.square,
+                color: Colors.black,
+              ),
             ),
           ),
           const SizedBox(height: 16),

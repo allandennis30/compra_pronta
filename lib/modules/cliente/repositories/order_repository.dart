@@ -290,7 +290,7 @@ class OrderRepositoryImpl implements OrderRepository {
         deliveryFee: 5.00,
         total: 11.90,
         status: 'delivering',
-        createdAt: DateTime.now().subtract(Duration(hours: 2)),
+        createdAt: DateTime.now().subtract(const Duration(hours: 2)),
         deliveryAddress: defaultAddress,
       ),
     ];

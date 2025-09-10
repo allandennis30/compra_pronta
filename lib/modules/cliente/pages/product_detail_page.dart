@@ -10,7 +10,7 @@ class ProductDetailPage extends GetView<ProductDetailController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       extendBodyBehindAppBar: true,
       appBar: _buildAppBar(context),
       body: _body(context),
@@ -90,7 +90,7 @@ class ProductDetailPage extends GetView<ProductDetailController> {
             end: Alignment.bottomCenter,
             colors: [
               Theme.of(Get.context!).colorScheme.primary.withOpacity(0.1),
-              Theme.of(Get.context!).colorScheme.background,
+              Theme.of(Get.context!).colorScheme.surface,
             ],
           ),
         ),
@@ -116,7 +116,7 @@ class ProductDetailPage extends GetView<ProductDetailController> {
             end: Alignment.bottomCenter,
             colors: [
               Theme.of(context).colorScheme.error.withOpacity(0.1),
-              Theme.of(context).colorScheme.background,
+              Theme.of(context).colorScheme.surface,
             ],
           ),
         ),
@@ -143,7 +143,7 @@ class ProductDetailPage extends GetView<ProductDetailController> {
                   'Produto não encontrado',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onBackground,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                 ),
                 const SizedBox(height: 16),
@@ -151,7 +151,7 @@ class ProductDetailPage extends GetView<ProductDetailController> {
                   'O produto que você está procurando\nnão está disponível no momento.',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                       ),
                 ),
                 const SizedBox(height: 40),
@@ -433,7 +433,7 @@ class ProductDetailPage extends GetView<ProductDetailController> {
                 // Add to Cart Button
                 Expanded(
                   flex: 3,
-                  child: Container(
+                  child: SizedBox(
                     height: 64, // Mesma altura do container do total (padding 12 + conteúdo)
                     child: FilledButton.icon(
                       onPressed: controller.canAddToCart ? () => controller.addToCart(context) : null,

@@ -217,7 +217,7 @@ class OrderItemCard extends StatelessWidget {
                           height: 32,
                           child: IconButton(
                             onPressed: onManualRemove,
-                            icon: Icon(
+                            icon: const Icon(
                               Icons.remove_circle_outline,
                               size: 18,
                             ),
@@ -238,7 +238,7 @@ class OrderItemCard extends StatelessWidget {
                           height: 32,
                           child: IconButton(
                             onPressed: onManualAdd,
-                            icon: Icon(
+                            icon: const Icon(
                               Icons.add_circle_outline,
                               size: 18,
                             ),

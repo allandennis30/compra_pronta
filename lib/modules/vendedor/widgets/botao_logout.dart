@@ -7,8 +7,8 @@ class BotaoLogout extends StatelessWidget {
   const BotaoLogout({
     required this.onLogout,
     required this.onAlterarSenha,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +33,9 @@ class BotaoLogout extends StatelessWidget {
                 ],
               ),
             );
-            if (confirm == true) onLogout();
+            if (confirm == true) {
+              onLogout();
+            }
           },
         ),
         TextButton(
@@ -56,8 +58,9 @@ class BotaoLogout extends StatelessWidget {
                 ],
               ),
             );
-            if (novaSenha != null && novaSenha.isNotEmpty)
+            if (novaSenha != null && novaSenha.isNotEmpty) {
               onAlterarSenha(novaSenha);
+            }
           },
         ),
       ],

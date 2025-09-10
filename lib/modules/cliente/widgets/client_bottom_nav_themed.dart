@@ -21,7 +21,7 @@ class ClientBottomNavThemed extends StatelessWidget {
       final itemCount = cartController.itemCount;
 
       final items = <ThemedBottomNavItemWithBadge>[
-        ThemedBottomNavItemWithBadge(
+        const ThemedBottomNavItemWithBadge(
           icon: Icons.home_outlined,
           activeIcon: Icons.home,
           label: 'Início',
@@ -32,12 +32,12 @@ class ClientBottomNavThemed extends StatelessWidget {
           label: 'Carrinho',
           badgeCount: itemCount,
         ),
-        ThemedBottomNavItemWithBadge(
+        const ThemedBottomNavItemWithBadge(
           icon: Icons.history_outlined,
           activeIcon: Icons.history,
           label: 'Histórico',
         ),
-        ThemedBottomNavItemWithBadge(
+        const ThemedBottomNavItemWithBadge(
           icon: Icons.person_outline,
           activeIcon: Icons.person,
           label: 'Perfil',

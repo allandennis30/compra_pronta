@@ -10,12 +10,12 @@ class ImagePickerWidget extends StatelessWidget {
   final VoidCallback onReset;
 
   const ImagePickerWidget({
-    Key? key,
+    super.key,
     this.selectedImage,
     this.imageUrl,
     required this.onPickImage,
     required this.onReset,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -109,9 +109,9 @@ class ImagePickerWidget extends StatelessWidget {
         onCamera: () => onPickImage(ImageSource.camera),
         onGallery: () => onPickImage(ImageSource.gallery),
       ),
-      child: Column(
+      child: const Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           Icon(
             Icons.add_photo_alternate,
             size: 64,

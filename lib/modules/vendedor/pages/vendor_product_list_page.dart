@@ -162,7 +162,7 @@ class VendorProductListPage extends GetView<VendedorProductListController> {
                         },
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             );

@@ -13,7 +13,7 @@ void main() async {
     }
     client.close();
   } catch (e) {
-
+    // Ignorado intencionalmente: teste de disponibilidade local pode falhar
     }
   
   // Teste 2: Verificar se o Render está acessível
@@ -27,6 +27,7 @@ void main() async {
     }
     client.close();
   } catch (e) {
+    // Ignorado intencionalmente: teste de disponibilidade remota pode falhar
   }
   
   // Teste 3: Simular lógica de fallback
@@ -49,6 +50,7 @@ Future<String> getBaseUrl() async {
       return 'https://mercax-backend.onrender.com';
     }
   } catch (e) {
+    // Ignorado: fallback continua
   }
   
   try {
@@ -63,6 +65,7 @@ Future<String> getBaseUrl() async {
       return 'http://192.168.3.43:3000';
     }
   } catch (e) {
+    // Ignorado: retorna padrão
   }
   
   return 'https://mercax-backend.onrender.com';

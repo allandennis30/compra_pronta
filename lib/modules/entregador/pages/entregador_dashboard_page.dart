@@ -90,7 +90,7 @@ class EntregadorDashboardPage extends GetView<EntregadorDashboardController> {
 
                 // Estatísticas
                 Obx(() => DeliveryStatsWidget(
-                   stats: controller.stats.value ?? DeliveryStatsModel(
+                   stats: controller.stats.value ?? const DeliveryStatsModel(
                      deliveriesToday: 0,
                      totalDeliveries: 0,
                      completedDeliveries: 0,
@@ -255,7 +255,7 @@ class EntregadorDashboardPage extends GetView<EntregadorDashboardController> {
                 const Spacer(),
                 TextButton(
                   onPressed: controller.goToAvailableDeliveries,
-                  child: Text('Ver Todas'),
+                  child: const Text('Ver Todas'),
                 ),
               ],
             ),
@@ -298,7 +298,7 @@ class EntregadorDashboardPage extends GetView<EntregadorDashboardController> {
                     ),
                     title: Text('Pedido #${delivery.id}'),
                     subtitle: Text('Cliente: Cliente ${delivery.id}'),
-                    trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () => controller.goToDeliveryDetail(delivery),
                   );
                 },

@@ -58,7 +58,7 @@ class VendorMetricsRepositoryImpl implements VendorMetricsRepository {
   @override
   Future<List<OrderModel>> getRecentOrders() async {
     try {
-  
+      
 
       // Buscar todos os pedidos do vendedor
       final allOrders = await _orderRepository.getVendorOrders();
@@ -81,7 +81,7 @@ class VendorMetricsRepositoryImpl implements VendorMetricsRepository {
   @override
   Future<List<OrderModel>> getAllOrders() async {
     try {
-  
+      
 
       // Buscar todos os pedidos do vendedor
       final allOrders = await _orderRepository.getVendorOrders();
@@ -101,7 +101,7 @@ class VendorMetricsRepositoryImpl implements VendorMetricsRepository {
   @override
   Future<List<Map<String, dynamic>>> getTopProducts() async {
     // Simular delay de rede
-    await Future.delayed(Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 300));
 
     return [
       {
@@ -126,9 +126,9 @@ class VendorMetricsRepositoryImpl implements VendorMetricsRepository {
   Future<Map<String, dynamic>> getSalesReport(
       {DateTime? startDate, DateTime? endDate}) async {
     // Simular delay de rede
-    await Future.delayed(Duration(milliseconds: 800));
+    await Future.delayed(const Duration(milliseconds: 800));
 
-    final start = startDate ?? DateTime.now().subtract(Duration(days: 30));
+    final start = startDate ?? DateTime.now().subtract(const Duration(days: 30));
     final end = endDate ?? DateTime.now();
 
     return {
