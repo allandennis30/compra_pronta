@@ -20,9 +20,11 @@ import '../modules/vendedor/pages/vendor_scan_page.dart';
 import '../modules/vendedor/pages/vendedor_settings_page.dart';
 import '../modules/vendedor/pages/order_builder_page.dart';
 import '../modules/vendedor/pages/delivery_management_page.dart';
+import '../modules/entregador/pages/entregador_main_page.dart';
 import '../modules/auth/controllers/auth_controller.dart';
 import '../core/bindings/cliente_binding.dart';
 import '../core/bindings/vendedor_binding.dart';
+import '../modules/entregador/bindings/entregador_binding.dart';
 import '../modules/cliente/bindings/product_detail_binding.dart';
 import '../modules/cliente/bindings/checkout_binding.dart';
 import '../modules/vendedor/bindings/vendedor_settings_binding.dart';
@@ -59,6 +61,7 @@ abstract class Routes {
   static const vendorConfig = '/vendor/config';
   static const vendorOrderBuilder = '/vendor/order-builder';
   static const vendorDeliveryManagement = '/vendor/delivery-management';
+  static const entregadorMain = '/entregador';
 }
 
 class AppPages {
@@ -178,6 +181,12 @@ class AppPages {
       name: Routes.vendorDeliveryManagement,
       page: () => const DeliveryManagementPage(),
       binding: VendedorBinding(),
+    ),
+    // Entregador
+    GetPage(
+      name: Routes.entregadorMain,
+      page: () => const EntregadorMainPage(),
+      binding: EntregadorBinding(),
     ),
   ];
 }
