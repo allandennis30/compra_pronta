@@ -15,13 +15,21 @@ import '../repositories/repository_factory.dart';
 class ClienteBinding extends Bindings {
   @override
   void dependencies() {
-    // Repositories usando factory
-    Get.lazyPut<AuthRepository>(() => RepositoryFactory.createAuthRepository());
-    Get.lazyPut<ProductRepository>(
-        () => RepositoryFactory.createProductRepository());
-    Get.lazyPut<CartRepository>(() => RepositoryFactory.createCartRepository());
-    Get.lazyPut<OrderRepository>(
-        () => RepositoryFactory.createOrderRepository());
+    // Repositories usando factory (apenas se não existirem globalmente)
+    if (!Get.isRegistered<AuthRepository>()) {
+      Get.lazyPut<AuthRepository>(() => RepositoryFactory.createAuthRepository());
+    }
+    if (!Get.isRegistered<ProductRepository>()) {
+      Get.lazyPut<ProductRepository>(
+          () => RepositoryFactory.createProductRepository());
+    }
+    if (!Get.isRegistered<CartRepository>()) {
+      Get.lazyPut<CartRepository>(() => RepositoryFactory.createCartRepository());
+    }
+    if (!Get.isRegistered<OrderRepository>()) {
+      Get.lazyPut<OrderRepository>(
+          () => RepositoryFactory.createOrderRepository());
+    }
     Get.lazyPut<DeliveryRepository>(() => DeliveryRepository());
 
     // Services
@@ -32,6 +40,8 @@ class ClienteBinding extends Bindings {
     Get.lazyPut<CartController>(() => CartController());
     Get.lazyPut<OrderHistoryController>(() => OrderHistoryController());
     Get.lazyPut<ProfileController>(() => ProfileController());
-    Get.lazyPut<DeliveryController>(() => DeliveryController());
+    if (!Get.isRegistered<DeliveryController>()) {
+      Get.lazyPut<DeliveryController>(() => DeliveryController());
+    }
   }
 }

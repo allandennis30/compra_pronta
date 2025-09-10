@@ -10,7 +10,8 @@ class DeliveryModeSwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final DeliveryController deliveryController = Get.find<DeliveryController>();
+    final DeliveryController deliveryController =
+        Get.find<DeliveryController>();
 
     return Obx(() {
       // Só mostra o switch se o usuário for entregador
@@ -52,10 +53,10 @@ class DeliveryModeSwitch extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Alterne entre comprar e entregar',
+                        'Alterne para o modo entregador',
                         style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
+                          fontSize: 16,
+                          color: Colors.grey[700],
                         ),
                       ),
                     ],
@@ -66,14 +67,6 @@ class DeliveryModeSwitch extends StatelessWidget {
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(
-                  child: _buildModeButton(
-                    'Cliente',
-                    Icons.shopping_cart,
-                    true, // isClientMode
-                    () => _switchToClientMode(),
-                  ),
-                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildModeButton(
@@ -109,9 +102,7 @@ class DeliveryModeSwitch extends StatelessWidget {
           horizontal: 16,
         ),
         decoration: BoxDecoration(
-          color: isCurrentRoute
-              ? Colors.orange
-              : Colors.white,
+          color: isCurrentRoute ? Colors.orange : Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: Colors.orange,
@@ -132,18 +123,14 @@ class DeliveryModeSwitch extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isCurrentRoute
-                  ? Colors.white
-                  : Colors.orange,
+              color: isCurrentRoute ? Colors.white : Colors.orange,
               size: 20,
             ),
             const SizedBox(width: 8),
             Text(
               title,
               style: TextStyle(
-                color: isCurrentRoute
-                    ? Colors.white
-                    : Colors.orange,
+                color: isCurrentRoute ? Colors.white : Colors.orange,
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),
@@ -157,7 +144,7 @@ class DeliveryModeSwitch extends StatelessWidget {
   void _switchToClientMode() async {
     final authController = Get.find<AuthController>();
     await authController.saveUserMode('cliente');
-    
+
     Get.offAll(
       () => const ClienteMainPage(),
       transition: Transition.fadeIn,
@@ -168,7 +155,7 @@ class DeliveryModeSwitch extends StatelessWidget {
   void _switchToDeliveryMode() async {
     final authController = Get.find<AuthController>();
     await authController.saveUserMode('entregador');
-    
+
     Get.offAll(
       () => const DeliveryMainPage(),
       transition: Transition.fadeIn,

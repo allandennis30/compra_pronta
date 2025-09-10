@@ -95,72 +95,75 @@ class DeliveryStatsPage extends StatelessWidget {
                   ),
                 ),
                 Row(
-                   children: [
-                     Obx(() => controller.isLoading.value
-                       ? const SizedBox(
-                           width: 20,
-                           height: 20,
-                           child: CircularProgressIndicator(
-                             strokeWidth: 2,
-                             valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                           ),
-                         )
-                       : const SizedBox.shrink(),
-                     ),
-                     const SizedBox(width: 8),
-                     IconButton(
-                       icon: const Icon(Icons.calendar_today),
-                       onPressed: () => _showCustomDatePicker(controller),
-                       tooltip: 'Selecionar período personalizado',
-                     ),
-                   ],
-                 ),
+                  children: [
+                    Obx(
+                      () => controller.isLoading.value
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.blue),
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.calendar_today),
+                      onPressed: () => _showCustomDatePicker(controller),
+                      tooltip: 'Selecionar período personalizado',
+                    ),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 12),
             Obx(() => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.blue.withOpacity(0.3)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.date_range,
-                    size: 16,
-                    color: Colors.blue[700],
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
                   ),
-                  const SizedBox(width: 6),
-                  Text(
-                    controller.currentPeriodText,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.blue[700],
-                      fontWeight: FontWeight.w600,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.date_range,
+                        size: 16,
+                        color: Colors.blue[700],
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        controller.currentPeriodText,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.blue[700],
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            )),
+                )),
             const SizedBox(height: 16),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: controller.availablePeriods.map((period) {
                 return Obx(() => FilterChip(
-                  label: Text(period),
-                  selected: controller.selectedPeriod.value == period,
-                  onSelected: (selected) {
-                    if (selected) {
-                      controller.applyPredefinedPeriod(period);
-                    }
-                  },
-                  selectedColor: Colors.blue.withOpacity(0.2),
-                  checkmarkColor: Colors.blue,
-                ));
+                      label: Text(period),
+                      selected: controller.selectedPeriod.value == period,
+                      onSelected: (selected) {
+                        if (selected) {
+                          controller.applyPredefinedPeriod(period);
+                        }
+                      },
+                      selectedColor: Colors.blue.withOpacity(0.2),
+                      checkmarkColor: Colors.blue,
+                    ));
               }).toList(),
             ),
           ],
@@ -175,7 +178,8 @@ class DeliveryStatsPage extends StatelessWidget {
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
       initialDateRange: DateTimeRange(
-        start: controller.startDate.value ?? DateTime.now().subtract(const Duration(days: 30)),
+        start: controller.startDate.value ??
+            DateTime.now().subtract(const Duration(days: 30)),
         end: controller.endDate.value ?? DateTime.now(),
       ),
       builder: (context, child) {
@@ -257,7 +261,8 @@ class DeliveryStatsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+      String title, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -315,7 +320,8 @@ class DeliveryStatsPage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: controller.monthlyGrowth >= 0 ? Colors.green : Colors.red,
+                color:
+                    controller.monthlyGrowth >= 0 ? Colors.green : Colors.red,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -361,7 +367,7 @@ class DeliveryStatsPage extends StatelessWidget {
                     final maxEarnings = controller.monthlyStats
                         .map((s) => s['earnings'] ?? 0.0)
                         .reduce((a, b) => a > b ? a : b);
-                    
+
                     return _buildChartBar(
                       stat['month'],
                       deliveries,
@@ -399,10 +405,11 @@ class DeliveryStatsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildChartBar(String month, int deliveries, double earnings, double maxDeliveries, double maxEarnings) {
+  Widget _buildChartBar(String month, int deliveries, double earnings,
+      double maxDeliveries, double maxEarnings) {
     final deliveryHeight = (deliveries / maxDeliveries) * 100;
     final earningsHeight = (earnings / maxEarnings) * 100;
-    
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -516,7 +523,9 @@ class DeliveryStatsPage extends StatelessWidget {
                     Row(
                       children: List.generate(5, (index) {
                         return Icon(
-                          index < delivery['rating'] ? Icons.star : Icons.star_border,
+                          index < delivery['rating']
+                              ? Icons.star
+                              : Icons.star_border,
                           color: Colors.orange,
                           size: 16,
                         );
@@ -527,7 +536,7 @@ class DeliveryStatsPage extends StatelessWidget {
               ],
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }

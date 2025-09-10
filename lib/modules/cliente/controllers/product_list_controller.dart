@@ -246,8 +246,8 @@ class ProductListController extends GetxController {
 
   // Método de teste para debug
   void debugCategories() {
-    AppLogger.info('Categorias disponíveis: ${_availableCategories}');
-    AppLogger.info('Categorias para exibição: ${categories}');
+    AppLogger.info('Categorias disponíveis: $_availableCategories');
+    AppLogger.info('Categorias para exibição: $categories');
     AppLogger.info('Categoria selecionada: ${_selectedCategory.value}');
   }
 

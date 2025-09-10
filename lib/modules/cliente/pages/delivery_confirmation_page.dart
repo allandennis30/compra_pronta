@@ -4,14 +4,16 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../controllers/delivery_confirmation_controller.dart';
 
 class DeliveryConfirmationPage extends StatefulWidget {
-  const DeliveryConfirmationPage({Key? key}) : super(key: key);
+  const DeliveryConfirmationPage({super.key});
 
   @override
-  State<DeliveryConfirmationPage> createState() => _DeliveryConfirmationPageState();
+  State<DeliveryConfirmationPage> createState() =>
+      _DeliveryConfirmationPageState();
 }
 
 class _DeliveryConfirmationPageState extends State<DeliveryConfirmationPage> {
-  final DeliveryConfirmationController controller = Get.put(DeliveryConfirmationController());
+  final DeliveryConfirmationController controller =
+      Get.put(DeliveryConfirmationController());
   MobileScannerController? scannerController;
   bool isScanning = true;
 
@@ -46,18 +48,18 @@ class _DeliveryConfirmationPageState extends State<DeliveryConfirmationPage> {
         if (controller.isSuccess.value) {
           return _buildSuccessView();
         }
-        
+
         return Stack(
           children: [
             // Scanner
             if (isScanning) _buildScanner(),
-            
+
             // Overlay com instruções
             _buildOverlay(),
-            
+
             // Loading indicator
             if (controller.isLoading.value) _buildLoadingOverlay(),
-            
+
             // Error message
             if (controller.errorMessage.isNotEmpty) _buildErrorMessage(),
           ],
@@ -71,7 +73,7 @@ class _DeliveryConfirmationPageState extends State<DeliveryConfirmationPage> {
       controller: scannerController,
       onDetect: (capture) {
         if (!isScanning || controller.isLoading.value) return;
-        
+
         final List<Barcode> barcodes = capture.barcodes;
         for (final barcode in barcodes) {
           if (barcode.rawValue != null) {
@@ -113,7 +115,7 @@ class _DeliveryConfirmationPageState extends State<DeliveryConfirmationPage> {
               ),
             ),
           ),
-          
+
           // Instruções
           Positioned(
             top: 100,
@@ -155,7 +157,7 @@ class _DeliveryConfirmationPageState extends State<DeliveryConfirmationPage> {
               ),
             ),
           ),
-          
+
           // Botão para tentar novamente
           if (!isScanning && !controller.isLoading.value)
             Positioned(

@@ -38,7 +38,7 @@ class ClienteMainPage extends StatelessWidget {
     final List<Widget> pages = [
       ProductListPage(),
       const CartPage(),
-      OrderHistoryPage(),
+      const OrderHistoryPage(),
       const ProfilePage(),
     ];
 

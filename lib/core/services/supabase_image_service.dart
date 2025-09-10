@@ -386,7 +386,7 @@ class SupabaseImageService {
       );
 
       AppLogger.info(
-          '📸 [SUPABASE] Imagem redimensionada: ${newWidth}x${newHeight}');
+          '📸 [SUPABASE] Imagem redimensionada: ${newWidth}x$newHeight');
 
       // Comprimir com qualidade progressiva
       int quality = 85;
@@ -414,7 +414,7 @@ class SupabaseImageService {
           );
           quality = 85;
           AppLogger.info(
-              '📸 [SUPABASE] Reduzindo resolução para: ${newWidth}x${newHeight}');
+              '📸 [SUPABASE] Reduzindo resolução para: ${newWidth}x$newHeight');
         }
       } while (compressedBytes.length > targetSize &&
           (newWidth > 300 || newHeight > 300));

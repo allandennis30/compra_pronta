@@ -8,10 +8,10 @@ class QRScannerPage extends StatefulWidget {
   final String? orderId; // Para confirmação de entrega
 
   const QRScannerPage({
-    Key? key,
+    super.key,
     required this.scanType,
     this.orderId,
-  }) : super(key: key);
+  });
 
   @override
   State<QRScannerPage> createState() => _QRScannerPageState();
@@ -84,9 +84,10 @@ class _QRScannerPageState extends State<QRScannerPage> {
             Obx(() => SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: _isScanning || _deliveryController.isLoading.value
-                        ? null
-                        : _scanQRCode,
+                    onPressed:
+                        _isScanning || _deliveryController.isLoading.value
+                            ? null
+                            : _scanQRCode,
                     icon: _isScanning || _deliveryController.isLoading.value
                         ? const SizedBox(
                             width: 20,
@@ -256,10 +257,10 @@ class _QRScannerPageState extends State<QRScannerPage> {
     try {
       // Usar o método público do controller
       await _deliveryController.registerAsDelivery(sellerId);
-      
+
       // Carregar dados de entrega
       await _deliveryController.loadDeliveryStores();
-      
+
       Get.snackbar(
         'Sucesso',
         'Registrado como entregador com sucesso!',
@@ -267,10 +268,9 @@ class _QRScannerPageState extends State<QRScannerPage> {
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
-      
+
       // Voltar para a página anterior
       Get.back();
-      
     } catch (e) {
       Get.snackbar(
         'Erro',
@@ -324,10 +324,10 @@ class _QRScannerPageState extends State<QRScannerPage> {
     try {
       // Confirmar entrega
       await _deliveryController.confirmDelivery(orderId, confirmationCode);
-      
+
       // Recarregar pedidos
       await _deliveryController.loadDeliveryOrders();
-      
+
       Get.snackbar(
         'Sucesso',
         'Entrega confirmada com sucesso!',
@@ -335,10 +335,9 @@ class _QRScannerPageState extends State<QRScannerPage> {
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
-      
+
       // Voltar para a página anterior
       Get.back();
-      
     } catch (e) {
       Get.snackbar(
         'Erro',

@@ -16,6 +16,7 @@ class ClientModel extends UserModel {
     required super.latitude,
     required super.longitude,
     required super.isSeller,
+    super.isEntregador,
     this.cpf,
     required this.ativo,
     required this.dataCriacao,
@@ -50,6 +51,7 @@ class ClientModel extends UserModel {
           ? (json['longitude'] as int).toDouble()
           : (json['longitude'] as double? ?? 0.0),
       isSeller: json['isSeller'] ?? false,
+      isEntregador: json['isEntregador'],
       cpf: json['cpf'],
       ativo: json['ativo'] ?? true,
       dataCriacao: json['data_criacao'] != null

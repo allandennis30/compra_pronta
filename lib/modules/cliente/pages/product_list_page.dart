@@ -8,7 +8,7 @@ import '../../../core/widgets/product_image_display.dart';
 import '../../../core/themes/app_colors.dart';
 
 class ProductListPage extends StatelessWidget {
-  final ProductListController controller = Get.put(ProductListController());
+  final ProductListController controller = Get.find<ProductListController>();
 
   ProductListPage({super.key});
 
@@ -70,7 +70,9 @@ class ProductListPage extends StatelessWidget {
                   controller.showFilters
                       ? Icons.filter_alt
                       : Icons.filter_alt_outlined,
-                  color: controller.hasActiveFilters ? AppColors.primary(context) : null,
+                  color: controller.hasActiveFilters
+                      ? AppColors.primary(context)
+                      : null,
                 ),
                 onPressed: controller.toggleFilters,
                 tooltip: 'Filtros Avançados',
@@ -316,10 +318,13 @@ class ProductListPage extends StatelessWidget {
                   selected: isSelected,
                   onSelected: (_) => controller.setCategory(category),
                   backgroundColor: AppColors.chipBackground(context),
-                  selectedColor: AppColors.chipSelected(context).withOpacity(0.2),
+                  selectedColor:
+                      AppColors.chipSelected(context).withOpacity(0.2),
                   checkmarkColor: AppColors.chipSelected(context),
                   labelStyle: TextStyle(
-                    color: isSelected ? AppColors.chipSelected(context) : AppColors.chipText(context),
+                    color: isSelected
+                        ? AppColors.chipSelected(context)
+                        : AppColors.chipText(context),
                     fontWeight:
                         isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
@@ -447,14 +452,20 @@ class ProductListPage extends StatelessWidget {
                         height: 36,
                         child: Obx(() {
                           final cartController = Get.find<CartController>();
-                          final isInCart = cartController.isProductInCart(product.id ?? '');
-                          
+                          final isInCart =
+                              cartController.isProductInCart(product.id ?? '');
+
                           return FilledButton.icon(
-                            onPressed: isInCart ? null : () {
-                              cartController.addItem(product, context: context);
-                            },
+                            onPressed: isInCart
+                                ? null
+                                : () {
+                                    cartController.addItem(product,
+                                        context: context);
+                                  },
                             icon: Icon(
-                              isInCart ? Icons.check_circle : Icons.add_shopping_cart,
+                              isInCart
+                                  ? Icons.check_circle
+                                  : Icons.add_shopping_cart,
                               size: 16,
                               color: isInCart ? const Color(0xFF2E7D32) : null,
                             ),
@@ -462,20 +473,22 @@ class ProductListPage extends StatelessWidget {
                               isInCart ? 'Adicionado' : 'Adicionar',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: isInCart ? const Color(0xFF2E7D32) : null,
+                                color:
+                                    isInCart ? const Color(0xFF2E7D32) : null,
                               ),
                             ),
                             style: FilledButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 4),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              backgroundColor: isInCart 
-                                ? Colors.grey.shade200 // Cinza claro
-                                : null,
-                              foregroundColor: isInCart 
-                                ? const Color(0xFF2E7D32) // Verde escuro
-                                : null,
+                              backgroundColor: isInCart
+                                  ? Colors.grey.shade200 // Cinza claro
+                                  : null,
+                              foregroundColor: isInCart
+                                  ? const Color(0xFF2E7D32) // Verde escuro
+                                  : null,
                             ),
                           );
                         }),
@@ -576,7 +589,6 @@ class ProductListPage extends StatelessWidget {
     });
   }
 
-
   Widget _buildPaginationInfo(BuildContext context) {
     return Obx(() {
       if (controller.totalPages <= 1) return const SizedBox.shrink();
@@ -615,7 +627,8 @@ class ProductListPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search_off, size: 60, color: AppColors.iconSecondary(context)),
+          Icon(Icons.search_off,
+              size: 60, color: AppColors.iconSecondary(context)),
           const SizedBox(height: 16),
           Text(
             'Nenhum produto encontrado',

@@ -7,13 +7,14 @@ import '../../auth/controllers/auth_controller.dart';
 import '../../../routes/app_pages.dart';
 
 class DeliveryMainPage extends StatefulWidget {
-  const DeliveryMainPage({Key? key}) : super(key: key);
+  const DeliveryMainPage({super.key});
 
   @override
   State<DeliveryMainPage> createState() => _DeliveryMainPageState();
 }
 
-class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBindingObserver {
+class _DeliveryMainPageState extends State<DeliveryMainPage>
+    with WidgetsBindingObserver {
   final DeliveryController _deliveryController = Get.find<DeliveryController>();
   final ScrollController _scrollController = ScrollController();
 
@@ -22,7 +23,9 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _setupScrollListener();
-    _refreshData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshData();
+    });
   }
 
   @override
@@ -31,13 +34,15 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
-  
+
   void _setupScrollListener() {
     _scrollController.addListener(() {
       // Verificar se chegou próximo ao final da lista (80% do scroll)
-      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent * 0.8) {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent * 0.8) {
         // Carregar mais pedidos se houver próxima página
-        if (_deliveryController.hasNextPage.value && !_deliveryController.isLoadingMore.value) {
+        if (_deliveryController.hasNextPage.value &&
+            !_deliveryController.isLoadingMore.value) {
           _deliveryController.loadMoreDeliveryOrders();
         }
       }
@@ -49,7 +54,9 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
     super.didChangeAppLifecycleState(state);
     // Atualizar dados quando o app volta ao primeiro plano
     if (state == AppLifecycleState.resumed) {
-      _refreshData();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _refreshData();
+      });
     }
   }
 
@@ -93,7 +100,7 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
                 // Barra do Mercax
                 _buildMercaxBar(),
                 const SizedBox(height: 12),
-                
+
                 // Banner de modo de uso
                 _buildModeBanner(),
                 const SizedBox(height: 16),
@@ -244,16 +251,16 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
                       width: 1,
                     ),
                   ),
-                  child: Row(
+                  child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.person,
                         color: Colors.white,
                         size: 16,
                       ),
-                      const SizedBox(width: 4),
-                      const Text(
+                      SizedBox(width: 4),
+                      Text(
                         'Cliente',
                         style: TextStyle(
                           color: Colors.white,
@@ -275,7 +282,7 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
   Widget _buildStatsSection() {
     return Obx(() {
       final stats = _deliveryController.deliveryStats.value;
-      
+
       return Card(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -340,7 +347,8 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
     });
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+      String title, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -383,7 +391,7 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
   Widget _buildStoresSection() {
     return Obx(() {
       final stores = _deliveryController.deliveryStores;
-      
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -421,15 +429,16 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
             ...stores.map((store) => Card(
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
-                    leading: CircleAvatar(
+                    leading: const CircleAvatar(
                       backgroundColor: Colors.orange,
-                      child: const Icon(
+                      child: Icon(
                         Icons.store,
                         color: Colors.white,
                       ),
                     ),
                     title: Text(store['name'] ?? 'Loja'),
-                    subtitle: Text(store['address'] ?? 'Endereço não informado'),
+                    subtitle:
+                        Text(store['address'] ?? 'Endereço não informado'),
                     trailing: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -461,7 +470,9 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
               ),
             ),
           // Indicador de fim da lista
-          if (_deliveryController.deliveryOrders.isNotEmpty && !_deliveryController.hasNextPage.value && !_deliveryController.isLoadingMore.value)
+          if (_deliveryController.deliveryOrders.isNotEmpty &&
+              !_deliveryController.hasNextPage.value &&
+              !_deliveryController.isLoadingMore.value)
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Center(
@@ -482,7 +493,7 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
   Widget _buildOrdersSection() {
     return Obx(() {
       final orders = _deliveryController.deliveryOrders;
-      
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -546,7 +557,8 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Cliente: ${order['client_name'] ?? 'N/A'}'),
-                        Text('Valor: R\$ ${order['total']?.toStringAsFixed(2) ?? '0.00'}'),
+                        Text(
+                            'Valor: R\$ ${order['total']?.toStringAsFixed(2) ?? '0.00'}'),
                       ],
                     ),
                     trailing: Container(
@@ -555,7 +567,8 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: _getStatusColor(order['status']).withOpacity(0.1),
+                        color:
+                            _getStatusColor(order['status']).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -581,7 +594,8 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Text(order['delivery_address'] ?? 'Endereço não informado'),
+                            Text(order['delivery_address'] ??
+                                'Endereço não informado'),
                             const SizedBox(height: 16),
                             Row(
                               children: [
@@ -589,8 +603,9 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
                                   child: ElevatedButton.icon(
                                     onPressed: () async {
                                       // Navegar para confirmação de entrega e aguardar resultado
-                                      final result = await Get.toNamed(Routes.deliveryConfirmation);
-                                      
+                                      final result = await Get.toNamed(
+                                          Routes.deliveryConfirmation);
+
                                       // Se houve sucesso na confirmação, atualizar dados
                                       if (result == true) {
                                         _refreshData();
@@ -608,7 +623,8 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
                                 Expanded(
                                   child: ElevatedButton.icon(
                                     onPressed: () {
-                                      _showUpdateStatusDialog(order['id'].toString());
+                                      _showUpdateStatusDialog(
+                                          order['id'].toString());
                                     },
                                     icon: const Icon(Icons.edit),
                                     label: const Text('Atualizar Status'),
@@ -637,7 +653,9 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
               ),
             ),
           // Indicador de fim da lista
-          if (_deliveryController.deliveryOrders.isNotEmpty && !_deliveryController.hasNextPage.value && !_deliveryController.isLoadingMore.value)
+          if (_deliveryController.deliveryOrders.isNotEmpty &&
+              !_deliveryController.hasNextPage.value &&
+              !_deliveryController.isLoadingMore.value)
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Center(
@@ -723,7 +741,7 @@ class _DeliveryMainPageState extends State<DeliveryMainPage> with WidgetsBinding
   void _switchToClientMode() async {
     final authController = Get.find<AuthController>();
     await authController.saveUserMode('cliente');
-    
+
     Get.offAll(
       () => const ClienteMainPage(),
       transition: Transition.fadeIn,

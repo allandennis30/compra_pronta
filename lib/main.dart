@@ -6,30 +6,25 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'core/themes/app_theme.dart';
 import 'routes/app_pages.dart';
 import 'modules/auth/controllers/auth_controller.dart';
-import 'modules/auth/repositories/auth_repository.dart';
-import 'modules/cliente/controllers/cart_controller.dart';
-import 'core/repositories/repository_factory.dart';
 import 'core/controllers/update_controller.dart';
-import 'core/services/app_update_service.dart';
+import 'core/services/initialize_services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Inicializar Firebase
   // TEMPORARIAMENTE DESABILITADO - Erro Firebase Messaging FIS auth token
   // await Firebase.initializeApp();
 
-  
   // Bloquear rotação do app - apenas portrait
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  
+
   await GetStorage.init();
   await Hive.initFlutter();
 
- 
   runApp(const MyApp());
 }
 
@@ -48,16 +43,7 @@ class MyApp extends StatelessWidget {
       defaultTransition: Transition.fade,
       transitionDuration: const Duration(milliseconds: 300),
       initialBinding: BindingsBuilder(() {
-        // Repositories globais usando factory
-        Get.put<AuthRepository>(RepositoryFactory.createAuthRepository());
-
-        // Services globais
-        Get.put(AppUpdateService());
-
-        // Controllers globais
-        Get.put(AuthController());
-        Get.put(CartController());
-        Get.put(UpdateController());
+        InitializeServices.init();
       }),
       home: _InitialRouteDecider(),
     );
@@ -69,7 +55,7 @@ class _InitialRouteDecider extends StatelessWidget {
   Widget build(BuildContext context) {
     final AuthController authController = Get.find<AuthController>();
     final UpdateController updateController = Get.find<UpdateController>();
-    
+
     // O controller já carrega o usuário do storage no onInit
     return Obx(() {
       if (authController.isLoading) {
@@ -94,12 +80,12 @@ class _InitialRouteDecider extends StatelessWidget {
           ),
         );
       }
-      
+
       // Verificar atualizações após autenticação
       WidgetsBinding.instance.addPostFrameCallback((_) {
         updateController.checkForUpdates(showLoading: false);
       });
-      
+
       if (authController.isLoggedIn) {
         if (authController.isVendor) {
           // Vendedor

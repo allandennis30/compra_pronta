@@ -17,7 +17,7 @@ class SupabaseImageServiceExample {
       }
 
       // 2. Fazer upload da imagem
-      final userId = 'user123'; // ID do usuário atual
+      const userId = 'user123'; // ID do usuário atual
       final imageUrl = await _imageService.uploadImage(imageFile, userId);
 
       AppLogger.success('✅ Imagem enviada com sucesso: $imageUrl');
@@ -38,11 +38,12 @@ class SupabaseImageServiceExample {
       }
 
       // 2. Fazer upload da nova imagem (a anterior será removida automaticamente)
-      final userId = 'user123';
+      const userId = 'user123';
       final newImageUrl = await _imageService.uploadImage(newImageFile, userId,
           oldImageUrl: oldImageUrl);
 
-      AppLogger.success('✅ Nova imagem enviada e imagem anterior removida automaticamente');
+      AppLogger.success(
+          '✅ Nova imagem enviada e imagem anterior removida automaticamente');
       AppLogger.success('✅ Nova URL: $newImageUrl');
       return newImageUrl;
     } catch (e) {
@@ -61,7 +62,7 @@ class SupabaseImageServiceExample {
       }
 
       // 2. Atualizar imagem (remove a antiga e faz upload da nova)
-      final userId = 'user123';
+      const userId = 'user123';
       final newImageUrl =
           await _imageService.updateImage(newImageFile, userId, oldImageUrl);
 
@@ -94,7 +95,7 @@ class SupabaseImageServiceExample {
   /// Exemplo: Listar imagens de um usuário
   Future<List<String>> listUserImagesExample() async {
     try {
-      final userId = 'user123';
+      const userId = 'user123';
       final images = await _imageService.listUserImages(userId);
 
       AppLogger.success('✅ ${images.length} imagens encontradas:');
@@ -132,7 +133,8 @@ class SupabaseImageServiceExample {
       // 1. Selecionar imagem
       final imageFile = await _imageService.pickImage(ImageSource.gallery);
       if (imageFile == null) {
-        AppLogger.warning('⚠️ Nenhuma imagem selecionada, criando produto sem imagem');
+        AppLogger.warning(
+            '⚠️ Nenhuma imagem selecionada, criando produto sem imagem');
         return;
       }
 
@@ -142,7 +144,7 @@ class SupabaseImageServiceExample {
       AppLogger.info('📸 Imagem processada: ${compressedImage.path}');
 
       // 3. Fazer upload da imagem
-      final userId = 'user123';
+      const userId = 'user123';
       final imageUrl = await _imageService.uploadImage(compressedImage, userId);
       AppLogger.success('✅ Upload concluído: $imageUrl');
 
