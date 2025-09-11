@@ -9,9 +9,9 @@ class ProductSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<ProductListController>();
-    
+
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.only(top: 4, left: 4),
       child: Row(
         children: [
           Expanded(
@@ -27,7 +27,7 @@ class ProductSearchBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Obx(() => IconButton(
+          /*  Obx(() => IconButton(
                 icon: Icon(
                   controller.showFilters
                       ? Icons.filter_alt
@@ -38,7 +38,7 @@ class ProductSearchBar extends StatelessWidget {
                 ),
                 onPressed: controller.toggleFilters,
                 tooltip: 'Filtros Avançados',
-              )),
+              )), */
         ],
       ),
     );

@@ -14,8 +14,8 @@ class ProductFiltersPanel extends StatelessWidget {
       if (!controller.showFilters) return const SizedBox.shrink();
 
       return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: AppColors.surfaceVariant(context),
           borderRadius: BorderRadius.circular(12),
@@ -41,11 +41,11 @@ class ProductFiltersPanel extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             const _VendorFilter(),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             const _PriceFilter(),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             const _SortingFilter(),
           ],
         ),
@@ -68,12 +68,12 @@ class _VendorFilter extends StatelessWidget {
           'Vendedor',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Obx(() => DropdownButtonFormField<String>(
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 contentPadding:
-                    EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               ),
               value: controller.selectedVendor.isEmpty
                   ? null
@@ -113,7 +113,7 @@ class _PriceFilter extends StatelessWidget {
           'Faixa de Preço',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Row(
           children: [
             Expanded(
@@ -122,6 +122,7 @@ class _PriceFilter extends StatelessWidget {
                   labelText: 'Mín',
                   border: OutlineInputBorder(),
                   prefixText: 'R\$ ',
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
@@ -130,13 +131,14 @@ class _PriceFilter extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
               child: TextFormField(
                 decoration: const InputDecoration(
                   labelText: 'Máx',
                   border: OutlineInputBorder(),
                   prefixText: 'R\$ ',
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
@@ -166,12 +168,12 @@ class _SortingFilter extends StatelessWidget {
           'Ordenar por',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Obx(() => DropdownButtonFormField<String>(
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 contentPadding:
-                    EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               ),
               value: controller.sortBy,
               items: controller.sortOptions.map((option) {

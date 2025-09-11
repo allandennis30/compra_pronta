@@ -9,7 +9,7 @@ class ProductCategoryFilter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<ProductListController>();
-    
+
     return Obx(() {
       final categories = controller.categories;
 
@@ -27,7 +27,7 @@ class ProductCategoryFilter extends StatelessWidget {
 
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 4),
         decoration: BoxDecoration(
           color: AppColors.surfaceVariant(context),
           border: Border(
@@ -41,17 +41,17 @@ class ProductCategoryFilter extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: 6),
               child: Text(
                 'Categorias',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
             SizedBox(
-              height: 50,
+              height: 40,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -62,7 +62,8 @@ class ProductCategoryFilter extends StatelessWidget {
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: Obx(() {
-                      final isSelected = controller.isCategorySelected(category);
+                      final isSelected =
+                          controller.isCategorySelected(category);
 
                       return FilterChip(
                         label: Text(category.isEmpty ? 'Todos' : category),
