@@ -296,6 +296,11 @@ class VendorProductFormPage extends GetView<VendorProductFormController> {
       final categories = controller.categories;
       final selectedCategory = controller.selectedCategory.value;
       
+      // Debug: Log para verificar estado das categorias
+      print('🔍 [DROPDOWN_DEBUG] Categories: $categories');
+      print('🔍 [DROPDOWN_DEBUG] Selected: "$selectedCategory"');
+      print('🔍 [DROPDOWN_DEBUG] Contains selected: ${categories.contains(selectedCategory)}');
+      
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -330,7 +335,7 @@ class VendorProductFormPage extends GetView<VendorProductFormController> {
                 ],
               ),
             ),
-            value: selectedCategory.isEmpty ? null : selectedCategory,
+            value: selectedCategory.isEmpty || !categories.contains(selectedCategory) ? null : selectedCategory,
             items: isLoading 
                 ? []
                 : categories.map((category) {
