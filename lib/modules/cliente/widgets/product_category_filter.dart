@@ -27,7 +27,7 @@ class ProductCategoryFilter extends StatelessWidget {
 
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(vertical: 2),
         decoration: BoxDecoration(
           color: AppColors.surfaceVariant(context),
           border: Border(
@@ -41,7 +41,7 @@ class ProductCategoryFilter extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 6),
+              padding: EdgeInsets.symmetric(horizontal: 12),
               child: Text(
                 'Categorias',
                 style: TextStyle(
@@ -51,16 +51,16 @@ class ProductCategoryFilter extends StatelessWidget {
               ),
             ),
             SizedBox(
-              height: 40,
+              height: 42,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 itemCount: categories.length,
                 itemBuilder: (context, index) {
                   final category = categories[index];
 
                   return Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.only(right: 6),
                     child: Obx(() {
                       final isSelected =
                           controller.isCategorySelected(category);

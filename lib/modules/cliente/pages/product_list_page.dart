@@ -9,20 +9,10 @@ import '../widgets/product_grid.dart';
 import '../widgets/product_pagination_info.dart';
 
 class ProductListPage extends StatelessWidget {
-  ProductListPage({super.key});
-
-  ProductListController get controller {
-    // Garante que o controller seja criado imediatamente se não existir
-    if (!Get.isRegistered<ProductListController>()) {
-      Get.put(ProductListController(), permanent: true);
-    }
-    return Get.find<ProductListController>();
-  }
+  const ProductListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Garante que o controller seja inicializado assim que a tela for construída
-    final ctrl = controller;
     return Scaffold(
       appBar: AppBar(
         title: Center(

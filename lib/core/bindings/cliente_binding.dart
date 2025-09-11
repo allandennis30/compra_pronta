@@ -10,6 +10,7 @@ import '../../modules/cliente/repositories/cart_repository.dart';
 import '../../modules/cliente/repositories/order_repository.dart';
 import '../../modules/cliente/repositories/delivery_repository.dart';
 import '../../modules/auth/repositories/auth_repository.dart';
+import '../../modules/auth/controllers/auth_controller.dart';
 import '../repositories/repository_factory.dart';
 
 class ClienteBinding extends Bindings {
@@ -37,8 +38,15 @@ class ClienteBinding extends Bindings {
     // Services
     Get.lazyPut<ApiService>(() => ApiService());
 
-    // Controllers
-    Get.lazyPut<ProductListController>(() => ProductListController());
+    // Controllers - AuthController deve ser inicializado primeiro
+    if (!Get.isRegistered<AuthController>()) {
+      Get.put<AuthController>(AuthController(), permanent: true);
+    }
+    
+    // ProductListController deve ser inicializado imediatamente para configurar listeners
+    if (!Get.isRegistered<ProductListController>()) {
+      Get.put<ProductListController>(ProductListController());
+    }
     Get.lazyPut<CartController>(() => CartController());
     Get.lazyPut<OrderHistoryController>(() => OrderHistoryController());
     Get.lazyPut<ProfileController>(() => ProfileController());

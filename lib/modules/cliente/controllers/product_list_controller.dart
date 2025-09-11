@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:supermercado_brasil/core/models/user_model.dart';
 import '../models/product_model.dart';
 import '../repositories/product_repository.dart';
 import '../../../core/utils/logger.dart';
@@ -81,10 +82,14 @@ class ProductListController extends GetxController {
     AppLogger.info('🚀 ProductListController onInit chamado');
     // Garantir que 'Todos' seja selecionado por padrão
     _selectedCategory.value = '';
-    AppLogger.info('📂 Categoria selecionada inicialmente: "${_selectedCategory.value}"');
-    
-    // Aguardar o usuário estar logado antes de carregar produtos
-    _waitForUserAndLoadProducts();
+    AppLogger.info(
+        '📂 Categoria selecionada inicialmente: "${_selectedCategory.value}"');
+
+    // Configurar listener reativo para mudanças no usuário
+    _setupUserListener();
+
+    // Tentar carregar produtos se usuário já estiver logado
+    _tryInitialLoad();
     _loadFavorites();
     _loadAvailableFilters();
     AppLogger.info('✅ ProductListController onInit concluído');
@@ -93,43 +98,81 @@ class ProductListController extends GetxController {
   @override
   void onReady() {
     super.onReady();
+    AppLogger.info('🚀 ProductListController onReady chamado');
     // Garante que os produtos sejam carregados quando a tela estiver pronta
     if (!_isInitialized.value) {
-      _waitForUserAndLoadProducts();
+      AppLogger.info('🔄 Tentando carregamento inicial no onReady');
+      _tryInitialLoad();
+    } else {
+      AppLogger.info('✅ Produtos já inicializados, pulando carregamento no onReady');
     }
   }
 
+  /// Configura listener reativo para mudanças no usuário logado
+  void _setupUserListener() {
+    try {
+      final authController = Get.find<AuthController>();
+      AppLogger.info('🔗 Configurando listener para AuthController');
+      AppLogger.info('👤 Estado inicial do usuário: ${authController.currentUser?.name ?? "null"}');
+      AppLogger.info('🔄 Estado inicial isInitialized: ${_isInitialized.value}');
+
+      // Escutar mudanças no currentUser do AuthController
+      ever(authController.currentUserRx, (UserModel? user) {
+        AppLogger.info(
+            '🔔 Listener ativado - Usuário: ${user?.name ?? "null"}, Inicializado: ${_isInitialized.value}');
+        if (user != null && !_isInitialized.value) {
+          AppLogger.info('👤 Usuário logado detectado, carregando produtos');
+          _loadProducts();
+        } else if (user != null && _isInitialized.value) {
+          AppLogger.info('ℹ️ Usuário já logado e produtos já inicializados');
+        } else if (user == null) {
+          AppLogger.info('⚠️ Usuário deslogado detectado');
+          // Limpar produtos quando usuário deslogar
+          _products.clear();
+          _filteredProducts.clear();
+          _isInitialized.value = false;
+        }
+      });
+      
+      AppLogger.info('✅ Listener configurado com sucesso');
+    } catch (e) {
+      AppLogger.error('❌ Erro ao configurar listener do usuário', e);
+    }
+  }
+
+  /// Tenta carregar produtos se o usuário já estiver logado
+  Future<void> _tryInitialLoad() async {
+    try {
+      final authController = Get.find<AuthController>();
+      AppLogger.info('🔍 Verificando estado do usuário para carregamento inicial');
+      AppLogger.info('👤 Usuário atual: ${authController.currentUser?.name ?? "null"}');
+      AppLogger.info('🔐 IsLoggedIn: ${authController.isLoggedIn}');
+      AppLogger.info('⏳ IsLoading: ${authController.isLoading}');
+      AppLogger.info('🔄 IsInitialized: ${_isInitialized.value}');
+
+      if (authController.currentUser != null && !_isInitialized.value) {
+        AppLogger.info('👤 Usuário já logado, carregando produtos imediatamente');
+        await _loadProducts();
+      } else if (authController.currentUser == null) {
+        AppLogger.info('⏳ Usuário não logado, aguardando login via listener');
+      } else if (_isInitialized.value) {
+        AppLogger.info('✅ Produtos já foram inicializados anteriormente');
+      }
+    } catch (e) {
+      AppLogger.error('❌ Erro ao tentar carregamento inicial', e);
+    }
+  }
+
+  /// Método legado mantido para compatibilidade (não usado mais)
   Future<void> _waitForUserAndLoadProducts() async {
-    final authController = Get.find<AuthController>();
-    
-    // Se o usuário já está logado, carregar produtos imediatamente
-    if (authController.currentUser != null) {
-      AppLogger.info('👤 Usuário já logado, carregando produtos');
-      await _loadProducts();
-      return;
-    }
-    
-    // Aguardar até 10 segundos pelo login do usuário
-    AppLogger.info('⏳ Aguardando usuário fazer login...');
-    int attempts = 0;
-    const maxAttempts = 20; // 10 segundos (500ms * 20)
-    
-    while (attempts < maxAttempts && authController.currentUser == null) {
-      await Future.delayed(const Duration(milliseconds: 500));
-      attempts++;
-    }
-    
-    if (authController.currentUser != null) {
-      AppLogger.info('✅ Usuário logado, carregando produtos');
-      await _loadProducts();
-    } else {
-      AppLogger.warning('⚠️ Timeout aguardando login do usuário');
-    }
+    // Este método foi substituído pelo sistema reativo
+    // Mantido apenas para compatibilidade
+    await _tryInitialLoad();
   }
 
   Future<void> _loadProducts({bool refresh = false}) async {
     AppLogger.info('📦 _loadProducts iniciado - refresh: $refresh');
-    
+
     if (refresh) {
       _currentPage.value = 1;
       _products.clear();
@@ -187,14 +230,16 @@ class ProductListController extends GetxController {
       if (_availableCategories.isEmpty) {
         _extractCategoriesFromProducts();
       }
-      
-      AppLogger.info('✅ _loadProducts concluído com sucesso - ${newProducts.length} produtos carregados');
+
+      AppLogger.info(
+          '✅ _loadProducts concluído com sucesso - ${newProducts.length} produtos carregados');
     } catch (e) {
       AppLogger.error('❌ Erro ao carregar produtos', e);
     } finally {
       _isLoading.value = false;
       _isLoadingMore.value = false;
-      AppLogger.info('🏁 _loadProducts finalizado - isLoading: ${_isLoading.value}');
+      AppLogger.info(
+          '🏁 _loadProducts finalizado - isLoading: ${_isLoading.value}');
     }
   }
 
@@ -241,8 +286,10 @@ class ProductListController extends GetxController {
     // Para produtos públicos, os filtros são aplicados na API
     // então não precisamos filtrar localmente
     _filteredProducts.value = List.from(_products);
-    AppLogger.info('🔍 _applyFilters: ${_products.length} produtos -> ${_filteredProducts.length} produtos filtrados');
-    AppLogger.info('📋 Produtos filtrados: ${_filteredProducts.map((p) => p.name).take(3).join(", ")}${_filteredProducts.length > 3 ? "..." : ""}');
+    AppLogger.info(
+        '🔍 _applyFilters: ${_products.length} produtos -> ${_filteredProducts.length} produtos filtrados');
+    AppLogger.info(
+        '📋 Produtos filtrados: ${_filteredProducts.map((p) => p.name).take(3).join(", ")}${_filteredProducts.length > 3 ? "..." : ""}');
   }
 
   Future<void> setCategory(String category) async {

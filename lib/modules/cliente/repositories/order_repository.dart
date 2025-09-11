@@ -1,4 +1,4 @@
-import 'package:mercax/core/models/user_model.dart';
+import 'package:supermercado_brasil/core/models/user_model.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../../core/repositories/base_repository.dart';
 import '../../../core/models/order_model.dart';
@@ -10,7 +10,8 @@ import 'package:get/get.dart';
 
 abstract class OrderRepository extends BaseRepository<OrderModel> {
   Future<List<OrderModel>> getUserOrders();
-  Future<Map<String, dynamic>> getUserOrdersPaginated({int page = 1, int limit = 20});
+  Future<Map<String, dynamic>> getUserOrdersPaginated(
+      {int page = 1, int limit = 20});
   Future<OrderModel?> getOrderById(String orderId);
   Future<OrderModel> createOrder(OrderModel order);
   Future<void> updateOrderStatus(String orderId, String status);
@@ -126,17 +127,18 @@ class OrderRepositoryImpl implements OrderRepository {
   }
 
   @override
-  Future<Map<String, dynamic>> getUserOrdersPaginated({int page = 1, int limit = 20}) async {
+  Future<Map<String, dynamic>> getUserOrdersPaginated(
+      {int page = 1, int limit = 20}) async {
     try {
       final allOrders = await getUserOrders();
-      
+
       final totalItems = allOrders.length;
       final totalPages = (totalItems / limit).ceil();
       final startIndex = (page - 1) * limit;
       final endIndex = (startIndex + limit).clamp(0, totalItems);
-      
+
       final paginatedOrders = allOrders.sublist(startIndex, endIndex);
-      
+
       return {
         'orders': paginatedOrders,
         'pagination': {

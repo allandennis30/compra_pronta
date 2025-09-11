@@ -1,5 +1,5 @@
-name: mercax
-description: "A new Flutter project."
+name: supermercado_brasil
+description: "Supermercado Brasil - Aplicativo de delivery e vendas online."
 publish_to: 'none'
 version: 1.0.0+1
 environment:
@@ -43,6 +43,7 @@ dependencies:
   googleapis_auth: ^1.4.1
   # Dependência para geração de QR Code
   qr_flutter: ^4.1.0
+  http_parser: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -61,20 +62,20 @@ flutter:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/images/apenasIcone.png"
+  image_path: "assets/images/logo.png"
   min_sdk_android: 21
   remove_alpha_ios: true
   adaptive_icon_background: "#F5F5F5"
-  adaptive_icon_foreground: "assets/images/apenasIcone.png"
+  adaptive_icon_foreground: "assets/images/logo.png"
   web:
     generate: true
-    image_path: "assets/images/apenasIcone.png"
+    image_path: "assets/images/logo.png"
     background_color: "#F5F5F5"
     theme_color: "#F5F5F5"
   windows:
     generate: true
-    image_path: "assets/images/apenasIcone.png"
+    image_path: "assets/images/logo.png"
     icon_size: 48
   macos:
     generate: true
-    image_path: "assets/images/apenasIcone.png"
+    image_path: "assets/images/logo.png"

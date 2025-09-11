@@ -94,9 +94,7 @@ class VendorMetricsController extends GetxController {
   Future<void> _refreshMetricsSilently() async {
     try {
       await _loadRecentOrders();
-    } catch (e) {
-      AppLogger.debug('🔄 [VENDOR_METRICS] Refresh silencioso falhou: $e');
-    }
+    } catch (e) {}
   }
 
   String getStatusText(String status) {

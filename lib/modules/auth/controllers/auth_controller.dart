@@ -140,11 +140,17 @@ class AuthController extends GetxController {
     try {
       final user = await _authRepository.getCurrentUser();
       if (user != null) {
+        AppLogger.info('📱 Carregando usuário do storage: ${user.name}');
         _currentUser.value = user;
         _isLoggedIn.value = true;
         
         // Carregar modo do usuário salvo
         await loadUserMode();
+        
+        // Forçar notificação dos listeners após carregar usuário do storage
+        AppLogger.info('🔔 Notificando controllers sobre usuário carregado do storage');
+        _currentUser.refresh();
+        AppLogger.info('✅ Notificação enviada para listeners');
         
         // Buscar dados atualizados do servidor
         await _fetchUpdatedUserData();
@@ -185,6 +191,8 @@ class AuthController extends GetxController {
           // Atualizar dados no storage e na memória
           await _authRepository.saveUser(updatedUser);
           _currentUser.value = updatedUser;
+          AppLogger.info('🔔 Notificando controllers sobre dados atualizados do servidor');
+          _currentUser.refresh();
           
           AppLogger.success('✅ Dados do usuário atualizados do servidor');
         }
@@ -254,6 +262,10 @@ class AuthController extends GetxController {
           if (saveCredentials) {
             await _authRepository.saveCredentials(email, password);
           }
+          
+          // Forçar notificação dos listeners após login bem-sucedido
+          _currentUser.refresh();
+          AppLogger.info('🔔 Notificando controllers sobre login bem-sucedido');
         } else {
           AppLogger.warning('⚠️ Login realizado mas token inválido');
         }

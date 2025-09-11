@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/product_list_controller.dart';
-import '../../../core/themes/app_colors.dart';
 
 class ProductSearchBar extends StatelessWidget {
   const ProductSearchBar({super.key});
@@ -11,7 +10,7 @@ class ProductSearchBar extends StatelessWidget {
     final controller = Get.find<ProductListController>();
 
     return Padding(
-      padding: const EdgeInsets.only(top: 4, left: 4),
+      padding: const EdgeInsets.only(top: 2) + const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         children: [
           Expanded(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mercax/core/utils/logger.dart';
+import 'package:supermercado_brasil/core/utils/logger.dart';
 import 'dart:async';
 import '../../../core/models/order_model.dart';
 import '../../../core/models/user_model.dart';
@@ -76,7 +76,6 @@ class VendedorOrderDetailController extends GetxController {
       loadOrderDetails(orderId);
     } else {
       _errorMessage.value = 'ID do pedido não fornecido';
-
     }
   }
 
@@ -84,8 +83,6 @@ class VendedorOrderDetailController extends GetxController {
     try {
       _isLoading.value = true;
       _errorMessage.value = '';
-
-
 
       final order = await _repository.getOrderById(orderId);
       if (order != null) {
@@ -108,11 +105,9 @@ class VendedorOrderDetailController extends GetxController {
         }
       } else {
         _errorMessage.value = 'Pedido não encontrado';
-
       }
     } catch (e) {
       _errorMessage.value = 'Erro ao carregar detalhes do pedido: $e';
-
     } finally {
       _isLoading.value = false;
     }
@@ -145,11 +140,9 @@ class VendedorOrderDetailController extends GetxController {
       if (latest.status != _order.value!.status ||
           latest.updatedAt != _order.value!.updatedAt) {
         _order.value = latest;
-
       }
     } catch (e) {
       // silencioso
-
     }
   }
 
@@ -158,8 +151,6 @@ class VendedorOrderDetailController extends GetxController {
 
     try {
       _isUpdatingStatus.value = true;
-
-
 
       await _repository.updateOrderStatus(_order.value!.id, newStatus);
 
@@ -181,7 +172,6 @@ class VendedorOrderDetailController extends GetxController {
 
       _order.value = updatedOrder;
 
-
       Get.snackbar(
         'Sucesso',
         'Status atualizado com sucesso!',
@@ -191,7 +181,6 @@ class VendedorOrderDetailController extends GetxController {
       );
       _notifyOrderStatusChanged(updatedOrder);
     } catch (e) {
-
       Get.snackbar(
         'Erro',
         'Erro ao atualizar status: $e',
@@ -239,7 +228,6 @@ class VendedorOrderDetailController extends GetxController {
   void shareOrderDetails() {
     if (_order.value == null) return;
 
-
     // Simular compartilhamento (implementar com share_plus)
     Get.snackbar(
       'Sucesso',
@@ -248,13 +236,11 @@ class VendedorOrderDetailController extends GetxController {
       backgroundColor: Colors.green,
       colorText: Colors.white,
     );
-
   }
 
   String formatDateTime(DateTime dateTime) {
     return '${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year} às ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
-
 
   /// Gerar QR Code para confirmação de entrega
   Future<String?> generateDeliveryQRCode() async {
@@ -295,8 +281,6 @@ class VendedorOrderDetailController extends GetxController {
         final salesReportController = Get.find<SalesReportController>();
         salesReportController.updateOrderInReport(updatedOrder);
       }
-
-
     } catch (e) {
       AppLogger.error('❌ [ORDER] Erro ao notificar mudança de status', e);
     }
