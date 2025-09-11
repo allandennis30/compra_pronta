@@ -24,13 +24,15 @@ class PdfReportService {
 
     // Filtrar pedidos por período
     final filteredOrders = orders.where((order) {
-      return order.createdAt.isAfter(startDate.subtract(const Duration(days: 1))) &&
-             order.createdAt.isBefore(endDate.add(const Duration(days: 1)));
+      return order.createdAt
+              .isAfter(startDate.subtract(const Duration(days: 1))) &&
+          order.createdAt.isBefore(endDate.add(const Duration(days: 1)));
     }).toList();
 
     // Calcular totais
     final totalOrders = filteredOrders.length;
-    final totalRevenue = filteredOrders.fold<double>(0.0, (sum, order) => sum + order.total);
+    final totalRevenue =
+        filteredOrders.fold<double>(0.0, (sum, order) => sum + order.total);
 
     // Agrupar por mês
     final ordersByMonth = <String, List<OrderModel>>{};
@@ -59,40 +61,41 @@ class PdfReportService {
   }
 
   /// Cabeçalho do relatório
-  pw.Widget _buildHeader(String storeName, DateTime startDate, DateTime endDate) {
+  pw.Widget _buildHeader(
+      String storeName, DateTime startDate, DateTime endDate) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Text(
           'Relatório de Vendas',
-          style:         pw.TextStyle(
-          fontSize: 24,
-          fontWeight: pw.FontWeight.bold,
-        ),
+          style: pw.TextStyle(
+            fontSize: 24,
+            fontWeight: pw.FontWeight.bold,
+          ),
         ),
         pw.SizedBox(height: 8),
         pw.Text(
           storeName,
-          style:         pw.TextStyle(
-          fontSize: 18,
-          fontWeight: pw.FontWeight.normal,
-        ),
+          style: pw.TextStyle(
+            fontSize: 18,
+            fontWeight: pw.FontWeight.normal,
+          ),
         ),
         pw.SizedBox(height: 4),
         pw.Text(
           'Período: ${DateFormat('dd/MM/yyyy').format(startDate)} - ${DateFormat('dd/MM/yyyy').format(endDate)}',
-          style:         const pw.TextStyle(
-          fontSize: 14,
-          color: PdfColors.grey700,
-        ),
+          style: const pw.TextStyle(
+            fontSize: 14,
+            color: PdfColors.grey700,
+          ),
         ),
         pw.SizedBox(height: 4),
         pw.Text(
           'Gerado em: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}',
-          style:         const pw.TextStyle(
-          fontSize: 12,
-          color: PdfColors.grey600,
-        ),
+          style: const pw.TextStyle(
+            fontSize: 12,
+            color: PdfColors.grey600,
+          ),
         ),
       ],
     );
@@ -113,19 +116,19 @@ class PdfReportService {
             children: [
               pw.Text(
                 'Total de Pedidos',
-                style:         const pw.TextStyle(
-          fontSize: 12,
-          color: PdfColors.grey700,
-        ),
+                style: const pw.TextStyle(
+                  fontSize: 12,
+                  color: PdfColors.grey700,
+                ),
               ),
               pw.SizedBox(height: 4),
               pw.Text(
                 totalOrders.toString(),
-                style:         pw.TextStyle(
-          fontSize: 20,
-          fontWeight: pw.FontWeight.bold,
-          color: PdfColors.blue800,
-        ),
+                style: pw.TextStyle(
+                  fontSize: 20,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.blue800,
+                ),
               ),
             ],
           ),
@@ -133,19 +136,19 @@ class PdfReportService {
             children: [
               pw.Text(
                 'Receita Total',
-                style:         const pw.TextStyle(
-          fontSize: 12,
-          color: PdfColors.grey700,
-        ),
+                style: const pw.TextStyle(
+                  fontSize: 12,
+                  color: PdfColors.grey700,
+                ),
               ),
               pw.SizedBox(height: 4),
               pw.Text(
                 'R\$ ${NumberFormat.currency(locale: 'pt_BR', symbol: '').format(totalRevenue)}',
-                style:         pw.TextStyle(
-          fontSize: 20,
-          fontWeight: pw.FontWeight.bold,
-          color: PdfColors.green800,
-        ),
+                style: pw.TextStyle(
+                  fontSize: 20,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.green800,
+                ),
               ),
             ],
           ),
@@ -155,7 +158,8 @@ class PdfReportService {
   }
 
   /// Relatórios por mês
-  List<pw.Widget> _buildMonthlyReports(Map<String, List<OrderModel>> ordersByMonth) {
+  List<pw.Widget> _buildMonthlyReports(
+      Map<String, List<OrderModel>> ordersByMonth) {
     final widgets = <pw.Widget>[];
 
     // Ordenar meses
@@ -170,7 +174,8 @@ class PdfReportService {
 
     for (final month in sortedMonths) {
       final monthOrders = ordersByMonth[month]!;
-      final monthRevenue = monthOrders.fold<double>(0.0, (sum, order) => sum + order.total);
+      final monthRevenue =
+          monthOrders.fold<double>(0.0, (sum, order) => sum + order.total);
 
       widgets.addAll([
         pw.SizedBox(height: 20),
@@ -196,25 +201,25 @@ class PdfReportService {
         children: [
           pw.Text(
             'Mês: $month',
-            style:         pw.TextStyle(
-          fontSize: 16,
-          fontWeight: pw.FontWeight.bold,
-        ),
+            style: pw.TextStyle(
+              fontSize: 16,
+              fontWeight: pw.FontWeight.bold,
+            ),
           ),
           pw.Row(
             children: [
               pw.Text(
                 '$orderCount pedidos',
-                style: pw.TextStyle(fontSize: 12),
+                style: const pw.TextStyle(fontSize: 12),
               ),
               pw.SizedBox(width: 20),
               pw.Text(
                 'R\$ ${NumberFormat.currency(locale: 'pt_BR', symbol: '').format(revenue)}',
-                style:         pw.TextStyle(
-          fontSize: 14,
-          fontWeight: pw.FontWeight.bold,
-          color: PdfColors.green800,
-        ),
+                style: pw.TextStyle(
+                  fontSize: 14,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.green800,
+                ),
               ),
             ],
           ),
@@ -228,11 +233,11 @@ class PdfReportService {
     return pw.Table(
       border: pw.TableBorder.all(color: PdfColors.grey300),
       columnWidths: {
-        0: const pw.FixedColumnWidth(40),  // Número
-        1: const pw.FixedColumnWidth(80),  // Data
-        2: const pw.FlexColumnWidth(2),    // Cliente
-        3: const pw.FlexColumnWidth(3),    // Itens
-        4: const pw.FixedColumnWidth(60),  // Total
+        0: const pw.FixedColumnWidth(40), // Número
+        1: const pw.FixedColumnWidth(80), // Data
+        2: const pw.FlexColumnWidth(2), // Cliente
+        3: const pw.FlexColumnWidth(3), // Itens
+        4: const pw.FixedColumnWidth(60), // Total
       },
       children: [
         // Cabeçalho da tabela
@@ -268,7 +273,8 @@ class PdfReportService {
   }
 
   /// Célula da tabela
-  pw.Widget _buildTableCell(String text, {bool isHeader = false, bool isNumeric = false}) {
+  pw.Widget _buildTableCell(String text,
+      {bool isHeader = false, bool isNumeric = false}) {
     return pw.Padding(
       padding: const pw.EdgeInsets.all(6),
       child: pw.Text(
@@ -286,11 +292,11 @@ class PdfReportService {
   /// Formatar itens do pedido
   String _formatOrderItems(List<OrderItemModel> items) {
     if (items.isEmpty) return 'Nenhum item';
-    
+
     final itemTexts = items.map((item) {
       return '${item.quantity}x ${item.productName}';
     }).toList();
-    
+
     return itemTexts.join(', ');
   }
 
@@ -300,7 +306,7 @@ class PdfReportService {
       final tempDir = await getTemporaryDirectory();
       final file = File('${tempDir.path}/$fileName');
       await file.writeAsBytes(pdfBytes);
-      
+
       await Share.shareXFiles(
         [XFile(file.path)],
         text: 'Relatório de vendas - $fileName',
