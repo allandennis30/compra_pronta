@@ -28,25 +28,25 @@ class LoginPage extends StatelessWidget {
                 child: Image.asset(
                   'assets/images/logo.png',
                   height: 120,
-                  width: 120,
-                  fit: BoxFit.contain,
+                  width: 200,
+                  fit: BoxFit.fitWidth,
                 ),
               ),
 
               const SizedBox(height: 8),
               Text(
-                'Bem-vindo ao Mercax',
+                'Bem-vindo',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).primaryColor,
+                    ),
               ),
               const SizedBox(height: 8),
               Text(
                 'O mercado que vai até você.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[600],
-                ),
+                      color: Colors.grey[600],
+                    ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),

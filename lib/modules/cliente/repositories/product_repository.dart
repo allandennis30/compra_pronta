@@ -176,9 +176,35 @@ class ProductRepositoryImpl implements ProductRepository {
       final authController = Get.find<AuthController>();
       final currentUser = authController.currentUser;
       final clientCity = currentUser?.address.city ?? '';
-      
+
       // Verificar dados do usuário
+      AppLogger.info('🏠 Cliente atual: ${currentUser?.name ?? "null"}, Cidade: "$clientCity"');
       
+      // Se não há usuário logado ou cidade, retornar lista vazia
+      if (currentUser == null) {
+        AppLogger.warning('⚠️ Usuário não logado, não é possível carregar produtos');
+        return {
+          'products': <ProductModel>[],
+          'pagination': {
+            'totalPages': 0,
+            'totalItems': 0,
+            'hasNextPage': false,
+          },
+        };
+      }
+      
+      if (clientCity.isEmpty) {
+        AppLogger.warning('⚠️ Cidade do cliente não configurada, não é possível carregar produtos');
+        return {
+          'products': <ProductModel>[],
+          'pagination': {
+            'totalPages': 0,
+            'totalItems': 0,
+            'hasNextPage': false,
+          },
+        };
+      }
+
       final queryParams = <String, String>{
         'page': page.toString(),
         'limit': limit.toString(),
@@ -250,17 +276,18 @@ class ProductRepositoryImpl implements ProductRepository {
       final authController = Get.find<AuthController>();
       final currentUser = authController.currentUser;
       final clientCity = currentUser?.address.city ?? '';
-      
+
       // Verificar dados do usuário nos filtros
-      
+
       final queryParams = <String, String>{};
-      
+
       // Adicionar cidade do cliente (obrigatório)
       if (clientCity.isNotEmpty) {
         queryParams['clientCity'] = clientCity;
       }
-      
-      final publicProductsFiltersEndpoint = await AppConstants.publicProductsFiltersEndpoint;
+
+      final publicProductsFiltersEndpoint =
+          await AppConstants.publicProductsFiltersEndpoint;
       final uri = Uri.parse(publicProductsFiltersEndpoint)
           .replace(queryParameters: queryParams);
 

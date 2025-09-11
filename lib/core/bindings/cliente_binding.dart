@@ -17,14 +17,16 @@ class ClienteBinding extends Bindings {
   void dependencies() {
     // Repositories usando factory (apenas se não existirem globalmente)
     if (!Get.isRegistered<AuthRepository>()) {
-      Get.lazyPut<AuthRepository>(() => RepositoryFactory.createAuthRepository());
+      Get.lazyPut<AuthRepository>(
+          () => RepositoryFactory.createAuthRepository());
     }
     if (!Get.isRegistered<ProductRepository>()) {
       Get.lazyPut<ProductRepository>(
           () => RepositoryFactory.createProductRepository());
     }
     if (!Get.isRegistered<CartRepository>()) {
-      Get.lazyPut<CartRepository>(() => RepositoryFactory.createCartRepository());
+      Get.lazyPut<CartRepository>(
+          () => RepositoryFactory.createCartRepository());
     }
     if (!Get.isRegistered<OrderRepository>()) {
       Get.lazyPut<OrderRepository>(

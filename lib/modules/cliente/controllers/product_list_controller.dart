@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/product_model.dart';
 import '../repositories/product_repository.dart';
 import '../../../core/utils/logger.dart';
+import '../../auth/controllers/auth_controller.dart';
 
 class ProductListController extends GetxController {
   final ProductRepository _productRepository = Get.find<ProductRepository>();
@@ -77,19 +78,68 @@ class ProductListController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _loadProducts();
+    AppLogger.info('🚀 ProductListController onInit chamado');
+    // Garantir que 'Todos' seja selecionado por padrão
+    _selectedCategory.value = '';
+    AppLogger.info('📂 Categoria selecionada inicialmente: "${_selectedCategory.value}"');
+    
+    // Aguardar o usuário estar logado antes de carregar produtos
+    _waitForUserAndLoadProducts();
     _loadFavorites();
     _loadAvailableFilters();
+    AppLogger.info('✅ ProductListController onInit concluído');
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    // Garante que os produtos sejam carregados quando a tela estiver pronta
+    if (!_isInitialized.value) {
+      _waitForUserAndLoadProducts();
+    }
+  }
+
+  Future<void> _waitForUserAndLoadProducts() async {
+    final authController = Get.find<AuthController>();
+    
+    // Se o usuário já está logado, carregar produtos imediatamente
+    if (authController.currentUser != null) {
+      AppLogger.info('👤 Usuário já logado, carregando produtos');
+      await _loadProducts();
+      return;
+    }
+    
+    // Aguardar até 10 segundos pelo login do usuário
+    AppLogger.info('⏳ Aguardando usuário fazer login...');
+    int attempts = 0;
+    const maxAttempts = 20; // 10 segundos (500ms * 20)
+    
+    while (attempts < maxAttempts && authController.currentUser == null) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      attempts++;
+    }
+    
+    if (authController.currentUser != null) {
+      AppLogger.info('✅ Usuário logado, carregando produtos');
+      await _loadProducts();
+    } else {
+      AppLogger.warning('⚠️ Timeout aguardando login do usuário');
+    }
   }
 
   Future<void> _loadProducts({bool refresh = false}) async {
+    AppLogger.info('📦 _loadProducts iniciado - refresh: $refresh');
+    
     if (refresh) {
       _currentPage.value = 1;
       _products.clear();
       _filteredProducts.clear();
     }
 
-    if (_isLoading.value) return;
+    if (_isLoading.value) {
+      AppLogger.info('⏳ _loadProducts cancelado - já está carregando');
+      return;
+    }
 
     if (refresh) {
       _isLoading.value = true;
@@ -132,11 +182,19 @@ class ProductListController extends GetxController {
 
       _applyFilters();
       _isInitialized.value = true;
+
+      // Atualizar categorias após carregar produtos
+      if (_availableCategories.isEmpty) {
+        _extractCategoriesFromProducts();
+      }
+      
+      AppLogger.info('✅ _loadProducts concluído com sucesso - ${newProducts.length} produtos carregados');
     } catch (e) {
-      AppLogger.error('Erro ao carregar produtos', e);
+      AppLogger.error('❌ Erro ao carregar produtos', e);
     } finally {
       _isLoading.value = false;
       _isLoadingMore.value = false;
+      AppLogger.info('🏁 _loadProducts finalizado - isLoading: ${_isLoading.value}');
     }
   }
 
@@ -167,8 +225,15 @@ class ProductListController extends GetxController {
       final result = await _productRepository.getAvailableFilters();
       _availableCategories.value = result['categories'] ?? [];
       _availableVendors.value = result['vendors'] ?? [];
+
+      // Se não conseguiu carregar categorias da API, extrair dos produtos locais
+      if (_availableCategories.isEmpty && _products.isNotEmpty) {
+        _extractCategoriesFromProducts();
+      }
     } catch (e) {
       AppLogger.error('Erro ao carregar filtros disponíveis', e);
+      // Fallback: extrair categorias dos produtos carregados
+      _extractCategoriesFromProducts();
     }
   }
 
@@ -176,6 +241,8 @@ class ProductListController extends GetxController {
     // Para produtos públicos, os filtros são aplicados na API
     // então não precisamos filtrar localmente
     _filteredProducts.value = List.from(_products);
+    AppLogger.info('🔍 _applyFilters: ${_products.length} produtos -> ${_filteredProducts.length} produtos filtrados');
+    AppLogger.info('📋 Produtos filtrados: ${_filteredProducts.map((p) => p.name).take(3).join(", ")}${_filteredProducts.length > 3 ? "..." : ""}');
   }
 
   Future<void> setCategory(String category) async {
@@ -249,6 +316,12 @@ class ProductListController extends GetxController {
     AppLogger.info('Categorias disponíveis: $_availableCategories');
     AppLogger.info('Categorias para exibição: $categories');
     AppLogger.info('Categoria selecionada: ${_selectedCategory.value}');
+    AppLogger.info('Total de produtos carregados: ${_products.length}');
+  }
+
+  // Método para forçar atualização das categorias
+  void refreshCategories() {
+    _extractCategoriesFromProducts();
   }
 
   // Método para verificar se uma categoria está selecionada
@@ -258,6 +331,20 @@ class ProductListController extends GetxController {
 
   List<String> get categories {
     return ['', ..._availableCategories];
+  }
+
+  void _extractCategoriesFromProducts() {
+    // Extrair apenas categorias únicas dos produtos carregados
+    final productCategories = _products
+        .map((product) => product.category ?? '')
+        .where((category) => category.isNotEmpty)
+        .toSet()
+        .toList();
+
+    // Usar apenas as categorias que realmente existem nos produtos
+    _availableCategories.value = productCategories..sort();
+    AppLogger.info(
+        'Categorias extraídas dos produtos: ${_availableCategories.length} - $productCategories');
   }
 
   List<String> get vendors {
